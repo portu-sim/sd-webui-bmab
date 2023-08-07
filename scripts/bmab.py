@@ -343,7 +343,7 @@ class BmabExtScript(scripts.Script):
 
 	def _create_ui(self):
 		with gr.Group():
-			with gr.Accordion('MyExt', open=False):
+			with gr.Accordion('BMAB', open=False):
 				with gr.Row():
 					with gr.Column():
 						enabled = gr.Checkbox(label='Enabled', value=False)
