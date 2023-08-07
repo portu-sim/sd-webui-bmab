@@ -353,7 +353,7 @@ class BmabExtScript(scripts.Script):
 					with gr.Tabs(elem_id='tabs'):
 						with gr.Tab('Basic', elem_id='basic_tabs'):
 							with gr.Row():
-								contrast = gr.Slider(minimum=0, maximum=2, valu=1, step=0.05, label='Contrast')
+								contrast = gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
 							with gr.Row():
 								brightness = gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
 							with gr.Row():
