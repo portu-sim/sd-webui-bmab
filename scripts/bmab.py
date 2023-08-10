@@ -1,6 +1,7 @@
 import cv2
 import torch
 import numpy as np
+import math
 
 import gradio as gr
 from PIL import Image
@@ -30,6 +31,19 @@ def image_to_latent(p, img):
 def latent_to_image(x, index=0):
 	img = sample_to_image(x, index, approximation=0)
 	return img
+
+
+def tensor_to_image(xx):
+	x_sample = 255. * np.moveaxis(xx.cpu().numpy(), 0, 2)
+	x_sample = x_sample.astype(np.uint8)
+	return Image.fromarray(x_sample)
+
+
+def image_to_tensor(xx):
+	image = np.array(xx).astype(np.float32) / 255
+	image = np.moveaxis(image, 2, 0)
+	image = torch.from_numpy(image)
+	return image
 
 
 def resize_image(resize_mode, im, width, height, upscaler_name=None):
@@ -125,18 +139,29 @@ def sam(prompt, input_image):
 
 
 def check_process(args, p):
-	return args['edge_flavor_enabed'] or args['noise_alpha'] or \
+	return args['edge_flavor_enabed'] or args['noise_alpha'] or args['face_lighting'] or \
 		(args['blend_enabed'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1)
 
 
-def process_all(args, p, bgimg):
-	if args['edge_flavor_enabed']:
-		print('edge flavor', args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
-		bgimg = edge_flavor(bgimg, args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
+def process_face_lighting(args, p, bgimg):
+	if args['face_lighting'] != 0:
+		strength = 1 + args['face_lighting']
+		print('brightness', args['brightness'])
+		enhancer = ImageEnhance.Brightness(bgimg)
+		processed = enhancer.enhance(strength)
+		face_mask = sam('face:0:0.4:0', bgimg)
+		bgimg.paste(processed, mask=face_mask)
+	return bgimg
 
+
+def process_all(args, p, bgimg):
 	if args['noise_alpha'] != 0:
 		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])
 		bgimg = Image.blend(bgimg, img_noise, alpha=args['noise_alpha'])
+
+	if args['edge_flavor_enabed']:
+		print('edge flavor', args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
+		bgimg = edge_flavor(bgimg, args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
 
 	if args['blend_enabed'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1:
 		blend = Image.fromarray(args['input_image'], mode='RGB')
@@ -146,6 +171,48 @@ def process_all(args, p, bgimg):
 		bgimg = Image.blend(bgimg, img, alpha=args['blend_alpha'])
 
 	return bgimg
+
+
+def calc_color_temperature(temp):
+	white = (255.0, 254.11008387561782, 250.0419083427406)
+
+	temperature = temp / 100
+
+	if temperature <= 66:
+		red = 255.0
+	else:
+		red = float(temperature - 60)
+		red = 329.698727446 * math.pow(red, -0.1332047592)
+		if red < 0:
+			red = 0
+		if red > 255:
+			red = 255
+
+	if temperature <= 66:
+		green = temperature
+		green = 99.4708025861 * math.log(green) - 161.1195681661
+	else:
+		green = float(temperature - 60)
+		green = 288.1221695283 * math.pow(green, -0.0755148492)
+	if green < 0:
+		green = 0
+	if green > 255:
+		green = 255
+
+	if temperature >= 66:
+		blue = 255.0
+	else:
+		if temperature <= 19:
+			blue = 0.0
+		else:
+			blue = float(temperature - 10)
+			blue = 138.5177312231 * math.log(blue) - 305.0447927307
+			if blue < 0:
+				blue = 0
+			if blue > 255:
+				blue = 255
+
+	return red/white[0], green/white[1], blue/white[2]
 
 
 def after_process(args, p, bgimg):
@@ -164,6 +231,16 @@ def after_process(args, p, bgimg):
 		print('sharpeness', args['sharpeness'])
 		bgimg = enhancer.enhance(args['sharpeness'])
 
+	if args['color_temperature'] and args['color_temperature'] != 0:
+		print('color_temperature', args['color_temperature'])
+		temp = calc_color_temperature(6500 + args['color_temperature'])
+		az = []
+		data = bgimg.getdata()
+		for d in data:
+			az.append((int(d[0] * temp[0]), int(d[1] * temp[1]), int(d[2] * temp[2])))
+		bgimg = Image.new('RGB', bgimg.size)
+		bgimg.putdata(az)
+
 	return bgimg
 
 
@@ -180,7 +257,7 @@ class BmabExtScript(scripts.Script):
 		return scripts.AlwaysVisible
 
 	def ui(self, is_img2img):
-		enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, noise_alpha, blend_enabed, blend_alpha, dino_detect_enabed, dino_prompt, edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength = self._create_ui()
+		enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabed, blend_alpha, dino_detect_enabed, dino_prompt, edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength, face_lighting = self._create_ui()
 
 		self.infotext_fields = (
 			(enabled, lambda x: gr.Checkbox.update(value='enabled' in x)),
@@ -189,6 +266,7 @@ class BmabExtScript(scripts.Script):
 			(contrast, 'contrast value'),
 			(brightness, 'brightness value'),
 			(sharpeness, 'sharpeness value'),
+			(color_temperature, 'color temperature value'),
 			(noise_alpha, 'noise alpha value'),
 			(blend_enabed, lambda x: gr.Checkbox.update(value='blend_enabed' in x)),
 			(blend_alpha, 'blend transparency value'),
@@ -198,13 +276,15 @@ class BmabExtScript(scripts.Script):
 			(edge_low_threadhold, 'edge low threshold value'),
 			(edge_high_threadhold, 'edge high threshold value'),
 			(edge_strength, 'edge strength value'),
+			(face_lighting, 'face lighting value'),
 		)
 
 		return [
-			enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, noise_alpha,
-			blend_enabed, blend_alpha,
+			enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
+			noise_alpha, blend_enabed, blend_alpha,
 			dino_detect_enabed, dino_prompt,
-			edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength
+			edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength,
+			face_lighting
 		]
 
 	def run(self, p, *args):
@@ -252,6 +332,9 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
+		if not a['execute_before_img2img']:
+			return
+
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			if p.resize_mode == 2 and len(p.init_images) == 1:
 				print('img2img.resize')
@@ -259,7 +342,7 @@ class BmabExtScript(scripts.Script):
 				img = resize_image(p.resize_mode, im, p.width, p.height)
 				self.extra_image.append(img)
 				for idx in range(0, len(p.init_latent)):
-					p.init_latent[idx] = image_to_latent(p, img)
+					p.init_latent[idx] = image_to_tensor(img)
 
 			if check_process(a, p):
 				if len(p.init_images) == 1:
@@ -271,7 +354,7 @@ class BmabExtScript(scripts.Script):
 						p.init_latent[idx] = image_to_latent(p, img)
 				else:
 					for idx in range(0, len(p.init_latent)):
-						img = latent_to_image(p.init_latent, idx)
+						img = latent_to_image(p.init_latent, 0)
 						print('img2img.process_all')
 						img = process_all(a, p, img)
 						self.extra_image.append(img)
@@ -285,16 +368,31 @@ class BmabExtScript(scripts.Script):
 			'contrast': args[3],
 			'brightness': args[4],
 			'sharpeness': args[5],
-			'noise_alpha': args[6],
-			'blend_enabed': args[7],
-			'blend_alpha': args[8],
-			'dino_detect_enabed': args[9],
-			'dino_prompt': args[10],
-			'edge_flavor_enabed': args[11],
-			'edge_low_threadhold': args[12],
-			'edge_high_threadhold': args[13],
-			'edge_strength': args[14],
+			'color_temperature': args[6],
+			'noise_alpha': args[7],
+			'blend_enabed': args[8],
+			'blend_alpha': args[9],
+			'dino_detect_enabed': args[10],
+			'dino_prompt': args[11],
+			'edge_flavor_enabed': args[12],
+			'edge_low_threadhold': args[13],
+			'edge_high_threadhold': args[14],
+			'edge_strength': args[15],
+			'face_lighting': args[16],
 		}
+
+	def postprocess_batch(self, p, *args, **kwargs):
+		super().postprocess_batch(p, *args, **kwargs)
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return
+
+		if a['face_lighting'] !=0:
+			images = kwargs['images']
+			for idx in range(0, len(images)):
+				img = tensor_to_image(images[idx])
+				img = process_face_lighting(a, p, img)
+				images[idx] = image_to_tensor(img)
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
@@ -319,16 +417,13 @@ class BmabExtScript(scripts.Script):
 		if not check_process(a, p):
 			return
 
-		print('before_hr', p)
-		print('sampler', p.sampler)
-
 		if isinstance(p, StableDiffusionProcessingTxt2Img):
 			if isinstance(p.sampler, KDiffusionSampler):
 
 				def sample_img2img(self, s, ar, p, x, noise, conditioning, unconditional_conditioning, steps=None,
 								   image_conditioning=None):
 					for idx in range(0, len(x)):
-						img = latent_to_image(x, idx)
+						img = latent_to_image(x, 0)
 						print('process_all', ar)
 						img = process_all(ar, p, img)
 						s.extra_image.append(img)
@@ -359,6 +454,9 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								sharpeness = gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
 							with gr.Row():
+								color_temperature = gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1,
+															  label='Color temperature (6500K)')
+							with gr.Row():
 								noise_alpha = gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
 							with gr.Row():
@@ -378,9 +476,12 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								dino_detect_enabed = gr.Checkbox(label='Dino detect enabled', value=False)
 							with gr.Row():
-								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='')
+								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='', label='Prompt')
+						with gr.Tab('Face', elem_id='face_tabs'):
+							with gr.Row():
+								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting')
 
-				return (enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, noise_alpha, blend_enabed, blend_alpha,
-						dino_detect_enabed, dino_prompt, edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength)
+				return (enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabed, blend_alpha,
+						dino_detect_enabed, dino_prompt, edge_flavor_enabed, edge_low_threadhold, edge_high_threadhold, edge_strength, face_lighting)
 
 
