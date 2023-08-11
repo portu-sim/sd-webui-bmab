@@ -2,6 +2,7 @@ import cv2
 import torch
 import numpy as np
 import math
+import random
 
 import gradio as gr
 from PIL import Image
@@ -13,7 +14,7 @@ from modules import scripts
 from modules import shared
 from modules import devices
 from modules import images
-from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
 from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules.sd_samplers import sample_to_image
 
@@ -218,21 +219,17 @@ def calc_color_temperature(temp):
 def after_process(args, p, bgimg):
 	if args['contrast']:
 		enhancer = ImageEnhance.Contrast(bgimg)
-		print('contrast', args['contrast'])
 		bgimg = enhancer.enhance(args['contrast'])
 
 	if args['brightness']:
 		enhancer = ImageEnhance.Brightness(bgimg)
-		print('brightness', args['brightness'])
 		bgimg = enhancer.enhance(args['brightness'])
 
 	if args['sharpeness']:
 		enhancer = ImageEnhance.Sharpness(bgimg)
-		print('sharpeness', args['sharpeness'])
 		bgimg = enhancer.enhance(args['sharpeness'])
 
 	if args['color_temperature'] and args['color_temperature'] != 0:
-		print('color_temperature', args['color_temperature'])
 		temp = calc_color_temperature(6500 + args['color_temperature'])
 		az = []
 		data = bgimg.getdata()
@@ -242,6 +239,21 @@ def after_process(args, p, bgimg):
 		bgimg.putdata(az)
 
 	return bgimg
+
+
+def process_prompt(prompt):
+	lines = prompt.split('\n')
+
+	read_line = 0
+	base_prompt = ''
+	for line in lines:
+		if line.startswith('#random'):
+			candidates = lines[read_line+1:]
+			base_prompt += random.choice(candidates) + '\n'
+			return base_prompt
+		base_prompt += line + '\n'
+		read_line += 1
+	return base_prompt
 
 
 class BmabExtScript(scripts.Script):
@@ -326,6 +338,16 @@ class BmabExtScript(scripts.Script):
 					newpil.putdata(newdata)
 					p.init_images[0] = newpil
 					self.extra_image.append(newpil)
+
+	def before_process_batch(self, p, *args, **kwargs):
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return
+
+		prompts = kwargs['prompts']
+		for idx in range(0, len(prompts)):
+			prompts[idx] = process_prompt(prompts[idx])
+			print(prompts[idx])
 
 	def process_batch(self, p, *args, **kwargs):
 		a = self.parse_args(args)
@@ -455,7 +477,7 @@ class BmabExtScript(scripts.Script):
 								sharpeness = gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
 							with gr.Row():
 								color_temperature = gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1,
-															  label='Color temperature (6500K)')
+															  label='Color temperature')
 							with gr.Row():
 								noise_alpha = gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
