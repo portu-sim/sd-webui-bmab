@@ -14,7 +14,7 @@ from modules import scripts
 from modules import shared
 from modules import devices
 from modules import images
-from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
 from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules.sd_samplers import sample_to_image
 
@@ -48,8 +48,6 @@ def image_to_tensor(xx):
 
 
 def resize_image(resize_mode, im, width, height, upscaler_name=None):
-	print(resize_mode, im, width, height, upscaler_name)
-
 	if resize_mode == 2:
 		vwidth = im.width
 		vheight = height
@@ -146,8 +144,8 @@ def check_process(args, p):
 
 def process_face_lighting(args, p, bgimg):
 	if args['face_lighting'] != 0:
+		p.extra_generation_params['BMAB face lighting'] = args['face_lighting']
 		strength = 1 + args['face_lighting']
-		print('brightness', args['brightness'])
 		enhancer = ImageEnhance.Brightness(bgimg)
 		processed = enhancer.enhance(strength)
 		face_mask = sam('face:0:0.4:0', bgimg)
@@ -157,14 +155,18 @@ def process_face_lighting(args, p, bgimg):
 
 def process_all(args, p, bgimg):
 	if args['noise_alpha'] != 0:
+		p.extra_generation_params['BMAB noise alpha'] = args['noise_alpha']
 		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])
 		bgimg = Image.blend(bgimg, img_noise, alpha=args['noise_alpha'])
 
 	if args['edge_flavor_enabed']:
-		print('edge flavor', args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
+		p.extra_generation_params['BMAB edge flavor low threadhold'] = args['edge_low_threadhold']
+		p.extra_generation_params['BMAB edge flavor high threadhold'] = args['edge_high_threadhold']
+		p.extra_generation_params['BMAB edge flavor strength'] = args['edge_strength']
 		bgimg = edge_flavor(bgimg, args['edge_low_threadhold'], args['edge_high_threadhold'], args['edge_strength'])
 
 	if args['blend_enabed'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1:
+		p.extra_generation_params['BMAB blend alpha'] = args['blend_alpha']
 		blend = Image.fromarray(args['input_image'], mode='RGB')
 		img = Image.new(mode='RGB', size=bgimg.size)
 		img.paste(bgimg, (0, 0))
@@ -218,18 +220,22 @@ def calc_color_temperature(temp):
 
 def after_process(args, p, bgimg):
 	if args['contrast']:
+		p.extra_generation_params['BMAB contrast'] = args['contrast']
 		enhancer = ImageEnhance.Contrast(bgimg)
 		bgimg = enhancer.enhance(args['contrast'])
 
 	if args['brightness']:
+		p.extra_generation_params['BMAB brightness'] = args['brightness']
 		enhancer = ImageEnhance.Brightness(bgimg)
 		bgimg = enhancer.enhance(args['brightness'])
 
 	if args['sharpeness']:
+		p.extra_generation_params['BMAB sharpeness'] = args['sharpeness']
 		enhancer = ImageEnhance.Sharpness(bgimg)
 		bgimg = enhancer.enhance(args['sharpeness'])
 
 	if args['color_temperature'] and args['color_temperature'] != 0:
+		p.extra_generation_params['BMAB color temperature'] = args['color_temperature']
 		temp = calc_color_temperature(6500 + args['color_temperature'])
 		az = []
 		data = bgimg.getdata()
@@ -299,10 +305,6 @@ class BmabExtScript(scripts.Script):
 			face_lighting
 		]
 
-	def run(self, p, *args):
-		print('run', args)
-		super().run(p, *args)
-
 	def before_component(self, component, **kwargs):
 		super().before_component(component, **kwargs)
 
@@ -339,7 +341,7 @@ class BmabExtScript(scripts.Script):
 					p.init_images[0] = newpil
 					self.extra_image.append(newpil)
 
-	def before_process_batch(self, p, *args, **kwargs):
+	def process_batch(self, p, *args, **kwargs):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
@@ -347,20 +349,17 @@ class BmabExtScript(scripts.Script):
 		prompts = kwargs['prompts']
 		for idx in range(0, len(prompts)):
 			prompts[idx] = process_prompt(prompts[idx])
-			print(prompts[idx])
-
-	def process_batch(self, p, *args, **kwargs):
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
+			p.extra_generation_params['BMAB random prompt'] = prompts[idx]
+		if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+			p.hr_prompts = prompts
 
 		if not a['execute_before_img2img']:
 			return
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			if p.resize_mode == 2 and len(p.init_images) == 1:
-				print('img2img.resize')
 				im = p.init_images[0]
+				p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
 				img = resize_image(p.resize_mode, im, p.width, p.height)
 				self.extra_image.append(img)
 				for idx in range(0, len(p.init_latent)):
@@ -369,7 +368,6 @@ class BmabExtScript(scripts.Script):
 			if check_process(a, p):
 				if len(p.init_images) == 1:
 					img = latent_to_image(p.init_latent, 0)
-					print('img2img.process_all')
 					img = process_all(a, p, img)
 					self.extra_image.append(img)
 					for idx in range(0, len(p.init_latent)):
@@ -377,7 +375,6 @@ class BmabExtScript(scripts.Script):
 				else:
 					for idx in range(0, len(p.init_latent)):
 						img = latent_to_image(p.init_latent, 0)
-						print('img2img.process_all')
 						img = process_all(a, p, img)
 						self.extra_image.append(img)
 						p.init_latent[idx] = image_to_latent(p, img)
@@ -428,9 +425,6 @@ class BmabExtScript(scripts.Script):
 	def postprocess(self, p, processed, *args):
 		processed.images.extend(self.extra_image)
 
-	def callback_state(self, d):
-		print('test')
-
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
 		if not a['enabled']:
@@ -446,7 +440,6 @@ class BmabExtScript(scripts.Script):
 								   image_conditioning=None):
 					for idx in range(0, len(x)):
 						img = latent_to_image(x, 0)
-						print('process_all', ar)
 						img = process_all(ar, p, img)
 						s.extra_image.append(img)
 						x[idx] = image_to_latent(p, img)
