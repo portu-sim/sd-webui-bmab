@@ -347,11 +347,12 @@ class BmabExtScript(scripts.Script):
 			return
 
 		prompts = kwargs['prompts']
-		for idx in range(0, len(prompts)):
-			prompts[idx] = process_prompt(prompts[idx])
-			p.extra_generation_params['BMAB random prompt'] = prompts[idx]
-		if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-			p.hr_prompts = prompts
+		if p.prompt.find('#') >= 0:
+			for idx in range(0, len(prompts)):
+				prompts[idx] = process_prompt(prompts[idx])
+				p.extra_generation_params['BMAB random prompt'] = prompts[idx]
+			if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+				p.hr_prompts = prompts
 
 		if not a['execute_before_img2img']:
 			return
@@ -363,7 +364,7 @@ class BmabExtScript(scripts.Script):
 				img = resize_image(p.resize_mode, im, p.width, p.height)
 				self.extra_image.append(img)
 				for idx in range(0, len(p.init_latent)):
-					p.init_latent[idx] = image_to_tensor(img)
+					p.init_latent[idx] = image_to_latent(p, img)
 
 			if check_process(a, p):
 				if len(p.init_images) == 1:
