@@ -80,7 +80,6 @@ def sam_predict(pilimg, boxes):
 
     result = Image.new('L', pilimg.size, 0)
     for box in boxes:
-        print(box)
         x1, y1, x2, y2 = box
 
         box = np.array([int(x1), int(y1), int(x2), int(y2)])
@@ -93,3 +92,23 @@ def sam_predict(pilimg, boxes):
         result.paste(mask, mask=mask)
 
     return result
+
+
+def sam_predict_box(pilimg, box):
+    sam = sam_init()
+
+    mask_predictor = SamPredictor(sam)
+
+    numpy_image = np.array(pilimg)
+    opencv_image = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
+    mask_predictor.set_image(opencv_image)
+
+    x1, y1, x2, y2 = box
+    box = np.array([int(x1), int(y1), int(x2), int(y2)])
+
+    masks, scores, logits = mask_predictor.predict(
+        box=box,
+        multimask_output=False
+    )
+
+    return Image.fromarray(masks[0])

@@ -1,9 +1,8 @@
-from PIL import Image
 from PIL import ImageEnhance
 
+from scripts.dinosam import dino_init, dino_predict, sam_predict_box
+import modules.shared as shared
 from modules.processing import process_images, StableDiffusionProcessingImg2Img
-from scripts.dinosam import dino_init, dino_predict, sam_init, sam_predict
-from scripts.util import sam
 
 
 def process_face_lighting(args, p, img):
@@ -22,36 +21,22 @@ def process_face_lighting(args, p, img):
 
     dino_init()
     boxes, logits, phrases = dino_predict(img, 'face')
-    print(float(logits))
+    #print(float(logits))
     print(phrases)
 
     org_size = img.size
     print('size', org_size)
 
-    largest = (0, None)
-    for box in boxes:
-        x1, y1, x2, y2 = box
-        size = (x2 - x1) * (y2 - y1)
-        if size > largest[0]:
-            largest = (size, box)
-
-    if largest[0] == 0:
-        return img
-
-    x1, y1, x2, y2 = largest[1]
-
-    mask = Image.new('L', img.size, 0)
-    box_mask = Image.new('L', (int(x2 - x1), int(y2 - y1)), 255)
-    mask.paste(box_mask, (int(x1), int(y1)))
-
     enhancer = ImageEnhance.Brightness(img)
-    bgimg = enhancer.enhance(0.8)
+    bgimg = enhancer.enhance(1 + args['face_lighting'])
 
-    face_mask = sam('face', img)
-    img.paste(bgimg, mask=face_mask)
+    for box in boxes:
+        face_mask = sam_predict_box(img, box)
+        img.paste(bgimg, mask=face_mask)
+        options = dict(mask=face_mask)
+        img = process_face_detailing(p, img, options=options)
 
-    options = dict(mask=face_mask)
-    return process_face_detailing(p, img, options=options)
+    return img
 
 
 def process_face_detailing(p, img, options=None):
@@ -98,6 +83,13 @@ def process_face_detailing(p, img, options=None):
     img2img.scripts = None
     img2img.script_args = None
 
+    class Fake(object):
+        def update(self):
+            pass
+
+    org = shared.total_tqdm
+    shared.total_tqdm = Fake()
     processed = process_images(img2img)
+    shared.total_tqdm = org
 
     return processed.images[0]
