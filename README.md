@@ -95,11 +95,12 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 
 
 # Example
-<p>
-<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="50%" align="left">
-<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="50%" align="right">
-</p>
 
+### Edge enhancemant
+<p>
+<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="30%" align="left">
+<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="30%" align="center">
+</p>
 
 Enabled : CHECK!!   
 Process before Img2Img : CHECK!!
@@ -114,4 +115,10 @@ Edge high threshold : 200
 Edge strength : 0.5   
 
 
+### Expand Background
+<p>
+<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
+<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
+</p>
 
+Comming soon...
