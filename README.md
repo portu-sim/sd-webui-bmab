@@ -95,6 +95,8 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 
 
 # Example
+<img src="https://ibb.co/52yRWQ0"></img>
+<img src="https://ibb.co/nLg4qdj"></img>
 
 Enabled : CHECK!!   
 Process before Img2Img : CHECK!!
