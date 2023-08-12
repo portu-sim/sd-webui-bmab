@@ -115,7 +115,7 @@ Edge high threshold : 200
 Edge strength : 0.5   
 
 
-### Expand Background
+### Resize by person
 <p>
 <img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
 <img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
