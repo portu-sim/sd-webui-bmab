@@ -72,8 +72,6 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 
 ## Imaging
 
-이 기능은 DDSD가 설치된 상태에서 사용할 수 있습니다.
-
 ### Blend Image in Img2Img
 
 이미지 업로드 상자에 입력한 이미지와 Img2Img에 입력된 이미지를 Blending합니다.
@@ -87,11 +85,18 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 
 ## Face
 
-이 기능은 DDSD가 설치된 상태에서 사용할 수 있습니다.
-
 ### Face lighting
 
-이 기능을 사용하게 되면 프로스세가 완료된 이후 얼굴의 밝기를 조정합니다.
+이 기능을 사용하게 되면 프로스세가 완료된 이후 얼굴의 밝기를 조정합니다.   
+얼굴의 밝기를 조정한 이후에 보정을 위해 디테일링을 수행합니다.
+
+## Resize
+
+### Resize by person
+
+그림 속 인물중 가장 신장이 큰 사람의 길이와 그림 높이의 비율이 설정값을 넘어가면 비율을 설정값로 맞추는 기능입니다.   
+설정값이 0.90이고 인물의 전체 길이: 그림 높이가 0.95라고 한다면   
+배경을 늘려서 비율이 0.90% 되도록 합니다.
 
 
 # Example
@@ -114,11 +119,66 @@ Edge low threshold : 50
 Edge high threshold : 200   
 Edge strength : 0.5   
 
+### Dino detect
+
+#### Img2Img 에서 사용하는 경우
+
+<p>
+<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%" align="left">
+<img src="https://i.ibb.co/rk7xDSR/00467-2764185410.png" width="30%" align="center">
+</p>
+<p>
+<img src="https://i.ibb.co/Byw3rY6/tmp3478vdur.png" width="30%" align="left">
+<img src="https://i.ibb.co/7W6QhTG/00024-155186649.png" width="30%" align="center">
+</p>
+
+
+
+첫번째 image는 Img2Img 이미지로 지정
+두번째 image는 BMAB의 Imaging에 Image 입력창에 지정
+
+프로세스 과정에서 세번째 image를 합성하고 프롬프트에 따라서 결과가 얻어진다.   
+
+Enabled : CHECK!!   
+Process before Img2Img : CHECK!!
+
+Contrast : 1.2   
+Brightness : 0.9   
+Sharpeness : 1.5
+
+DINO detect Prompt : 1girl
+
+
+#### Img2Img Inpaint 에서 사용하는 경우
+
+DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준다.
+
+<p>
+<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%" align="left">
+<img src="https://i.ibb.co/80qQvDv/tmpnm78iuqo.png" width="30%" align="center">
+<img src="https://i.ibb.co/mRT77BM/00028-2672855487.png" width="30%" align="center">
+
+</p>
+
+
+이번 예제에서는 배경을 변경했으니, inpaint 설정에서 "Inpaint Not Masked"를 선택해야 한다.   
+반대로 "Inpaint Masked"를 하면 인물이 변경된다.
+
+
+
 
 ### Resize by person
+
 <p>
 <img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
 <img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
 </p>
 
-Comming soon...
+Enabled : CHECK!!   
+Process before Img2Img : CHECK!!
+
+Contrast : 1.2   
+Brightness : 0.9   
+Sharpeness : 1.5   
+
+Resize by person : 0.85
