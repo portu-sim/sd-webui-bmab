@@ -96,11 +96,16 @@ def install_groundingdino():
     launch.run_pip('install %s' % (url + file))
 
 
+def install_segmentanything():
+    launch.run_pip('install segment_anything')
+
+
 install_models()
 
 required = {
     ('pycocotools', install_pycocotools),
-    ('groundingdino', install_groundingdino)
+    ('groundingdino', install_groundingdino),
+    ('segment_anything', install_segmentanything)
 }
 
 for pack_name, func in required:
