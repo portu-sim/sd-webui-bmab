@@ -9,7 +9,6 @@ from PIL import ImageEnhance
 
 from sd_bmab import util, dinosam
 
-
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
 
@@ -42,7 +41,7 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 
 def check_process(args, p):
 	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting'] != 0 or \
-	       (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
+		   (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
 		   (args['resize_by_person'] >= 0.80)
 
 
@@ -108,7 +107,7 @@ def calc_color_temperature(temp):
 			if blue > 255:
 				blue = 255
 
-	return red/white[0], green/white[1], blue/white[2]
+	return red / white[0], green / white[1], blue / white[2]
 
 
 def after_process(args, p, bgimg):
@@ -146,7 +145,7 @@ def process_prompt(prompt):
 	base_prompt = ''
 	for line in lines:
 		if line.startswith('#random'):
-			candidates = lines[read_line+1:]
+			candidates = lines[read_line + 1:]
 			base_prompt += random.choice(candidates) + '\n'
 			return base_prompt
 		base_prompt += line + '\n'

@@ -6,7 +6,6 @@ from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusion
 
 from sd_bmab import samplers, util, process, face
 
-
 samplers.override_samplers()
 
 
@@ -128,6 +127,8 @@ class BmabExtScript(scripts.Script):
 		if a['face_lighting'] != 0:
 			images = kwargs['images']
 			for idx in range(0, len(images)):
+				pidx = p.iteration * p.batch_size + idx
+				a['current_prompt'] = p.all_prompts[pidx]
 				img = util.tensor_to_image(images[idx])
 				img = face.process_face_lighting(a, p, img)
 				images[idx] = util.image_to_tensor(img)
@@ -196,12 +197,12 @@ class BmabExtScript(scripts.Script):
 								edge_flavor_enabled = gr.Checkbox(label='Edge enhancement enabled', value=False)
 							with gr.Row():
 								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1,
-								                                label='Edge low threshold')
+																label='Edge low threshold')
 								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1,
-								                                 label='Edge high threshold')
+																 label='Edge high threshold')
 							with gr.Row():
 								edge_strength = gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05,
-								                          label='Edge strength')
+														  label='Edge strength')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
 								input_image = gr.Image(source="upload")
@@ -213,21 +214,18 @@ class BmabExtScript(scripts.Script):
 								dino_detect_enabled = gr.Checkbox(label='Dino detect enabled', value=False)
 							with gr.Row():
 								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',
-								                         label='Prompt')
+														 label='Prompt')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
 								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05,
-								                          label='Face lighting')
+														  label='Face lighting')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
 								resize_by_person = gr.Slider(minimum=0.79, maximum=0.95, value=0.79, step=0.01,
-								                             label='Resize by person')
+															 label='Resize by person')
 
 				return (
 					enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
 					noise_alpha, blend_enabled, blend_alpha,
 					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
 					edge_strength, face_lighting, resize_by_person)
-
-
-

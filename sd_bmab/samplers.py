@@ -85,4 +85,3 @@ def override_samplers():
 		*modules.sd_samplers_compvis.samplers_data_compvis,
 	]
 	modules.sd_samplers.all_samplers_map = {x.name: x for x in modules.sd_samplers.all_samplers}
-
