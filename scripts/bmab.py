@@ -9,7 +9,7 @@ from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from scripts.util import sam, image_to_latent, latent_to_image, tensor_to_image, image_to_tensor, resize_image
 from scripts.process import process_prompt, process_all, check_process, after_process
 from scripts.process import process_resize_by_person
-from scripts.face import process_face_lighting, process_face_detailing
+from scripts.face import process_face_lighting
 
 
 class BmabExtScript(scripts.Script):
@@ -161,7 +161,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if a['face_lighting'] !=0:
+		if a['face_lighting'] != 0:
 			images = kwargs['images']
 			for idx in range(0, len(images)):
 				img = tensor_to_image(images[idx])
@@ -178,7 +178,8 @@ class BmabExtScript(scripts.Script):
 		pp.image = after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
-		processed.images.extend(self.extra_image)
+		# processed.images.extend(self.extra_image)
+		pass
 
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
@@ -192,7 +193,7 @@ class BmabExtScript(scripts.Script):
 			if isinstance(p.sampler, KDiffusionSampler):
 
 				def sample_img2img(self, s, ar, p, x, noise, conditioning, unconditional_conditioning, steps=None,
-								   image_conditioning=None):
+				                   image_conditioning=None):
 					for idx in range(0, len(x)):
 						img = latent_to_image(x, 0)
 						img = process_resize_by_person(ar, p, img)
@@ -206,7 +207,7 @@ class BmabExtScript(scripts.Script):
 				p.sampler.sample_img2img = partial(sample_img2img.__get__(p.sampler, KDiffusionSampler), self, a)
 
 	def describe(self):
-		return 'This stuff is worth it, you can bye me a beer in return.'
+		return 'This stuff is worth it, you can buy me a beer in return.'
 
 	def _create_ui(self):
 		with gr.Group():
@@ -234,10 +235,13 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								edge_flavor_enabled = gr.Checkbox(label='Edge enhancement enabled', value=False)
 							with gr.Row():
-								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
-								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
+								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1,
+								                                label='Edge low threshold')
+								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1,
+								                                 label='Edge high threshold')
 							with gr.Row():
-								edge_strength = gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
+								edge_strength = gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05,
+								                          label='Edge strength')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
 								input_image = gr.Image(source="upload")
@@ -248,16 +252,22 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								dino_detect_enabled = gr.Checkbox(label='Dino detect enabled', value=False)
 							with gr.Row():
-								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='', label='Prompt')
+								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',
+								                         label='Prompt')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
-								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting')
+								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05,
+								                          label='Face lighting')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
-								resize_by_person = gr.Slider(minimum=0.79, maximum=0.95, value=0.79, step=0.01, label='Resize by person')
+								resize_by_person = gr.Slider(minimum=0.79, maximum=0.95, value=0.79, step=0.01,
+								                             label='Resize by person')
 
-				return (enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabled, blend_alpha,
-						dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold, edge_strength, face_lighting, resize_by_person)
+				return (
+				enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
+				noise_alpha, blend_enabled, blend_alpha,
+				dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
+				edge_strength, face_lighting, resize_by_person)
 
 
 
