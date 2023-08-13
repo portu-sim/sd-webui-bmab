@@ -62,7 +62,7 @@ def install_pycocotools():
 
 
 def install_groundingdino():
-    url = 'https://github.com/Bing-su/dddetailer/releases/download/pycocotools/'
+    url = 'https://github.com/Bing-su/GroundingDINO/releases/download/wheel-0.1.0/'
     files = {
         'Linux': {
             'x86_64': {
