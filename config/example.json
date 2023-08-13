@@ -1,0 +1,9 @@
+{
+  "module_config": {
+    "face_lighting": {
+      "denoising_strength": 0.40,
+      "prompt": "smile",
+      "steps": 20
+    }
+  }
+}
