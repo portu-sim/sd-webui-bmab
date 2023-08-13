@@ -48,8 +48,9 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 
 
 def check_process(args, p):
-	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting'] or \
-		(args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1)
+	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting'] != 0 or \
+	       (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
+		   (args['resize_by_person'] >= 0.80)
 
 
 def process_all(args, p, bgimg):
@@ -118,22 +119,22 @@ def calc_color_temperature(temp):
 
 
 def after_process(args, p, bgimg):
-	if args['contrast']:
+	if args['contrast'] != 1:
 		p.extra_generation_params['BMAB contrast'] = args['contrast']
 		enhancer = ImageEnhance.Contrast(bgimg)
 		bgimg = enhancer.enhance(args['contrast'])
 
-	if args['brightness']:
+	if args['brightness'] != 1:
 		p.extra_generation_params['BMAB brightness'] = args['brightness']
 		enhancer = ImageEnhance.Brightness(bgimg)
 		bgimg = enhancer.enhance(args['brightness'])
 
-	if args['sharpeness']:
+	if args['sharpeness'] != 1:
 		p.extra_generation_params['BMAB sharpeness'] = args['sharpeness']
 		enhancer = ImageEnhance.Sharpness(bgimg)
 		bgimg = enhancer.enhance(args['sharpeness'])
 
-	if args['color_temperature'] and args['color_temperature'] != 0:
+	if args['color_temperature'] != 0:
 		p.extra_generation_params['BMAB color temperature'] = args['color_temperature']
 		temp = calc_color_temperature(6500 + args['color_temperature'])
 		az = []
@@ -163,13 +164,14 @@ def process_prompt(prompt):
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
-
 def process_resize_by_person(arg, p, img):
 	print('prepare dino')
 
 	value = arg.get('resize_by_person', 0)
 	if value < 0.80:
 		return img
+
+	p.extra_generation_params['BMAB process_resize_by_person'] = value
 
 	dino_init()
 	boxes, logits, phrases = dino_predict(img, 'person')
@@ -196,5 +198,6 @@ def process_resize_by_person(arg, p, img):
 		print('image resize ratio', image_ratio)
 		img = resize_image(2, img, int(img.width * image_ratio), int(img.height * image_ratio))
 		img = img.resize(org_size, resample=LANCZOS)
+		p.extra_generation_params['BMAB process_resize_by_person_ratio'] = '%.3s' % image_ratio
 
 	return img
