@@ -7,8 +7,10 @@ from PIL import Image
 from PIL import ImageOps
 from PIL import ImageEnhance
 
-from scripts.dinosam import dino_init, dino_predict
-from scripts.util import resize_image
+from sd_bmab import util, dinosam
+
+
+LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
 
 def generate_noise(width, height):
@@ -162,8 +164,6 @@ def process_prompt(prompt):
 	return base_prompt
 
 
-LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
-
 def process_resize_by_person(arg, p, img):
 	print('prepare dino')
 
@@ -173,8 +173,8 @@ def process_resize_by_person(arg, p, img):
 
 	p.extra_generation_params['BMAB process_resize_by_person'] = value
 
-	dino_init()
-	boxes, logits, phrases = dino_predict(img, 'person')
+	dinosam.dino_init()
+	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
 
 	org_size = img.size
 	print('size', org_size)
@@ -196,7 +196,7 @@ def process_resize_by_person(arg, p, img):
 		if image_ratio < 1.0:
 			return img
 		print('image resize ratio', image_ratio)
-		img = resize_image(2, img, int(img.width * image_ratio), int(img.height * image_ratio))
+		img = util.resize_image(2, img, int(img.width * image_ratio), int(img.height * image_ratio))
 		img = img.resize(org_size, resample=LANCZOS)
 		p.extra_generation_params['BMAB process_resize_by_person_ratio'] = '%.3s' % image_ratio
 

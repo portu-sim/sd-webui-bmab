@@ -1,7 +1,6 @@
 from PIL import ImageEnhance
 
-from scripts.dinosam import dino_init, dino_predict, sam_predict_box
-from scripts.util import process_img2img
+from sd_bmab import dinosam, util
 
 
 def process_face_lighting(args, p, img):
@@ -18,8 +17,8 @@ def process_face_lighting(args, p, img):
         bgimg = process_face_detailing(p, bgimg)
     '''
 
-    dino_init()
-    boxes, logits, phrases = dino_predict(img, 'face')
+    dinosam.dino_init()
+    boxes, logits, phrases = dinosam.dino_predict(img, 'face')
     #print(float(logits))
     print(phrases)
 
@@ -30,9 +29,9 @@ def process_face_lighting(args, p, img):
     bgimg = enhancer.enhance(1 + args['face_lighting'])
 
     for box in boxes:
-        face_mask = sam_predict_box(img, box)
+        face_mask = dinosam.sam_predict_box(img, box)
         img.paste(bgimg, mask=face_mask)
         options = dict(mask=face_mask)
-        img = process_img2img(p, img, options=options)
+        img = util.process_img2img(p, img, options=options)
 
     return img

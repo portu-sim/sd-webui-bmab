@@ -1,15 +1,13 @@
 import gradio as gr
 from PIL import Image
-from functools import partial
 
 from modules import scripts
 from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
-from modules.sd_samplers_kdiffusion import KDiffusionSampler
 
-from scripts.util import sam, image_to_latent, latent_to_image, tensor_to_image, image_to_tensor, resize_image
-from scripts.process import process_prompt, process_all, check_process, after_process
-from scripts.process import process_resize_by_person
-from scripts.face import process_face_lighting
+from sd_bmab import samplers, util, process, face
+
+
+samplers.override_samplers()
 
 
 class BmabExtScript(scripts.Script):
@@ -70,10 +68,10 @@ class BmabExtScript(scripts.Script):
 				if p.image_mask is not None:
 					self.extra_image.append(p.init_images[0])
 					self.extra_image.append(p.image_mask)
-					p.image_mask = sam(a['dino_prompt'], p.init_images[0])
+					p.image_mask = util.sam(a['dino_prompt'], p.init_images[0])
 					self.extra_image.append(p.image_mask)
 				if p.image_mask is None and a['input_image'] is not None:
-					mask = sam(a['dino_prompt'], p.init_images[0])
+					mask = util.sam(a['dino_prompt'], p.init_images[0])
 
 					mdata = mask.getdata()
 					ndata = p.init_images[0].getdata()
@@ -100,7 +98,7 @@ class BmabExtScript(scripts.Script):
 		prompts = kwargs['prompts']
 		if p.prompt.find('#') >= 0:
 			for idx in range(0, len(prompts)):
-				prompts[idx] = process_prompt(prompts[idx])
+				prompts[idx] = process.process_prompt(prompts[idx])
 				p.extra_generation_params['BMAB random prompt'] = prompts[idx]
 			if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
 				p.hr_prompts = prompts
@@ -112,26 +110,26 @@ class BmabExtScript(scripts.Script):
 			if p.resize_mode == 2 and len(p.init_images) == 1:
 				im = p.init_images[0]
 				p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
-				img = resize_image(p.resize_mode, im, p.width, p.height)
+				img = util.resize_image(p.resize_mode, im, p.width, p.height)
 				self.extra_image.append(img)
 				for idx in range(0, len(p.init_latent)):
-					p.init_latent[idx] = image_to_latent(p, img)
+					p.init_latent[idx] = util.image_to_latent(p, img)
 
-			if check_process(a, p):
+			if process.check_process(a, p):
 				if len(p.init_images) == 1:
-					img = latent_to_image(p.init_latent, 0)
-					img = process_resize_by_person(a, p, img)
-					img = process_all(a, p, img)
+					img = util.latent_to_image(p.init_latent, 0)
+					img = process.process_resize_by_person(a, p, img)
+					img = process.process_all(a, p, img)
 					self.extra_image.append(img)
 					for idx in range(0, len(p.init_latent)):
-						p.init_latent[idx] = image_to_latent(p, img)
+						p.init_latent[idx] = util.image_to_latent(p, img)
 				else:
 					for idx in range(0, len(p.init_latent)):
-						img = latent_to_image(p.init_latent, 0)
-						img = process_resize_by_person(a, p, img)
-						img = process_all(a, p, img)
+						img = util.latent_to_image(p.init_latent, 0)
+						img = process.process_resize_by_person(a, p, img)
+						img = process.process_all(a, p, img)
 						self.extra_image.append(img)
-						p.init_latent[idx] = image_to_latent(p, img)
+						p.init_latent[idx] = util.image_to_latent(p, img)
 
 	def parse_args(self, args):
 		return {
@@ -164,9 +162,9 @@ class BmabExtScript(scripts.Script):
 		if a['face_lighting'] != 0:
 			images = kwargs['images']
 			for idx in range(0, len(images)):
-				img = tensor_to_image(images[idx])
-				img = process_face_lighting(a, p, img)
-				images[idx] = image_to_tensor(img)
+				img = util.tensor_to_image(images[idx])
+				img = face.process_face_lighting(a, p, img)
+				images[idx] = util.image_to_tensor(img)
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
@@ -174,8 +172,8 @@ class BmabExtScript(scripts.Script):
 			return
 
 		if not a['execute_before_img2img']:
-			pp.image = process_all(a, p, pp.image)
-		pp.image = after_process(a, p, pp.image)
+			pp.image = process.process_all(a, p, pp.image)
+		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
 		# processed.images.extend(self.extra_image)
@@ -186,25 +184,21 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if not check_process(a, p):
+		if not process.check_process(a, p):
 			return
 
-		if isinstance(p, StableDiffusionProcessingTxt2Img):
-			if isinstance(p.sampler, KDiffusionSampler):
-
-				def sample_img2img(self, s, ar, p, x, noise, conditioning, unconditional_conditioning, steps=None,
-				                   image_conditioning=None):
+		if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
+			class CallBack(samplers.SamplerCallBack):
+				def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
 					for idx in range(0, len(x)):
-						img = latent_to_image(x, 0)
-						img = process_resize_by_person(ar, p, img)
-						s.extra_image.append(img)
-						img = process_all(ar, p, img)
-						s.extra_image.append(img)
-						x[idx] = image_to_latent(p, img)
-					return self.temp(p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning)
+						img = util.latent_to_image(x, 0)
+						img = process.process_resize_by_person(self.args, p, img)
+						self.script.extra_image.append(img)
+						img = process.process_all(self.args, p, img)
+						self.script.extra_image.append(img)
+						x[idx] = util.image_to_latent(p, img)
 
-				p.sampler.temp = p.sampler.sample_img2img
-				p.sampler.sample_img2img = partial(sample_img2img.__get__(p.sampler, KDiffusionSampler), self, a)
+			p.sampler.register_callback(CallBack(self, a))
 
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
@@ -264,10 +258,10 @@ class BmabExtScript(scripts.Script):
 								                             label='Resize by person')
 
 				return (
-				enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
-				noise_alpha, blend_enabled, blend_alpha,
-				dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
-				edge_strength, face_lighting, resize_by_person)
+					enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
+					noise_alpha, blend_enabled, blend_alpha,
+					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
+					edge_strength, face_lighting, resize_by_person)
 
 
 
