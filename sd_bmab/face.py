@@ -25,6 +25,7 @@ def process_face_lighting(args, p, img):
     org_size = img.size
     print('size', org_size)
 
+    face_config = args.get('module_config', {}).get('face_lighting', {})
     enhancer = ImageEnhance.Brightness(img)
     bgimg = enhancer.enhance(1 + args['face_lighting'])
 
@@ -32,6 +33,7 @@ def process_face_lighting(args, p, img):
         face_mask = dinosam.sam_predict_box(img, box)
         img.paste(bgimg, mask=face_mask)
         options = dict(mask=face_mask)
+        options.update(face_config)
         img = util.process_img2img(p, img, options=options)
 
     return img

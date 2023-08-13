@@ -34,16 +34,7 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 	canny = Image.fromarray(arcanny)
 	canny = ImageOps.invert(canny)
 
-	mdata = canny.getdata()
-	ndata = pil.getdata()
-
-	newdata = []
-	for idx in range(0, len(mdata)):
-		if mdata[idx] == 0:
-			newdata.append((0, 0, 0))
-		else:
-			newdata.append(ndata[idx])
-
+	newdata = [(0, 0, 0) if mdata == 0 else ndata for mdata, ndata in zip(canny.getdata(), pil.getdata())]
 	newbase = Image.new('RGB', pil.size)
 	newbase.putdata(newdata)
 	return Image.blend(pil, newbase, alpha=strength).convert("RGB")
@@ -140,8 +131,7 @@ def after_process(args, p, bgimg):
 		p.extra_generation_params['BMAB color temperature'] = args['color_temperature']
 		temp = calc_color_temperature(6500 + args['color_temperature'])
 		az = []
-		data = bgimg.getdata()
-		for d in data:
+		for d in bgimg.getdata():
 			az.append((int(d[0] * temp[0]), int(d[1] * temp[1]), int(d[2] * temp[2])))
 		bgimg = Image.new('RGB', bgimg.size)
 		bgimg.putdata(az)
@@ -185,6 +175,9 @@ def process_resize_by_person(arg, p, img):
 		size = (x2 - x1) * (y2 - y1)
 		if size > largest[0]:
 			largest = (size, box)
+
+	if largest[0] == 0:
+		return img
 
 	x1, y1, x2, y2 = largest[1]
 	ratio = (y2 - y1) / img.height

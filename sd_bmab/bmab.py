@@ -15,6 +15,7 @@ class BmabExtScript(scripts.Script):
 	def __init__(self) -> None:
 		super().__init__()
 		self.extra_image = []
+		self.config = {}
 
 	def title(self):
 		return 'BMAB Extension'
@@ -23,36 +24,7 @@ class BmabExtScript(scripts.Script):
 		return scripts.AlwaysVisible
 
 	def ui(self, is_img2img):
-		enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabled, blend_alpha, dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold, edge_strength, face_lighting, resize_by_person = self._create_ui()
-
-		self.infotext_fields = (
-			(enabled, lambda x: gr.Checkbox.update(value='enabled' in x)),
-			(execute_before_img2img, lambda x: gr.Checkbox.update(value='execute_before_img2img' in x)),
-			(input_image, 'input image'),
-			(contrast, 'contrast value'),
-			(brightness, 'brightness value'),
-			(sharpeness, 'sharpeness value'),
-			(color_temperature, 'color temperature value'),
-			(noise_alpha, 'noise alpha value'),
-			(blend_enabled, lambda x: gr.Checkbox.update(value='blend_enabled' in x)),
-			(blend_alpha, 'blend transparency value'),
-			(dino_detect_enabled, lambda x: gr.Checkbox.update(value='dino_detect_enabled' in x)),
-			(dino_prompt, 'dino prompt value'),
-			(edge_flavor_enabled, lambda x: gr.Checkbox.update(value='edge_flavor_enabled' in x)),
-			(edge_low_threadhold, 'edge low threshold value'),
-			(edge_high_threadhold, 'edge high threshold value'),
-			(edge_strength, 'edge strength value'),
-			(face_lighting, 'face lighting value'),
-			(resize_by_person, 'resize by person'),
-		)
-
-		return [
-			enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
-			noise_alpha, blend_enabled, blend_alpha,
-			dino_detect_enabled, dino_prompt,
-			edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold, edge_strength,
-			face_lighting, resize_by_person
-		]
+		return self._create_ui()
 
 	def before_component(self, component, **kwargs):
 		super().before_component(component, **kwargs)
@@ -62,6 +34,8 @@ class BmabExtScript(scripts.Script):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
+		p.prompt, self.config = util.get_config(p.prompt)
+		p.setup_prompts()
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			if a['dino_detect_enabled']:
@@ -72,20 +46,9 @@ class BmabExtScript(scripts.Script):
 					self.extra_image.append(p.image_mask)
 				if p.image_mask is None and a['input_image'] is not None:
 					mask = util.sam(a['dino_prompt'], p.init_images[0])
-
-					mdata = mask.getdata()
-					ndata = p.init_images[0].getdata()
 					inputimg = Image.fromarray(a['input_image'])
-					bdata = inputimg.getdata()
-
-					newdata = []
-					for idx in range(0, len(mdata)):
-						if mdata[idx] == 0:
-							newdata.append(bdata[idx])
-						else:
-							newdata.append(ndata[idx])
-
 					newpil = Image.new('RGB', p.init_images[0].size)
+					newdata = [bdata if mdata == 0 else ndata for mdata, ndata, bdata in zip(mask.getdata(), p.init_images[0].getdata(), inputimg.getdata())]
 					newpil.putdata(newdata)
 					p.init_images[0] = newpil
 					self.extra_image.append(newpil)
@@ -132,7 +95,7 @@ class BmabExtScript(scripts.Script):
 						p.init_latent[idx] = util.image_to_latent(p, img)
 
 	def parse_args(self, args):
-		return {
+		ar = {
 			'enabled': args[0],
 			'execute_before_img2img': args[1],
 			'input_image': args[2],
@@ -152,6 +115,9 @@ class BmabExtScript(scripts.Script):
 			'face_lighting': args[16],
 			'resize_by_person': args[17],
 		}
+		if self.config:
+			ar.update(self.config)
+		return ar
 
 	def postprocess_batch(self, p, *args, **kwargs):
 		super().postprocess_batch(p, *args, **kwargs)

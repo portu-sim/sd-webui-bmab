@@ -1,3 +1,5 @@
+import os
+import json
 import torch
 import numpy as np
 from PIL import Image
@@ -8,6 +10,27 @@ from modules import images
 from modules.sd_samplers import sample_to_image
 from modules.processing import process_images
 from sd_bmab import dinosam, sdprocessing
+
+
+def get_config(prompt):
+    config_file = None
+    newprompt = []
+    for line in prompt.split('\n'):
+        if line.startswith('##'):
+            config_file = line[2:]
+            continue
+        newprompt.append(line)
+    if config_file is None:
+        return prompt, {}
+
+    cfg_dir = os.path.join(os.path.dirname(__file__), "../config")
+    json_file = os.path.join(cfg_dir, f'{config_file}.json')
+    if not os.path.isfile(json_file):
+        return '\n'.join(newprompt), {}
+    with open(json_file) as f:
+        config = json.load(f)
+    print('Loading config', json.dumps(config, indent=2))
+    return '\n'.join(newprompt), config
 
 
 def image_to_latent(p, img):
@@ -115,6 +138,7 @@ def process_img2img(p, img, options=None):
     )
     if options is not None:
         i2i_param.update(options)
+
     img2img = sdprocessing.StableDiffusionProcessingImg2ImgOv(**i2i_param)
     img2img.scripts = None
     img2img.script_args = None
