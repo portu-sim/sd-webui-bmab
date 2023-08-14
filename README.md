@@ -44,6 +44,63 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 너무 크게 늘리게 되면 좋은 결과를 얻기 힘듭니다.   
 대략 1.1, 1.2 정도 스케일에서 사용하시길 권장합니다.   
 
+### Multi face Detailer
+
+BMAB는 이미지 내의 단일 혹은 여러 캐릭터의 얼굴을 보정하는 기능이 동작한다.   
+BMAB 디렉토리 config 아래 .json파일로 필요한 프리셋을 등록하고 프롬프트에서 이를 호출할 수 있다.
+
+예제)
+
+```JSON
+{
+  "contrast": 1.2,
+  "brightness": 0.9,
+  "sharpeness": 1.5,
+  "execute_before_img2img": true,
+  "edge_flavor_enabled": true,
+  "edge_low_threadhold": 50,
+  "edge_high_threadhold": 200,
+  "edge_strength": 0.5,
+  "module_config": {
+    "multiple_face": [
+      {
+        "denoising_strength": 0.30,
+        "prompt": "첫번째 프롬프트... <lora:~~~~>, #!org!#",
+        "steps": 15
+      },
+      {
+        "denoising_strength": 0.30,
+        "prompt": "두번째 프롬프트... <lora:~~~~>, #!org!#",
+        "steps": 15
+      },
+      {
+        "denoising_strength": 0.30,
+        "prompt": "세번째 프롬프트... <lora:~~~~>, #!org!#",
+        "steps": 15
+      },
+      {
+        "denoising_strength": 0.30,
+        "prompt": "네번째 프롬프트... <lora:~~~~>, #!org!#",
+        "steps": 15
+      },
+      {
+        "denoising_strength": 0.30,
+        "prompt": "다섯번째 프롬프트... <lora:~~~~>, #!org!#",
+        "steps": 15
+      }
+    ]
+  }
+}
+```
+
+이 파일이 test.json이라고 저장되어 있다면 sd-webui 메인 프롬프트에서 "##test"를 완전히 새로운 라인에서   
+추가하면 기존 UI 설정을 무시할 수 있으며, module_config/multiple_face 항목이 설정되어 있으면 디테일링을 수행한다.
+
+예제는 최대 5개의 얼굴 크기에 따라 디테일링을 수행하며, 5개를 초과하면 디테일링을 수행하지 않는다.
+1개만 등록하게 되면, 주변인들에 대한 불필요하한 디테일링을 막을 수 있으며, 간혹 티셔츠에 그려진 얼굴이나, 액자에 그려진 얼굴에 대한 디테일링을 수행하지 않도록 설정할 수 있다.   
+
+그 밖에 denoising_strength, steps 등을 이용해 정교하게 설정할 수 있으며,   
+프롬프트에 #!org!#이 있다면 그 부분은 사용자가 입력한 프롬프트로 변경됩니다..
 
 
 ## 기본 기능
