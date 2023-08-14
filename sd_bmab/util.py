@@ -1,15 +1,14 @@
-import json
 import os
-
-import numpy as np
+import json
 import torch
+import numpy as np
 from PIL import Image
 
+from modules import shared
 from modules import devices
 from modules import images
-from modules import shared
-from modules.processing import process_images
 from modules.sd_samplers import sample_to_image
+from modules.processing import process_images, StableDiffusionProcessingTxt2Img
 from sd_bmab import dinosam, sdprocessing
 
 
@@ -83,8 +82,7 @@ def resize_image(resize_mode, im, width, height, upscaler_name=None):
 
 		if dw > 0:
 			res.paste(im.resize((dw, height), box=(0, 0, 0, height)), box=(0, 0))
-			res.paste(im.resize((dw, height), box=(im.width, 0, im.width, height)),
-					  box=(im.width + dw, 0))
+			res.paste(im.resize((dw, height), box=(im.width, 0, im.width, height)), box=(im.width + dw, 0))
 
 		return res
 
@@ -100,6 +98,10 @@ def sam(prompt, input_image):
 def process_img2img(p, img, options=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
+
+	steps = p.steps
+	if isinstance(p, StableDiffusionProcessingTxt2Img):
+		steps = p.hr_second_pass_steps
 
 	i2i_param = dict(
 		init_images=[img],
@@ -126,7 +128,7 @@ def process_img2img(p, img, options=None):
 		sampler_name=p.sampler_name,
 		batch_size=1,
 		n_iter=1,
-		steps=20,  # p.steps,
+		steps=steps,
 		cfg_scale=7,
 		width=img.width,
 		height=img.height,
