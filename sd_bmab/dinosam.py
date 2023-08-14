@@ -1,18 +1,19 @@
-import os
-
 import cv2
-import groundingdino.datasets.transforms as T
+import os
 import numpy as np
-import torch
-from PIL import Image
-from groundingdino.util.inference import load_model, predict
-from segment_anything import SamPredictor
-from segment_anything import sam_model_registry
-from torchvision.ops import box_convert
 
-from modules.devices import device
+import torch
+
+from PIL import Image
+from groundingdino.util.inference import load_model, load_image, predict, annotate
 from modules.paths import models_path
 from modules.safe import unsafe_torch_load, load
+from modules.devices import device, torch_gc, cpu
+
+from torchvision.ops import box_convert
+from segment_anything import SamPredictor
+from segment_anything import sam_model_registry
+import groundingdino.datasets.transforms as T
 
 bmab_model_path = os.path.join(models_path, "bmab")
 

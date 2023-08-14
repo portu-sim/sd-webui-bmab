@@ -1,11 +1,10 @@
-import k_diffusion.sampling
-
 import modules
+import k_diffusion.sampling
+from modules.sd_samplers_kdiffusion import KDiffusionSampler
+from modules.sd_samplers import set_samplers
+from modules.shared import opts, state
 import modules.shared as shared
 from modules import sd_samplers_common
-from modules.sd_samplers import set_samplers
-from modules.sd_samplers_kdiffusion import KDiffusionSampler
-from modules.shared import opts, state
 from sd_bmab import sdprocessing
 
 
@@ -58,8 +57,7 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 		if not self.block_tqdm:
 			shared.total_tqdm.update()
 
-	def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps=None,
-					   image_conditioning=None):
+	def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps=None, image_conditioning=None):
 		if self.callback:
 			self.callback.sample_img2img(p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning)
 		return super().sample_img2img(p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning)

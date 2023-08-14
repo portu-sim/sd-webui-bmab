@@ -1,4 +1,6 @@
+from PIL import Image
 from PIL import ImageEnhance
+from PIL import ImageDraw
 
 from sd_bmab import dinosam, util
 
@@ -65,7 +67,19 @@ def process_multiple_face(args, p, img):
 	for idx, (size, box, logit, phrase) in enumerate(candidate):
 		if idx == limit:
 			break
-		face_mask = dinosam.sam_predict_box(img, box)
+
+		x1, y1, x2, y2 = box
+		x1 = int(x1) - 4
+		y1 = int(y1) - 4
+		x2 = int(x2) + 4
+		y2 = int(y2) + 4
+
+		face_mask = Image.new('L', img.size, color=0)
+		dr = ImageDraw.Draw(face_mask, 'L')
+		dr.rectangle((x1, y1, x2, y2), fill=255)
+
+		# face_mask = dinosam.sam_predict_box(img, box)
+
 		options = dict(mask=face_mask)
 
 		prompt = multiple_face[idx].get('prompt')
