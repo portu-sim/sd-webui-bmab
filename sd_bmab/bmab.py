@@ -142,7 +142,7 @@ class BmabExtScript(scripts.Script):
 		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
-		processed.images.extend(self.extra_image)
+		# processed.images.extend(self.extra_image)
 		pass
 
 	def before_hr(self, p, *args):
