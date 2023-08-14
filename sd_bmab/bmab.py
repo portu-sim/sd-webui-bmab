@@ -3,7 +3,6 @@ from PIL import Image
 
 from modules import scripts
 from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
-
 from sd_bmab import samplers, util, process, face
 
 samplers.override_samplers()
@@ -124,7 +123,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if a['face_lighting'] != 0:
+		if a['face_lighting'] != 0 or a.get('module_config', {}).get('multiple_face'):
 			images = kwargs['images']
 			for idx in range(0, len(images)):
 				pidx = p.iteration * p.batch_size + idx
@@ -143,7 +142,7 @@ class BmabExtScript(scripts.Script):
 		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
-		# processed.images.extend(self.extra_image)
+		processed.images.extend(self.extra_image)
 		pass
 
 	def before_hr(self, p, *args):
@@ -158,7 +157,7 @@ class BmabExtScript(scripts.Script):
 			class CallBack(samplers.SamplerCallBack):
 				def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
 					for idx in range(0, len(x)):
-						img = util.latent_to_image(x, 0)
+						img = util.latent_to_image(x, idx)
 						img = process.process_resize_by_person(self.args, p, img)
 						self.script.extra_image.append(img)
 						img = process.process_all(self.args, p, img)

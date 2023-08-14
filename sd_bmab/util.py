@@ -1,14 +1,15 @@
-import os
 import json
-import torch
+import os
+
 import numpy as np
+import torch
 from PIL import Image
 
-from modules import shared
 from modules import devices
 from modules import images
-from modules.sd_samplers import sample_to_image
+from modules import shared
 from modules.processing import process_images
+from modules.sd_samplers import sample_to_image
 from sd_bmab import dinosam, sdprocessing
 
 
@@ -143,6 +144,7 @@ def process_img2img(p, img, options=None):
 	img2img.scripts = None
 	img2img.script_args = None
 	img2img.block_tqdm = True
+	shared.state.job_count += 1
 
 	processed = process_images(img2img)
 
