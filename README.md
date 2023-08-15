@@ -15,6 +15,7 @@ sharpeness: 1.5
 
 Edge enhancement 작동   
 Face Detailing 작동   
+Resize by person 작동   
 
 
 
