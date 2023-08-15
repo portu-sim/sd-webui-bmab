@@ -6,7 +6,7 @@ from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusion
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.15.0'
+bmab_version = 'v23.08.15.1'
 samplers.override_samplers()
 
 
@@ -75,7 +75,7 @@ class BmabExtScript(scripts.Script):
 						p.init_latent[idx] = util.image_to_latent(p, img)
 				else:
 					for idx in range(0, len(p.init_latent)):
-						img = util.latent_to_image(p.init_latent, 0)
+						img = util.latent_to_image(p.init_latent, idx)
 						img = process.process_all(a, p, img)
 						self.extra_image.append(img)
 						p.init_latent[idx] = util.image_to_latent(p, img)
