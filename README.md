@@ -209,12 +209,12 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 #### Img2Img 에서 사용하는 경우
 
 <p>
-<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%" align="left">
-<img src="https://i.ibb.co/rk7xDSR/00467-2764185410.png" width="30%" align="center">
+<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="50%" align="left">
+<img src="https://i.ibb.co/rk7xDSR/00467-2764185410.png" width="50%" align="center">
 </p>
 <p>
-<img src="https://i.ibb.co/Byw3rY6/tmp3478vdur.png" width="30%" align="left">
-<img src="https://i.ibb.co/7W6QhTG/00024-155186649.png" width="30%" align="center">
+<img src="https://i.ibb.co/Byw3rY6/tmp3478vdur.png" width="50%" align="left">
+<img src="https://i.ibb.co/7W6QhTG/00024-155186649.png" width="50%" align="center">
 </p>
 
 
