@@ -1,6 +1,22 @@
 
 # BMAB 기능 설명
 
+## Quick Test
+
+설치가 완료된 이후에 프롬프트 마지막줄에 다음을 추가한다.
+
+```
+##example
+```
+
+contrast: 1.2   
+brightness: 0.9   
+sharpeness: 1.5
+
+Edge enhancement 작동   
+Face Detailing 작동   
+
+
 
 ## 기본 옵션
 
