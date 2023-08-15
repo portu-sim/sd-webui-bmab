@@ -3,19 +3,23 @@
 
 ## Quick Test
 
-설치가 완료된 이후에 프롬프트 마지막줄에 다음을 추가한다.
+설치가 완료된 이후에 프롬프트 마지막줄에 "##example"을 추가한다.
 
 ```
+1girl, ~~~~~~~
+
 ##example
 ```
+
+그럼 아래와 같은 옵션이 적용된다.
 
 contrast: 1.2   
 brightness: 0.9   
 sharpeness: 1.5
 
-Edge enhancement 작동   
-Face Detailing 작동   
-Resize by person 작동   
+Edge enhancement 적용   
+Face Detailing 적용   
+Resize by person 적용   
 
 
 
@@ -23,12 +27,15 @@ Resize by person 작동
 
 Enabled : 기능을 켜고 끌 수 있습니다.
 
+기능이 꺼져있더라도 ##로 설정을 불러온 경우라면 설정파일이 적용되어 동작합니다.
+
+
 Process before Img2Img
   * 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.
   * 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.
     Hires가 켜져있지 않다면 기능을 수행하지 않습니다.
 
-### Random Prompt
+### Random Prompt (삭제 예정)
 
 기능이 켜지면 항상 동작합니다.
 프롬프트 입력창에서 #random이 나타나면 그 이하 줄 단위로 랜덤하게 합쳐집니다.
@@ -60,6 +67,11 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 인물의 윗쪽으로 여백이 없는 경우에 적용하면 효과적입니다.   
 너무 크게 늘리게 되면 좋은 결과를 얻기 힘듭니다.   
 대략 1.1, 1.2 정도 스케일에서 사용하시길 권장합니다.   
+
+<p>
+<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
+<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
+</p>
 
 ### Multi face Detailer
 
@@ -105,19 +117,42 @@ BMAB 디렉토리 config 아래 .json파일로 필요한 프리셋을 등록하�
         "prompt": "다섯번째 프롬프트... <lora:~~~~>, #!org!#",
         "steps": 15
       }
-    ]
+    ],
+    "multiple_face_opt": {
+      "mask dilation": 4,
+      "limit": -1,
+      "order": "right"
+    }
   }
 }
 ```
 
-이 파일이 test.json이라고 저장되어 있다면 sd-webui 메인 프롬프트에서 "##test"를 완전히 새로운 라인에서   
+캐릭터 별로 별도로 지정할 수 있다.
+
+<img src="https://i.ibb.co/DR8g34t/00037-3214376443.png">
+<img src="https://i.ibb.co/4JXdkpT/00036-3214376443.png">
+
+조건에 따라 왼쪽부터, 오른쪽 부터, 크기 순서대로 적용이 가능하다.
+
+
+이 파일이 example.json이라고 저장되어 있다면 sd-webui 메인 프롬프트에서 "##example"를 완전히 새로운 라인에서   
 추가하면 기존 UI 설정을 무시할 수 있으며, module_config/multiple_face 항목이 설정되어 있으면 디테일링을 수행한다.
 
+```
+1girl,
+
+##example
+```
+
 예제는 최대 5개의 얼굴 크기에 따라 디테일링을 수행하며, 5개를 초과하면 디테일링을 수행하지 않는다.
-1개만 등록하게 되면, 주변인들에 대한 불필요하한 디테일링을 막을 수 있으며, 간혹 티셔츠에 그려진 얼굴이나, 액자에 그려진 얼굴에 대한 디테일링을 수행하지 않도록 설정할 수 있다.   
+1개만 등록하게 되면, 주변인들에 대한 불필요하한 디테일링을 막을 수 있으며,   
+간혹 티셔츠에 그려진 얼굴이나, 액자에 그려진 얼굴에 대한 디테일링을 수행하지 않도록 설정할 수 있다.   
+
+다만 limit 옵션을 -1 대신 20으로 주면, 5명을 초과한 20명까지 기본적인 face detailing을 수행한다.
+
 
 그 밖에 denoising_strength, steps 등을 이용해 정교하게 설정할 수 있으며,   
-프롬프트에 #!org!#이 있다면 그 부분은 사용자가 입력한 프롬프트로 변경됩니다..
+프롬프트에 #!org!#이 있다면 그 부분은 사용자가 입력한 프롬프트로 변경된다.
 
 
 ## 기본 기능
@@ -141,44 +176,9 @@ BMAB 디렉토리 config 아래 .json파일로 필요한 프리셋을 등록하�
 * Edge high threshold : 200
 * Edge strength : 0.5
 
-이 기능이 켜지면 결과 이미지에 작업한 이미지가 추가적으로 나타납니다.
-
-
-## Imaging
-
-### Blend Image in Img2Img
-
-이미지 업로드 상자에 입력한 이미지와 Img2Img에 입력된 이미지를 Blending합니다.
-Blend Alpha 값으로 두 개의 이미지를 합성합니다.
-"Process before Img2Img" 옵션이 적용됩니다.
-
-### Dino detect
-
-Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino detect prompt에 있는 내용을 이용하여 자동으로 마스크를 생성합니다.
-이미지를 업로드 하게되면 업로드된 이미지를 배경으로 하여 prompt로 입력된 부분을 업로드 이미지에 합성합니다.
-
-## Face
-
-### Face lighting
-
-이 기능을 사용하게 되면 프로스세가 완료된 이후 얼굴의 밝기를 조정합니다.   
-얼굴의 밝기를 조정한 이후에 보정을 위해 디테일링을 수행합니다.
-
-## Resize
-
-### Resize by person
-
-그림 속 인물중 가장 신장이 큰 사람의 길이와 그림 높이의 비율이 설정값을 넘어가면 비율을 설정값로 맞추는 기능입니다.   
-설정값이 0.90이고 인물의 전체 길이: 그림 높이가 0.95라고 한다면   
-배경을 늘려서 비율이 0.90% 되도록 합니다.
-
-
-# Example
-
-### Edge enhancemant
 <p>
-<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="30%" align="left">
-<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="30%" align="center">
+<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="50%" align="left">
+<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="50%" align="center">
 </p>
 
 Enabled : CHECK!!   
@@ -193,7 +193,18 @@ Edge low threshold : 50
 Edge high threshold : 200   
 Edge strength : 0.5   
 
+## Imaging
+
+### Blend Image in Img2Img
+
+이미지 업로드 상자에 입력한 이미지와 Img2Img에 입력된 이미지를 Blending합니다.
+Blend Alpha 값으로 두 개의 이미지를 합성합니다.
+"Process before Img2Img" 옵션이 적용됩니다.
+
 ### Dino detect
+
+Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino detect prompt에 있는 내용을 이용하여 자동으로 마스크를 생성합니다.
+이미지를 업로드 하게되면 업로드된 이미지를 배경으로 하여 prompt로 입력된 부분을 업로드 이미지에 합성합니다.
 
 #### Img2Img 에서 사용하는 경우
 
@@ -231,21 +242,31 @@ DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준
 <img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%" align="left">
 <img src="https://i.ibb.co/80qQvDv/tmpnm78iuqo.png" width="30%" align="center">
 <img src="https://i.ibb.co/mRT77BM/00028-2672855487.png" width="30%" align="center">
-
 </p>
 
 
 이번 예제에서는 배경을 변경했으니, inpaint 설정에서 "Inpaint Not Masked"를 선택해야 한다.   
 반대로 "Inpaint Masked"를 하면 인물이 변경된다.
 
+## Face
 
+### Face lighting
 
+이 기능을 사용하게 되면 프로스세가 완료된 이후 얼굴의 밝기를 조정합니다.   
+얼굴의 밝기를 조정한 이후에 보정을 위해 디테일링을 수행합니다.
+
+## Resize
 
 ### Resize by person
 
+그림 속 인물중 가장 신장이 큰 사람의 길이와 그림 높이의 비율이 설정값을 넘어가면 비율을 설정값로 맞추는 기능입니다.   
+설정값이 0.90이고 인물의 전체 길이: 그림 높이가 0.95라고 한다면   
+배경을 늘려서 비율이 0.90% 되도록 합니다.   
+배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
+
 <p>
-<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
-<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
+<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="50%" align="left">
+<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="50%" align="center">
 </p>
 
 Enabled : CHECK!!   
