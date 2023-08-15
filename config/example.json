@@ -7,6 +7,7 @@
   "edge_low_threadhold": 50,
   "edge_high_threadhold": 200,
   "edge_strength": 0.5,
+  "resize_by_person_enabled": true,
   "resize_by_person": 0.85,
   "module_config": {
     "multiple_face": [
