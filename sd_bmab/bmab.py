@@ -2,11 +2,13 @@ import gradio as gr
 from PIL import Image
 
 from modules import scripts
+from modules import shared
+from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.15.1'
+bmab_version = 'v23.08.16.0'
 samplers.override_samplers()
 
 
@@ -156,8 +158,8 @@ class BmabExtScript(scripts.Script):
 		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
-		# processed.images.extend(self.extra_image)
-		pass
+		if shared.opts.bmab_show_extends:
+			processed.images.extend(self.extra_image)
 
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
@@ -218,7 +220,7 @@ class BmabExtScript(scripts.Script):
 														  label='Edge strength')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
-								input_image = gr.Image(source="upload")
+								input_image = gr.Image(source='upload')
 							with gr.Row():
 								blend_enabled = gr.Checkbox(label='Blend enabled', value=False)
 							with gr.Row():
@@ -246,3 +248,12 @@ class BmabExtScript(scripts.Script):
 					noise_alpha, blend_enabled, blend_alpha,
 					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
 					edge_strength, face_lighting_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
+
+
+def on_ui_settings():
+	shared.opts.add_option('bmab_show_extends', shared.OptionInfo(False, 'Show before processing image', section=('bmab', 'BMAB')))
+
+
+script_callbacks.on_ui_settings(on_ui_settings)
+
+
