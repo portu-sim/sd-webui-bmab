@@ -66,6 +66,8 @@ def install_groundingdino():
     files = {
         'Linux': {
             'x86_64': {
+                '3.10-1.13.1-11.7': 'wheel-0.1.0/groundingdino-0.1.0+torch1.13.1.cu117-cp310-cp310-linux_x86_64.whl',
+                '3.9-1.13.1-11.7': 'wheel-0.1.0/groundingdino-0.1.0+torch1.13.1.cu117-cp39-cp39-linux_x86_64.whl',
                 '3.10-2.0.1-11.7': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu117-cp310-cp310-linux_x86_64.whl',
                 '3.10-2.0.1-11.8': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl',
                 '3.11-2.0.1-11.7': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu117-cp311-cp311-linux_x86_64.whl',
@@ -90,10 +92,15 @@ def install_groundingdino():
     system = platform.system()
     machine = platform.machine()
     file = files.get(system, {}).get(machine, {}).get(pkg_str)
+    print('install from', file)
     if file is None:
+        if system == 'Linux':
+            print('install from gitgub')
+            launch.run_pip('install git+https://github.com/IDEA-Research/GroundingDINO', 'sd-webui-bmab requirement: groundingdino')
+            return
         print('Not found groudingdino package', pkg_str, system, machine)
         return
-    launch.run_pip('install %s' % (url + file))
+    launch.run_pip('install %s' % (url + file), 'sd-webui-bmab requirement: groundingdino')
 
 
 def install_segmentanything():
