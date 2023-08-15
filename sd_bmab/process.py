@@ -40,12 +40,15 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 
 
 def check_process(args, p):
-	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting'] != 0 or \
+	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting_enabled'] or \
 		   (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
-		   (args['resize_by_person'] >= 0.80)
+		   args['resize_by_person_enabled']
 
 
 def process_all(args, p, bgimg):
+	if args['resize_by_person_enabled']:
+		bgimg = process_resize_by_person(args, p, bgimg)
+
 	if args['noise_alpha'] != 0:
 		p.extra_generation_params['BMAB noise alpha'] = args['noise_alpha']
 		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])

@@ -5,7 +5,17 @@ from PIL import ImageDraw
 from sd_bmab import dinosam, util
 
 
-def process_face_lighting(args, p, img):
+def process_face_lighting(a, p, images):
+	if (a['face_lighting_enabled'] and a['face_lighting'] != 0) or a.get('module_config', {}).get('multiple_face'):
+		for idx in range(0, len(images)):
+			pidx = p.iteration * p.batch_size + idx
+			a['current_prompt'] = p.all_prompts[pidx]
+			img = util.tensor_to_image(images[idx])
+			img = process_face_lighting_inner(a, p, img)
+			images[idx] = util.image_to_tensor(img)
+
+
+def process_face_lighting_inner(args, p, img):
 	multiple_face = args.get('module_config', {}).get('multiple_face', [])
 	if multiple_face:
 		return process_multiple_face(args, p, img)

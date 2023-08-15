@@ -6,6 +6,7 @@ from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusion
 
 from sd_bmab import samplers, util, process, face
 
+bmab_version = 'v23.08.15.0'
 samplers.override_samplers()
 
 
@@ -30,10 +31,13 @@ class BmabExtScript(scripts.Script):
 
 	def before_process(self, p, *args):
 		self.extra_image = []
+
+		prompt, self.config = util.get_config(p.prompt)
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
-		p.prompt, self.config = util.get_config(p.prompt)
+
+		p.prompt = prompt
 		p.setup_prompts()
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
@@ -52,6 +56,30 @@ class BmabExtScript(scripts.Script):
 					p.init_images[0] = newpil
 					self.extra_image.append(newpil)
 
+	def process_img2img_process_all(self, a, p):
+		if isinstance(p, StableDiffusionProcessingImg2Img):
+			if p.resize_mode == 2 and len(p.init_images) == 1:
+				im = p.init_images[0]
+				p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
+				img = util.resize_image(p.resize_mode, im, p.width, p.height)
+				self.extra_image.append(img)
+				for idx in range(0, len(p.init_latent)):
+					p.init_latent[idx] = util.image_to_latent(p, img)
+
+			if process.check_process(a, p):
+				if len(p.init_images) == 1:
+					img = util.latent_to_image(p.init_latent, 0)
+					img = process.process_all(a, p, img)
+					self.extra_image.append(img)
+					for idx in range(0, len(p.init_latent)):
+						p.init_latent[idx] = util.image_to_latent(p, img)
+				else:
+					for idx in range(0, len(p.init_latent)):
+						img = util.latent_to_image(p.init_latent, 0)
+						img = process.process_all(a, p, img)
+						self.extra_image.append(img)
+						p.init_latent[idx] = util.image_to_latent(p, img)
+
 	def process_batch(self, p, *args, **kwargs):
 		a = self.parse_args(args)
 		if not a['enabled']:
@@ -65,57 +93,46 @@ class BmabExtScript(scripts.Script):
 			if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
 				p.hr_prompts = prompts
 
-		if not a['execute_before_img2img']:
-			return
-
-		if isinstance(p, StableDiffusionProcessingImg2Img):
-			if p.resize_mode == 2 and len(p.init_images) == 1:
-				im = p.init_images[0]
-				p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
-				img = util.resize_image(p.resize_mode, im, p.width, p.height)
-				self.extra_image.append(img)
-				for idx in range(0, len(p.init_latent)):
-					p.init_latent[idx] = util.image_to_latent(p, img)
-
-			if process.check_process(a, p):
-				if len(p.init_images) == 1:
-					img = util.latent_to_image(p.init_latent, 0)
-					img = process.process_resize_by_person(a, p, img)
-					img = process.process_all(a, p, img)
-					self.extra_image.append(img)
-					for idx in range(0, len(p.init_latent)):
-						p.init_latent[idx] = util.image_to_latent(p, img)
-				else:
-					for idx in range(0, len(p.init_latent)):
-						img = util.latent_to_image(p.init_latent, 0)
-						img = process.process_resize_by_person(a, p, img)
-						img = process.process_all(a, p, img)
-						self.extra_image.append(img)
-						p.init_latent[idx] = util.image_to_latent(p, img)
+		if a['execute_before_img2img']:
+			self.process_img2img_process_all(a, p)
 
 	def parse_args(self, args):
-		ar = {
-			'enabled': args[0],
-			'execute_before_img2img': args[1],
-			'input_image': args[2],
-			'contrast': args[3],
-			'brightness': args[4],
-			'sharpeness': args[5],
-			'color_temperature': args[6],
-			'noise_alpha': args[7],
-			'blend_enabled': args[8],
-			'blend_alpha': args[9],
-			'dino_detect_enabled': args[10],
-			'dino_prompt': args[11],
-			'edge_flavor_enabled': args[12],
-			'edge_low_threadhold': args[13],
-			'edge_high_threadhold': args[14],
-			'edge_strength': args[15],
-			'face_lighting': args[16],
-			'resize_by_person': args[17],
-		}
-		if self.config:
-			ar.update(self.config)
+		if len(args) != 20:
+			print('Refresh webui first.')
+			raise Exception('Refresh webui first.')
+
+		params = (
+			('enabled', False),
+			('execute_before_img2img', False),
+			('input_image', None),
+			('contrast', 1),
+			('brightness', 1),
+			('sharpeness', 1),
+			('color_temperature', 0),
+			('noise_alpha', 0),
+			('blend_enabled', False),
+			('blend_alpha', 1),
+			('dino_detect_enabled', False),
+			('dino_prompt', ''),
+			('edge_flavor_enabled', False),
+			('edge_low_threadhold', 50),
+			('edge_high_threadhold', 200),
+			('edge_strength', 0.5),
+			('face_lighting_enabled', False),
+			('face_lighting', 0.0),
+			('resize_by_person_enabled', False),
+			('resize_by_person', 0.85)
+		)
+
+		if args[0]:
+			ar = {arg: args[idx] for idx, (arg, d) in enumerate(params)}
+			if self.config:
+				ar.update(self.config)
+		else:
+			ar = {arg: d for arg, d in params}
+			if self.config:
+				ar['enabled'] = True
+				ar.update(self.config)
 		return ar
 
 	def postprocess_batch(self, p, *args, **kwargs):
@@ -124,14 +141,10 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if a['face_lighting'] != 0 or a.get('module_config', {}).get('multiple_face'):
-			images = kwargs['images']
-			for idx in range(0, len(images)):
-				pidx = p.iteration * p.batch_size + idx
-				a['current_prompt'] = p.all_prompts[pidx]
-				img = util.tensor_to_image(images[idx])
-				img = face.process_face_lighting(a, p, img)
-				images[idx] = util.image_to_tensor(img)
+		if not a['execute_before_img2img']:
+			self.process_img2img_process_all(a, p)
+
+		face.process_face_lighting(a, p, kwargs['images'])
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
@@ -159,8 +172,6 @@ class BmabExtScript(scripts.Script):
 				def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
 					for idx in range(0, len(x)):
 						img = util.latent_to_image(x, idx)
-						img = process.process_resize_by_person(self.args, p, img)
-						self.script.extra_image.append(img)
 						img = process.process_all(self.args, p, img)
 						self.script.extra_image.append(img)
 						x[idx] = util.image_to_latent(p, img)
@@ -178,6 +189,8 @@ class BmabExtScript(scripts.Script):
 						enabled = gr.Checkbox(label='Enabled', value=False)
 					with gr.Column():
 						execute_before_img2img = gr.Checkbox(label='Process before img2img', value=False)
+					with gr.Column():
+						gr.Markdown(bmab_version)
 				with gr.Row():
 					with gr.Tabs(elem_id='tabs'):
 						with gr.Tab('Basic', elem_id='basic_tabs'):
@@ -217,15 +230,19 @@ class BmabExtScript(scripts.Script):
 														 label='Prompt')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
-								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05,
+								face_lighting_enabled = gr.Checkbox(label='Enable face lighting', value=False)
+							with gr.Row():
+								face_lighting = gr.Slider(minimum=-1, maximum=1, value=-0.05, step=0.05,
 														  label='Face lighting')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
-								resize_by_person = gr.Slider(minimum=0.79, maximum=0.95, value=0.79, step=0.01,
+								resize_by_person_enabled = gr.Checkbox(label='Enable resize by person', value=False)
+							with gr.Row():
+								resize_by_person = gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01,
 															 label='Resize by person')
 
 				return (
 					enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
 					noise_alpha, blend_enabled, blend_alpha,
 					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
-					edge_strength, face_lighting, resize_by_person)
+					edge_strength, face_lighting_enabled, face_lighting, resize_by_person_enabled, resize_by_person)

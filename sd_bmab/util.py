@@ -26,6 +26,7 @@ def get_config(prompt):
 	cfg_dir = os.path.join(os.path.dirname(__file__), "../config")
 	json_file = os.path.join(cfg_dir, f'{config_file}.json')
 	if not os.path.isfile(json_file):
+		print(f'Not found configuration file {config_file}.json')
 		return '\n'.join(newprompt), {}
 	with open(json_file) as f:
 		config = json.load(f)
@@ -101,7 +102,8 @@ def process_img2img(p, img, options=None):
 
 	steps = p.steps
 	if isinstance(p, StableDiffusionProcessingTxt2Img):
-		steps = p.hr_second_pass_steps
+		if p.hr_second_pass_steps != 0:
+			steps = p.hr_second_pass_steps
 
 	i2i_param = dict(
 		init_images=[img],
