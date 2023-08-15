@@ -53,36 +53,53 @@ def process_face_lighting_inner(args, p, img):
 
 def process_multiple_face(args, p, img):
 	multiple_face = list(args.get('module_config', {}).get('multiple_face', []))
-	print('processing multiple face')
+	order = args.get('module_config', {}).get('multiple_face_opt', {}).get('order', 'size')
+	dilation = args.get('module_config', {}).get('multiple_face_opt', {}).get('mask dilation', 4)
+	limit = args.get('module_config', {}).get('multiple_face_opt', {}).get('limit', -1)
 
-	limit = len(multiple_face)
-	if limit == 0:
-		return img
+	print('processing multiple face')
+	print(f'config : order={order}, dilation={dilation}, limit={limit}')
+
+	if limit < 0:
+		limit = len(multiple_face)
+		if limit == 0:
+			return img
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'face')
 
 	org_size = img.size
-	print('size', org_size)
+	print('size', org_size, len(boxes))
 
 	# sort
 	candidate = []
 	for box, logit, phrase in zip(boxes, logits, phrases):
-		print('detected', phrase, float(logit))
 		x1, y1, x2, y2 = box
-		size = (x2 - x1) * (y2 - y1)
-		candidate.append((size, box, logit, phrase))
-	candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		if order == 'left':
+			value = x1 + (x2 - x1) // 2
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0])
+		elif order == 'right':
+			value = x1 + (x2 - x1) // 2
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		else:
+			value = (x2 - x1) * (y2 - y1)
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
 	for idx, (size, box, logit, phrase) in enumerate(candidate):
 		if idx == limit:
 			break
-
+		print('render', phrase, float(logit), size)
 		x1, y1, x2, y2 = box
-		x1 = int(x1) - 4
-		y1 = int(y1) - 4
-		x2 = int(x2) + 4
-		y2 = int(y2) + 4
+		x1 = int(x1) - dilation
+		y1 = int(y1) - dilation
+		x2 = int(x2) + dilation
+		y2 = int(y2) + dilation
 
 		face_mask = Image.new('L', img.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
