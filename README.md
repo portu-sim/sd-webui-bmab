@@ -69,8 +69,8 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 대략 1.1, 1.2 정도 스케일에서 사용하시길 권장합니다.   
 
 <p>
-<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="30%" align="left">
-<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="30%" align="center">
+<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="40%">
+<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="40%">
 </p>
 
 ### Multi face Detailer
@@ -177,8 +177,8 @@ BMAB 디렉토리 config 아래 .json파일로 필요한 프리셋을 등록하�
 * Edge strength : 0.5
 
 <p>
-<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="50%" align="left">
-<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="50%" align="center">
+<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="40%">
+<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="40%">
 </p>
 
 Enabled : CHECK!!   
@@ -209,12 +209,12 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 #### Img2Img 에서 사용하는 경우
 
 <p>
-<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="50%" align="left">
-<img src="https://i.ibb.co/rk7xDSR/00467-2764185410.png" width="50%" align="center">
+<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="40%">
+<img src="https://i.ibb.co/rk7xDSR/00467-2764185410.png" width="40%">
 </p>
 <p>
-<img src="https://i.ibb.co/Byw3rY6/tmp3478vdur.png" width="50%" align="left">
-<img src="https://i.ibb.co/7W6QhTG/00024-155186649.png" width="50%" align="center">
+<img src="https://i.ibb.co/Byw3rY6/tmp3478vdur.png" width="40%">
+<img src="https://i.ibb.co/7W6QhTG/00024-155186649.png" width="40%">
 </p>
 
 
@@ -239,9 +239,9 @@ DINO detect Prompt : 1girl
 DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준다.
 
 <p>
-<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%" align="left">
-<img src="https://i.ibb.co/80qQvDv/tmpnm78iuqo.png" width="30%" align="center">
-<img src="https://i.ibb.co/mRT77BM/00028-2672855487.png" width="30%" align="center">
+<img src="https://i.ibb.co/W5xs487/00027-3690585574.png" width="30%">
+<img src="https://i.ibb.co/80qQvDv/tmpnm78iuqo.png" width="30%">
+<img src="https://i.ibb.co/mRT77BM/00028-2672855487.png" width="30%">
 </p>
 
 
@@ -265,8 +265,8 @@ DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준
 배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
 
 <p>
-<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="50%" align="left">
-<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="50%" align="center">
+<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="40%">
+<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="40%">
 </p>
 
 Enabled : CHECK!!   
