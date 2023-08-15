@@ -43,7 +43,7 @@
     "multiple_face_opt": {
       "mask dilation": 4,
       "limit": -1,
-      "order": "size"
+      "order": "left"
     }
   }
 }
