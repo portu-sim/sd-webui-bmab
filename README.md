@@ -56,8 +56,8 @@ Enabled (VERSION): 기능을 켜고 끌 수 있습니다.
 
 
 ~~Process before Img2Img~~   
-~~  * 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.~~
-~~  * 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.~~   
+~~* 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.~~   
+~~* 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.~~   
 ~~Hires가 켜져있지 않다면 기능을 수행하지 않습니다.~~
 
 ~~### Random Prompt (삭제 예정)~~
