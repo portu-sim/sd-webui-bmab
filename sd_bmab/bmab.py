@@ -4,11 +4,11 @@ from PIL import Image
 from modules import scripts
 from modules import shared
 from modules import script_callbacks
-from modules.processing import StableDiffusionProcessingImg2Img, StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.16.1'
+bmab_version = 'v23.08.17.0'
 samplers.override_samplers()
 
 
@@ -87,16 +87,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		prompts = kwargs['prompts']
-		if p.prompt.find('#') >= 0:
-			for idx in range(0, len(prompts)):
-				prompts[idx] = process.process_prompt(prompts[idx])
-				p.extra_generation_params['BMAB random prompt'] = prompts[idx]
-			if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-				p.hr_prompts = prompts
-
-		if a['execute_before_img2img']:
-			self.process_img2img_process_all(a, p)
+		self.process_img2img_process_all(a, p)
 
 	def parse_args(self, args):
 		if len(args) != 20:
@@ -105,7 +96,7 @@ class BmabExtScript(scripts.Script):
 
 		params = (
 			('enabled', False),
-			('execute_before_img2img', False),
+			('execute_before_img2img', True),
 			('input_image', None),
 			('contrast', 1),
 			('brightness', 1),
@@ -120,7 +111,7 @@ class BmabExtScript(scripts.Script):
 			('edge_low_threadhold', 50),
 			('edge_high_threadhold', 200),
 			('edge_strength', 0.5),
-			('face_lighting_enabled', False),
+			('face_detailing_enabled', False),
 			('face_lighting', 0.0),
 			('resize_by_person_enabled', False),
 			('resize_by_person', 0.85)
@@ -143,18 +134,13 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if not a['execute_before_img2img']:
-			self.process_img2img_process_all(a, p)
-
-		face.process_face_lighting(a, p, kwargs['images'])
+		face.process_face_detailing(a, p, kwargs['images'])
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
 
-		if not a['execute_before_img2img']:
-			pp.image = process.process_all(a, p, pp.image)
 		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
@@ -185,14 +171,12 @@ class BmabExtScript(scripts.Script):
 
 	def _create_ui(self):
 		with gr.Group():
-			with gr.Accordion('BMAB', open=False):
+			with gr.Accordion(f'BMAB', open=False):
 				with gr.Row():
 					with gr.Column():
-						enabled = gr.Checkbox(label='Enabled', value=False)
+						enabled = gr.Checkbox(label=f'Enabled {bmab_version}', value=False)
 					with gr.Column():
-						execute_before_img2img = gr.Checkbox(label='Process before img2img', value=False)
-					with gr.Column():
-						gr.Markdown(bmab_version)
+						execute_before_img2img = gr.Checkbox(label='Process before img2img', value=False, visible=False)
 				with gr.Row():
 					with gr.Tabs(elem_id='tabs'):
 						with gr.Tab('Basic', elem_id='basic_tabs'):
@@ -211,13 +195,10 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								edge_flavor_enabled = gr.Checkbox(label='Edge enhancement enabled', value=False)
 							with gr.Row():
-								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1,
-																label='Edge low threshold')
-								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1,
-																 label='Edge high threshold')
+								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
+								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
 							with gr.Row():
-								edge_strength = gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05,
-														  label='Edge strength')
+								edge_strength = gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
 								input_image = gr.Image(source='upload')
@@ -228,26 +209,23 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								dino_detect_enabled = gr.Checkbox(label='Dino detect enabled', value=False)
 							with gr.Row():
-								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',
-														 label='Prompt')
+								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',  label='Prompt')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
-								face_lighting_enabled = gr.Checkbox(label='Enable face lighting', value=False)
+								face_detailing_enabled = gr.Checkbox(label='Enable face detailing', value=False)
 							with gr.Row():
-								face_lighting = gr.Slider(minimum=-1, maximum=1, value=-0.05, step=0.05,
-														  label='Face lighting')
+								face_lighting = gr.Slider(minimum=-1, maximum=1, value=-0.05, step=0.05, label='Face lighting (EXPERIMENTAL)')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
 								resize_by_person_enabled = gr.Checkbox(label='Enable resize by person', value=False)
 							with gr.Row():
-								resize_by_person = gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01,
-															 label='Resize by person')
+								resize_by_person = gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 
 				return (
 					enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
 					noise_alpha, blend_enabled, blend_alpha,
 					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
-					edge_strength, face_lighting_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
+					edge_strength, face_detailing_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
 
 
 def on_ui_settings():

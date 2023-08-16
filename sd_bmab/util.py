@@ -3,6 +3,7 @@ import json
 import torch
 import numpy as np
 from PIL import Image
+from PIL import ImageDraw
 
 from modules import shared
 from modules import devices
@@ -153,3 +154,13 @@ def process_img2img(p, img, options=None):
 	processed = process_images(img2img)
 
 	return processed.images[0]
+
+
+def masked_image(img, xyxy):
+	x1, y1, x2, y2 = xyxy
+	check = img.convert('RGBA')
+	dd = Image.new('RGBA', img.size, (0, 0, 0, 0))
+	dr = ImageDraw.Draw(dd, 'RGBA')
+	dr.rectangle((x1, y1, x2, y2), fill=(255, 0, 0, 255))
+	check = Image.blend(check, dd, alpha=0.5)
+	check.convert('RGB').save('check.png')

@@ -5,23 +5,22 @@ from PIL import ImageDraw
 from sd_bmab import dinosam, util
 
 
-def process_face_lighting(a, p, images):
-	if (a['face_lighting_enabled'] and a['face_lighting'] != 0) or a.get('module_config', {}).get('multiple_face'):
+def process_face_detailing(a, p, images):
+	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
 		for idx in range(0, len(images)):
 			pidx = p.iteration * p.batch_size + idx
 			a['current_prompt'] = p.all_prompts[pidx]
 			img = util.tensor_to_image(images[idx])
-			img = process_face_lighting_inner(a, p, img)
+			img = process_face_detailing_inner(a, p, img)
 			images[idx] = util.image_to_tensor(img)
 
 
-def process_face_lighting_inner(args, p, img):
+def process_face_detailing_inner(args, p, img):
 	multiple_face = args.get('module_config', {}).get('multiple_face', [])
 	if multiple_face:
 		return process_multiple_face(args, p, img)
 
-	if args['face_lighting'] == 0:
-		return img
+	dilation = args.get('module_config', {}).get('face_detailing_opt', {}).get('mask dilation', 4)
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'face')
@@ -31,9 +30,7 @@ def process_face_lighting_inner(args, p, img):
 	org_size = img.size
 	print('size', org_size)
 
-	face_config = dict(args.get('module_config', {}).get('face_lighting', {}))
-	enhancer = ImageEnhance.Brightness(img)
-	bgimg = enhancer.enhance(1 + args['face_lighting'])
+	face_config = dict(args.get('module_config', {}).get('face_detailing', {}))
 
 	prompt = face_config.get('prompt')
 	current_prompt = args.get('current_prompt', '')
@@ -41,11 +38,27 @@ def process_face_lighting_inner(args, p, img):
 		face_config['prompt'] = face_config['prompt'].replace('#!org!#', current_prompt)
 		print('prompt for face', face_config['prompt'])
 
-	for box in boxes:
-		face_mask = dinosam.sam_predict_box(img, box)
-		img.paste(bgimg, mask=face_mask)
-		options = dict(mask=face_mask)
-		options.update(face_config)
+	for box, logit, phrase in zip(boxes, logits, phrases):
+		print('render', phrase, float(logit))
+		x1, y1, x2, y2 = box
+		x1 = int(x1) - dilation
+		y1 = int(y1) - dilation
+		x2 = int(x2) + dilation
+		y2 = int(y2) + dilation
+
+		face_mask = Image.new('L', img.size, color=0)
+		dr = ImageDraw.Draw(face_mask, 'L')
+		dr.rectangle((x1, y1, x2, y2), fill=255)
+
+		print('face lighting', args['face_lighting'])
+		if args['face_lighting'] != 0:
+			sam_mask = dinosam.sam_predict_box(img, box)
+			enhancer = ImageEnhance.Brightness(img)
+			bgimg = enhancer.enhance(1 + args['face_lighting'])
+			img.paste(bgimg, mask=sam_mask)
+			p.extra_generation_params['BMAB face lighting'] = args['face_lighting']
+
+		options = dict(mask=face_mask, **face_config)
 		img = util.process_img2img(p, img, options=options)
 
 	return img

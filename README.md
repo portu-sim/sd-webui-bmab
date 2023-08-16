@@ -50,36 +50,36 @@ Resize by person 적용
 
 ## 기본 옵션
 
-Enabled : 기능을 켜고 끌 수 있습니다.
+Enabled (VERSION): 기능을 켜고 끌 수 있습니다.
 
 기능이 꺼져있더라도 ##로 설정을 불러온 경우라면 설정파일이 적용되어 동작합니다.
 
 
-Process before Img2Img
-  * 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.
-  * 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.
-    Hires가 켜져있지 않다면 기능을 수행하지 않습니다.
+~~Process before Img2Img~~   
+~~  * 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.~~
+~~  * 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.~~   
+~~Hires가 켜져있지 않다면 기능을 수행하지 않습니다.~~
 
-### Random Prompt (삭제 예정)
+~~### Random Prompt (삭제 예정)~~
 
-기능이 켜지면 항상 동작합니다.
-프롬프트 입력창에서 #random이 나타나면 그 이하 줄 단위로 랜덤하게 합쳐집니다.
+~~기능이 켜지면 항상 동작합니다.~~   
+~~프롬프트 입력창에서 #random이 나타나면 그 이하 줄 단위로 랜덤하게 합쳐집니다.~~
 
-(example)
+~~(example)~~
 
-1girl, standing,   
-&#35;random   
-street background,  
-forest background,  
-beach background,  
+~~1girl, standing,~~   
+~~&#35;random~~   
+~~street background,~~  
+~~forest background,~~  
+~~beach background,~~  
 
-(결과)
+~~(결과)~~
 
-"1girl, standing, street background,"   
-"1girl, standing, forest background,"   
-"1girl, standing, beach background,"  
+~~"1girl, standing, street background,"~~   
+~~"1girl, standing, forest background,"~~   
+~~"1girl, standing, beach background,"~~  
 
-셋중에 하나로 프롬프트가 결정됩니다.
+~~셋중에 하나로 프롬프트가 결정됩니다.~~
 
 ### Resize and fill override
 
@@ -275,10 +275,50 @@ DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준
 
 ## Face
 
-### Face lighting
+### Face Detailing
 
-이 기능을 사용하게 되면 프로스세가 완료된 이후 얼굴의 밝기를 조정합니다.   
-얼굴의 밝기를 조정한 이후에 보정을 위해 디테일링을 수행합니다.
+이 기능을 사용하게 되면 프로스세가 완료된 이후 After Detailer(AD)나 Detection Detailer(DD)와 같이    
+얼굴을 보정합니다.   
+이 기능을 동작시킨 후에 AD, DD가 동작하도록 설정한다면, 결과가 좋지 않을 수 있습니다.   
+config 파일을 사용하여 아래와 같이 파라미터를 지정할 수 있습니다.
+
+```JSON
+{
+  "enabled": true,
+  "contrast": 1.2,
+  "brightness": 0.9,
+  "sharpeness": 1.5,
+  "edge_flavor_enabled": true,
+  "edge_low_threadhold": 50,
+  "edge_high_threadhold": 200,
+  "edge_strength": 0.5,
+  "resize_by_person_enabled": true,
+  "resize_by_person": 0.85,
+  "face_detailing_enabled": true,
+  "module_config": {
+    "face_detailing": {
+        "denoising_strength": 0.40,
+        "prompt": "smile, #!org!#",
+        "width": 512,
+        "height": 512,
+        "inpaint_full_res": true,
+        "inpaint_full_res_padding": 32,
+        "cfg_scale": 7
+      },
+    "face_detailing_opt": {
+      "mask dilation": 4
+    }
+  }
+}
+
+```
+
+### Face lighting
+##### (EXPERIMENTAL)
+
+얼굴에 대한 보정 설정을 enable 하는 경우에 얼굴에 대한 밝기를 조정합니다.   
+너무 큰 수치를 주면 정확한 디테일링이 되지 않을 수 있습니다.   
+모자를 착용하고 있는 경우 얼굴이 정확하게 인식이 안될 수도 있습니다.
 
 ## Resize
 

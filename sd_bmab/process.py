@@ -40,7 +40,7 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 
 
 def check_process(args, p):
-	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_lighting_enabled'] or \
+	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_detailing_enabled'] or \
 		   (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
 		   args['resize_by_person_enabled']
 
@@ -159,8 +159,12 @@ def process_prompt(prompt):
 def process_resize_by_person(arg, p, img):
 	print('prepare dino')
 
+	enabled = arg.get('resize_by_person_enabled', False)
+	if not enabled:
+		return img
+
 	value = arg.get('resize_by_person', 0)
-	if value < 0.80:
+	if 0.79 > value >= 1.0:
 		return img
 
 	p.extra_generation_params['BMAB process_resize_by_person'] = value
