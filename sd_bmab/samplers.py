@@ -33,8 +33,10 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 		super().__init__(funcname, sd_model)
 		self.callback = None
 		self.block_tqdm = False
+		self.p = None
 
 	def initialize(self, p):
+		self.p = p
 		if isinstance(p, sdprocessing.StableDiffusionProcessingImg2ImgOv):
 			self.block_tqdm = p.block_tqdm
 		if self.callback:
@@ -65,7 +67,12 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 	def sample(self, p, x, conditioning, unconditional_conditioning, steps=None, image_conditioning=None):
 		if self.callback:
 			self.callback.sample(p, x, conditioning, unconditional_conditioning, steps, image_conditioning)
-		return super().sample(p, x, conditioning, unconditional_conditioning, steps, image_conditioning)
+		samples = super().sample(p, x, conditioning, unconditional_conditioning, steps, image_conditioning)
+
+		if hasattr(p, 'end_sample'):
+			p.end_sample(samples)
+
+		return samples
 
 	def register_callback(self, cb):
 		self.callback = cb

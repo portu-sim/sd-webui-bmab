@@ -1,3 +1,4 @@
+from functools import partial
 import gradio as gr
 from PIL import Image
 
@@ -5,10 +6,11 @@ from modules import scripts
 from modules import shared
 from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
+from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.17.0'
+bmab_version = 'v23.08.17.1'
 samplers.override_samplers()
 
 
@@ -28,6 +30,13 @@ class BmabExtScript(scripts.Script):
 	def ui(self, is_img2img):
 		return self._create_ui()
 
+	def run(self, p, *args):
+		super().run(p, *args)
+
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return
+
 	def before_component(self, component, **kwargs):
 		super().before_component(component, **kwargs)
 
@@ -41,6 +50,15 @@ class BmabExtScript(scripts.Script):
 
 		p.prompt = prompt
 		p.setup_prompts()
+
+		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img):
+			def end_sample(self, s, ar, samples):
+				for idx in range(0, len(samples)):
+					img = util.latent_to_image(samples, idx)
+					img = face.process_face_detailing_inner(ar, p, img)
+					s.extra_image.append(img)
+					samples[idx] = util.image_to_latent(p, img)
+			p.end_sample = partial(end_sample, p, self, a)
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			if a['dino_detect_enabled']:
@@ -96,7 +114,6 @@ class BmabExtScript(scripts.Script):
 
 		params = (
 			('enabled', False),
-			('execute_before_img2img', True),
 			('input_image', None),
 			('contrast', 1),
 			('brightness', 1),
@@ -112,6 +129,7 @@ class BmabExtScript(scripts.Script):
 			('edge_high_threadhold', 200),
 			('edge_strength', 0.5),
 			('face_detailing_enabled', False),
+			('face_detailing_before_hresfix_enabled', False),
 			('face_lighting', 0.0),
 			('resize_by_person_enabled', False),
 			('resize_by_person', 0.85)
@@ -175,8 +193,6 @@ class BmabExtScript(scripts.Script):
 				with gr.Row():
 					with gr.Column():
 						enabled = gr.Checkbox(label=f'Enabled {bmab_version}', value=False)
-					with gr.Column():
-						execute_before_img2img = gr.Checkbox(label='Process before img2img', value=False, visible=False)
 				with gr.Row():
 					with gr.Tabs(elem_id='tabs'):
 						with gr.Tab('Basic', elem_id='basic_tabs'):
@@ -214,6 +230,8 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								face_detailing_enabled = gr.Checkbox(label='Enable face detailing', value=False)
 							with gr.Row():
+								face_detailing_before_hresfix_enabled = gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
+							with gr.Row():
 								face_lighting = gr.Slider(minimum=-1, maximum=1, value=-0.05, step=0.05, label='Face lighting (EXPERIMENTAL)')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
@@ -222,10 +240,9 @@ class BmabExtScript(scripts.Script):
 								resize_by_person = gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 
 				return (
-					enabled, execute_before_img2img, input_image, contrast, brightness, sharpeness, color_temperature,
-					noise_alpha, blend_enabled, blend_alpha,
-					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold,
-					edge_strength, face_detailing_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
+					enabled, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabled, blend_alpha,
+					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold, edge_strength,
+					face_detailing_enabled, face_detailing_before_hresfix_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
 
 
 def on_ui_settings():
