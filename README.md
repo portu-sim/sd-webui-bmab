@@ -3,15 +3,27 @@
 
 ##동작환경
 
+Windows, Linux 로컬 환경에서만 동작한다.
+클라우드에서 동작을 보장할 수 없다.
+
+### Local
+
 pytorch 2.0.1   
 python 3.10 , 3.11   
 CUDA 11.7, 11.8   
 
-Windows, Linux 로컬 환경에서만 동작합니다.
+환경에서 동작 확인.
 
-클라우드에서 동작확인 하지 못했습니다.
+### Colab
 
+stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
+패키지가 설치된다.
 
+```
+!pip3 install https://github.com/Bing-su/GroundingDINO/releases/download/0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl
+!pip3 install segment_anything
+!git clone https://github.com/portu-sim/sd-webui-bmab /content/gdrive/$mainpth/sd/stable-diffusion-webui/extensions/sd-webui-bmab
+```
 
 
 ## Quick Test
