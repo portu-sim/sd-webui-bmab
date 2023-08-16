@@ -1,20 +1,27 @@
 {
+  "enabled": true,
   "contrast": 1.2,
   "brightness": 0.9,
   "sharpeness": 1.5,
-  "execute_before_img2img": true,
   "edge_flavor_enabled": true,
   "edge_low_threadhold": 50,
   "edge_high_threadhold": 200,
   "edge_strength": 0.5,
   "resize_by_person_enabled": true,
   "resize_by_person": 0.85,
+  "face_detailing_enabled": true,
   "module_config": {
-    "multiple_face": [
-      {
+    "face_detailing": {
         "denoising_strength": 0.40,
-        "steps": 20
-      }
-    ]
+        "prompt": "smile, #!org!#",
+        "width": 512,
+        "height": 512,
+        "inpaint_full_res": true,
+        "inpaint_full_res_padding": 32,
+        "cfg_scale": 7
+      },
+    "face_detailing_opt": {
+      "mask dilation": 4
+    }
   }
 }
