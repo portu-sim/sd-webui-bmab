@@ -135,13 +135,13 @@ def process_multiple_face(args, p, img):
 
 		options = dict(mask=face_mask)
 
-		prompt = multiple_face[idx].get('prompt')
-		current_prompt = args.get('current_prompt', '')
-		if prompt is not None and prompt.find('#!org!#') >= 0:
-			multiple_face[idx]['prompt'] = multiple_face[idx]['prompt'].replace('#!org!#', current_prompt)
-			print('prompt for face', multiple_face[idx]['prompt'])
-
-		options.update(multiple_face[idx])
+		if idx < len(multiple_face):
+			prompt = multiple_face[idx].get('prompt')
+			current_prompt = args.get('current_prompt', '')
+			if prompt is not None and prompt.find('#!org!#') >= 0:
+				multiple_face[idx]['prompt'] = multiple_face[idx]['prompt'].replace('#!org!#', current_prompt)
+				print('prompt for face', multiple_face[idx]['prompt'])
+			options.update(multiple_face[idx])
 		img = process.process_img2img(p, img, options=options)
 
 	return img

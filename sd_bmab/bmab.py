@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.17.3'
+bmab_version = 'v23.08.18.0'
 samplers.override_samplers()
 
 
