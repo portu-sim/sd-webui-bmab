@@ -46,10 +46,12 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 	def callback_state(self, d):
 		if self.callback:
 			self.callback.callback_state(d)
+
 		step = d['i']
 		latent = d["denoised"]
 		if opts.live_preview_content == "Combined":
 			sd_samplers_common.store_latent(latent)
+
 		self.last_latent = latent
 
 		if self.stop_at is not None and step > self.stop_at:

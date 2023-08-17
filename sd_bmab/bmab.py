@@ -1,6 +1,4 @@
-from functools import partial
 import gradio as gr
-from PIL import Image
 
 from modules import scripts
 from modules import shared
@@ -10,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.17.2'
+bmab_version = 'v23.08.17.3'
 samplers.override_samplers()
 
 
@@ -29,85 +27,6 @@ class BmabExtScript(scripts.Script):
 
 	def ui(self, is_img2img):
 		return self._create_ui()
-
-	def run(self, p, *args):
-		super().run(p, *args)
-
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
-
-	def before_component(self, component, **kwargs):
-		super().before_component(component, **kwargs)
-
-	def before_process(self, p, *args):
-		self.extra_image = []
-
-		prompt, self.config = util.get_config(p.prompt)
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
-
-		p.prompt = prompt
-		p.setup_prompts()
-
-		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-			def end_sample(self, s, ar, samples):
-				for idx in range(0, len(samples)):
-					img = util.latent_to_image(samples, idx)
-					pidx = p.iteration * p.batch_size + idx
-					a['current_prompt'] = p.all_prompts[pidx]
-					img = face.process_face_detailing_inner(ar, p, img)
-					s.extra_image.append(img)
-					samples[idx] = util.image_to_latent(p, img)
-			p.end_sample = partial(end_sample, p, self, a)
-
-		if isinstance(p, StableDiffusionProcessingImg2Img):
-			if a['dino_detect_enabled']:
-				if p.image_mask is not None:
-					self.extra_image.append(p.init_images[0])
-					self.extra_image.append(p.image_mask)
-					p.image_mask = util.sam(a['dino_prompt'], p.init_images[0])
-					self.extra_image.append(p.image_mask)
-				if p.image_mask is None and a['input_image'] is not None:
-					mask = util.sam(a['dino_prompt'], p.init_images[0])
-					inputimg = Image.fromarray(a['input_image'])
-					newpil = Image.new('RGB', p.init_images[0].size)
-					newdata = [bdata if mdata == 0 else ndata for mdata, ndata, bdata in zip(mask.getdata(), p.init_images[0].getdata(), inputimg.getdata())]
-					newpil.putdata(newdata)
-					p.init_images[0] = newpil
-					self.extra_image.append(newpil)
-
-	def process_img2img_process_all(self, a, p):
-		if isinstance(p, StableDiffusionProcessingImg2Img):
-			if p.resize_mode == 2 and len(p.init_images) == 1:
-				im = p.init_images[0]
-				p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
-				img = util.resize_image(p.resize_mode, im, p.width, p.height)
-				self.extra_image.append(img)
-				for idx in range(0, len(p.init_latent)):
-					p.init_latent[idx] = util.image_to_latent(p, img)
-
-			if process.check_process(a, p):
-				if len(p.init_images) == 1:
-					img = util.latent_to_image(p.init_latent, 0)
-					img = process.process_all(a, p, img)
-					self.extra_image.append(img)
-					for idx in range(0, len(p.init_latent)):
-						p.init_latent[idx] = util.image_to_latent(p, img)
-				else:
-					for idx in range(0, len(p.init_latent)):
-						img = util.latent_to_image(p.init_latent, idx)
-						img = process.process_all(a, p, img)
-						self.extra_image.append(img)
-						p.init_latent[idx] = util.image_to_latent(p, img)
-
-	def process_batch(self, p, *args, **kwargs):
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
-
-		self.process_img2img_process_all(a, p)
 
 	def parse_args(self, args):
 		params = (
@@ -149,19 +68,36 @@ class BmabExtScript(scripts.Script):
 				ar.update(self.config)
 		return ar
 
-	def postprocess_batch(self, p, *args, **kwargs):
-		super().postprocess_batch(p, *args, **kwargs)
+	def before_process(self, p, *args):
+		self.extra_image = []
+
+		prompt, self.config = util.get_config(p.prompt)
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
 
-		face.process_face_detailing(a, p, kwargs['images'])
+		p.prompt = prompt
+		p.setup_prompts()
+
+		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+			process.process_end_sample(p, self, a)
+
+		if isinstance(p, StableDiffusionProcessingImg2Img):
+			process.process_dino_detect(p, self, a)
+
+	def process_batch(self, p, *args, **kwargs):
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return
+
+		process.process_img2img_process_all(p, self, a)
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
 
+		pp.image = face.process_face_detailing(a, p, pp.image)
 		pp.image = process.after_process(a, p, pp.image)
 
 	def postprocess(self, p, processed, *args):
@@ -176,16 +112,7 @@ class BmabExtScript(scripts.Script):
 		if not process.check_process(a, p):
 			return
 
-		if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
-			class CallBack(samplers.SamplerCallBack):
-				def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
-					for idx in range(0, len(x)):
-						img = util.latent_to_image(x, idx)
-						img = process.process_all(self.args, p, img)
-						self.script.extra_image.append(img)
-						x[idx] = util.image_to_latent(p, img)
-
-			p.sampler.register_callback(CallBack(self, a))
+		process.process_txt2img_hires_fix(p, self, a)
 
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
@@ -214,7 +141,7 @@ class BmabExtScript(scripts.Script):
 								noise_alpha_final = gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
 							with gr.Row():
-								edge_flavor_enabled = gr.Checkbox(label='Edge enhancement enabled', value=False)
+								edge_flavor_enabled = gr.Checkbox(label='Enable edge enhancement', value=False)
 							with gr.Row():
 								edge_low_threadhold = gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
 								edge_high_threadhold = gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
@@ -228,7 +155,7 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								blend_alpha = gr.Slider(minimum=0, maximum=1, value=1, step=0.05, label='Blend alpha')
 							with gr.Row():
-								dino_detect_enabled = gr.Checkbox(label='Dino detect enabled', value=False)
+								dino_detect_enabled = gr.Checkbox(label='Enable dino detect', value=False)
 							with gr.Row():
 								dino_prompt = gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',  label='Prompt')
 						with gr.Tab('Face', elem_id='face_tabs'):

@@ -7,7 +7,17 @@ from PIL import Image
 from PIL import ImageOps
 from PIL import ImageEnhance
 
-from sd_bmab import util, dinosam
+from sd_bmab import dinosam, sdprocessing, util, face, samplers
+
+from PIL import ImageDraw
+from functools import partial
+
+from modules import shared
+from modules import devices
+from modules.processing import process_images
+from modules.processing import StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessingImg2Img
+
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
@@ -206,3 +216,153 @@ def process_resize_by_person(arg, p, img):
 		p.extra_generation_params['BMAB process_resize_by_person_ratio'] = '%.3s' % image_ratio
 
 	return img
+
+
+def sam(prompt, input_image):
+	boxes, logits, phrases = dinosam.dino_predict(input_image, prompt, 0.35, 0.25)
+	mask = dinosam.sam_predict(input_image, boxes)
+	return mask
+
+
+def process_img2img(p, img, options=None):
+	if shared.state.skipped or shared.state.interrupted:
+		return img
+
+	steps = p.steps
+	if isinstance(p, StableDiffusionProcessingTxt2Img):
+		if p.hr_second_pass_steps != 0:
+			steps = p.hr_second_pass_steps
+
+	i2i_param = dict(
+		init_images=[img],
+		resize_mode=0,
+		denoising_strength=0.4,
+		mask=None,
+		mask_blur=4,
+		inpainting_fill=1,
+		inpaint_full_res=True,
+		inpaint_full_res_padding=32,
+		inpainting_mask_invert=0,
+		initial_noise_multiplier=1.0,
+		sd_model=p.sd_model,
+		outpath_samples=p.outpath_samples,
+		outpath_grids=p.outpath_grids,
+		prompt=p.prompt,
+		negative_prompt=p.negative_prompt,
+		styles=p.styles,
+		seed=p.seed,
+		subseed=p.subseed,
+		subseed_strength=p.subseed_strength,
+		seed_resize_from_h=p.seed_resize_from_h,
+		seed_resize_from_w=p.seed_resize_from_w,
+		sampler_name=p.sampler_name,
+		batch_size=1,
+		n_iter=1,
+		steps=steps,
+		cfg_scale=7,
+		width=img.width,
+		height=img.height,
+		restore_faces=False,
+		tiling=p.tiling,
+		extra_generation_params=p.extra_generation_params,
+		do_not_save_samples=True,
+		do_not_save_grid=True,
+		override_settings={},
+	)
+	if options is not None:
+		i2i_param.update(options)
+
+	img2img = sdprocessing.StableDiffusionProcessingImg2ImgOv(**i2i_param)
+	img2img.scripts = None
+	img2img.script_args = None
+	img2img.block_tqdm = True
+	shared.state.job_count += 1
+
+	processed = process_images(img2img)
+	img = processed.images[0]
+	devices.torch_gc()
+	return img
+
+
+def masked_image(img, xyxy):
+	x1, y1, x2, y2 = xyxy
+	check = img.convert('RGBA')
+	dd = Image.new('RGBA', img.size, (0, 0, 0, 0))
+	dr = ImageDraw.Draw(dd, 'RGBA')
+	dr.rectangle((x1, y1, x2, y2), fill=(255, 0, 0, 255))
+	check = Image.blend(check, dd, alpha=0.5)
+	check.convert('RGB').save('check.png')
+
+
+def process_end_sample(p, s, a):
+	def end_sample(self, s, ar, samples):
+		for idx in range(0, len(samples)):
+			img = util.latent_to_image(samples, idx)
+			pidx = p.iteration * p.batch_size + idx
+			a['current_prompt'] = p.all_prompts[pidx]
+			img = face.process_face_detailing_inner(ar, p, img)
+			s.extra_image.append(img)
+			samples[idx] = util.image_to_latent(p, img)
+			devices.torch_gc()
+	p.end_sample = partial(end_sample, p, s, a)
+
+
+def process_dino_detect(p, s, a):
+	if a['dino_detect_enabled']:
+		if p.image_mask is not None:
+			s.extra_image.append(p.init_images[0])
+			s.extra_image.append(p.image_mask)
+			p.image_mask = sam(a['dino_prompt'], p.init_images[0])
+			p.image_mask.save('mask.png')
+			s.extra_image.append(p.image_mask)
+			devices.torch_gc()
+		if p.image_mask is None and a['input_image'] is not None:
+			mask = sam(a['dino_prompt'], p.init_images[0])
+			inputimg = Image.fromarray(a['input_image'])
+			newpil = Image.new('RGB', p.init_images[0].size)
+			newdata = [bdata if mdata == 0 else ndata for mdata, ndata, bdata in zip(mask.getdata(), p.init_images[0].getdata(), inputimg.getdata())]
+			newpil.putdata(newdata)
+			p.init_images[0] = newpil
+			s.extra_image.append(newpil)
+
+
+def process_img2img_process_all(p, s, a):
+	if isinstance(p, StableDiffusionProcessingImg2Img):
+		if p.resize_mode == 2 and len(p.init_images) == 1:
+			im = p.init_images[0]
+			p.extra_generation_params['BMAB resize image'] = '%s %s' % (p.width, p.height)
+			img = util.resize_image(p.resize_mode, im, p.width, p.height)
+			s.extra_image.append(img)
+			for idx in range(0, len(p.init_latent)):
+				p.init_latent[idx] = util.image_to_latent(p, img)
+				devices.torch_gc()
+
+		if check_process(a, p):
+			if len(p.init_images) == 1:
+				img = util.latent_to_image(p.init_latent, 0)
+				img = process_all(a, p, img)
+				s.extra_image.append(img)
+				for idx in range(0, len(p.init_latent)):
+					p.init_latent[idx] = util.image_to_latent(p, img)
+					devices.torch_gc()
+			else:
+				for idx in range(0, len(p.init_latent)):
+					img = util.latent_to_image(p.init_latent, idx)
+					img = process_all(a, p, img)
+					s.extra_image.append(img)
+					p.init_latent[idx] = util.image_to_latent(p, img)
+					devices.torch_gc()
+
+
+def process_txt2img_hires_fix(p, s, a):
+	if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
+		class CallBack(samplers.SamplerCallBack):
+			def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
+				for idx in range(0, len(x)):
+					img = util.latent_to_image(x, idx)
+					img = process_all(self.args, p, img)
+					self.script.extra_image.append(img)
+					x[idx] = util.image_to_latent(p, img)
+					devices.torch_gc()
+
+		p.sampler.register_callback(CallBack(s, a))

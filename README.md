@@ -236,7 +236,7 @@ Contrast : 1.2
 Brightness : 0.9   
 Sharpeness : 1.5   
 
-Edge enhancement enabled : CHECK!!   
+Enable edge enhancement : CHECK!!   
 Edge low threshold : 50   
 Edge high threshold : 200   
 Edge strength : 0.5   
@@ -273,12 +273,12 @@ Img2Img Inpainting 하는 경우에 마스크를 입력하지 않아도 Dino det
 프로세스 과정에서 세번째 image를 합성하고 프롬프트에 따라서 결과가 얻어진다.   
 
 Enabled : CHECK!!   
-Process before Img2Img : CHECK!!
 
 Contrast : 1.2   
 Brightness : 0.9   
 Sharpeness : 1.5
 
+Enable dino detect : CHECK!!   
 DINO detect Prompt : 1girl
 
 
@@ -367,10 +367,10 @@ txt2img로 최초 이미지가 만들어지고 hires.fix 단계를 수행하기 
 </p>
 
 Enabled : CHECK!!   
-Process before Img2Img : CHECK!!
 
 Contrast : 1.2   
 Brightness : 0.9   
 Sharpeness : 1.5   
 
+Enable resize by person : CHECK!!   
 Resize by person : 0.85

@@ -2,10 +2,23 @@ from PIL import Image
 from PIL import ImageEnhance
 from PIL import ImageDraw
 
-from sd_bmab import dinosam, util
+from modules import devices
+from sd_bmab import dinosam, util, process
 
 
-def process_face_detailing(a, p, images):
+def get_mask(img, prompt):
+	boxes, logits, phrases = dinosam.dino_predict(img, prompt)
+	sam_mask = dinosam.sam_predict_box(img, boxes[0])
+	return sam_mask
+
+
+def process_face_detailing(a, p, image):
+	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
+		return process_face_detailing_inner(a, p, image)
+	return image
+
+
+def process_face_detailing_old(a, p, images):
 	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
 		for idx in range(0, len(images)):
 			pidx = p.iteration * p.batch_size + idx
@@ -59,8 +72,8 @@ def process_face_detailing_inner(args, p, img):
 			p.extra_generation_params['BMAB face lighting'] = args['face_lighting']
 
 		options = dict(mask=face_mask, **face_config)
-		img = util.process_img2img(p, img, options=options)
-
+		img = process.process_img2img(p, img, options=options)
+	devices.torch_gc()
 	return img
 
 
@@ -129,6 +142,6 @@ def process_multiple_face(args, p, img):
 			print('prompt for face', multiple_face[idx]['prompt'])
 
 		options.update(multiple_face[idx])
-		img = util.process_img2img(p, img, options=options)
+		img = process.process_img2img(p, img, options=options)
 
 	return img
