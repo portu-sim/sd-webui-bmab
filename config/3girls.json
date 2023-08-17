@@ -10,13 +10,12 @@
   "edge_strength": 0.5,
   "resize_by_person_enabled": true,
   "resize_by_person": 0.85,
+  "face_detailing_enabled": true,
   "module_config": {
     "multiple_face": [
       {
         "denoising_strength": 0.40,
         "prompt": "smile, #!org!#",
-        "width": 512,
-        "height": 512,
         "inpaint_full_res": true,
         "inpaint_full_res_padding": 32,
         "cfg_scale": 7
@@ -24,8 +23,6 @@
       {
         "denoising_strength": 0.40,
         "prompt": "sad, #!org!#",
-        "width": 512,
-        "height": 512,
         "inpaint_full_res": true,
         "inpaint_full_res_padding": 32,
         "cfg_scale": 7

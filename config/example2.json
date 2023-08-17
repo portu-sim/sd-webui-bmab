@@ -13,7 +13,9 @@
   "module_config": {
     "face_detailing": {
         "denoising_strength": 0.40,
-        "prompt": "smile, #!org!#",
+        "prompt": "<lora:koreanDollLikeness_v15:0.3>, (ulzzang-6500:0.4), #!org!#",
+        "width": 512,
+        "height": 512,
         "inpaint_full_res": true,
         "inpaint_full_res_padding": 32,
         "cfg_scale": 7

@@ -4,7 +4,8 @@
 ##동작환경
 
 Windows, Linux 로컬 환경에서만 동작한다.
-클라우드에서 동작을 보장할 수 없다.
+
+**<span style="color: red">클라우드에서 동작을 보장할 수 없다.</span>**
 
 ### Local
 
@@ -16,8 +17,9 @@ CUDA 11.7, 11.8
 
 ### Colab
 
+코랩 유저를 위한 조언.   
 stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
-패키지가 설치된다.
+패키지가 설치된다. 동작 확인은 했지만 원할하게 쓸 수 있는지는 확인하지 못했다.
 
 ```
 !pip3 install https://github.com/Bing-su/GroundingDINO/releases/download/0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl
@@ -34,6 +36,22 @@ stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
 1girl, ~~~~~~~
 
 ##example
+```
+
+koreanDollLikeness_v15, ulzzang-6500가 있다면
+
+```
+1girl, ~~~~~~~
+
+##example2
+```
+
+같은 방법으로 3명의 서로 다른 캐릭터에 적용하려면 아래 예제를 사용한다.
+
+```
+1girl, ~~~~~~~
+
+##3girls
 ```
 
 그럼 아래와 같은 옵션이 적용된다.
@@ -176,9 +194,15 @@ prompt에서 적용해야 한다.
 
 다만 limit 옵션을 -1 대신 20으로 주면, 5명을 초과한 20명까지 기본적인 face detailing을 수행한다.
 
-
 그 밖에 denoising_strength, steps 등을 이용해 정교하게 설정할 수 있으며,   
 프롬프트에 #!org!#이 있다면 그 부분은 사용자가 입력한 프롬프트로 변경된다.
+
+**좋은 결과를 얻기 위한 조언**
+
+* Prompt에 얼굴 관련된 lora, textual inversion등 관련 내용을 뺍니다. sunglass 등은 무관합니다.
+* 설정 파일에 얼굴마다 서로 다른 lora, textual inversion 등을 넣습니다.
+* prompt에 lora, TI가 많을 경우 그림 생성 자유도가 떨어지는 것 같습니다.
+* 그림속 모든 캐릭터가 공유되는 lora는 넣어주셔도 무방합니다.
 
 
 ## 기본 기능
