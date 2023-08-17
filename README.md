@@ -187,10 +187,8 @@ prompt에서 적용해야 한다.
 * Brightness : 밝기값 조절 (1이면 변경 없음)
 * Sharpeness : 날카롭게 처리하는 값 조절 (1이면 변경 없음)
 * Color Temperature : 색온도 조절, 6500K이 0 (0이면 변경 없음)
-
-위 네가지 기능은 "Process before Img2Img" 옵션과 무관하게 항상 마지막에 동작합니다.
-
-* Adding noise : 노이즈를 강제로 추가합니다.
+* Noise alpha : 프로세스 전에 노이즈를 추가하여 디테일을 올릴 수 있습니다. (권장값:0.1)
+* Noise alpha at final stage : 최종 단계에서 노이즈를 추가하여 분위기를 다르게 전달할 수 있습니다.
 
 ### Edge enhancemant
 
@@ -335,6 +333,9 @@ txt2img로 최초 이미지가 만들어지고 hires.fix 단계를 수행하기 
 설정값이 0.90이고 인물의 전체 길이: 그림 높이의 비율이 0.95라고 한다면   
 배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
 배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
+
+**<span style="color: red">denoising strength는 0.6 이상 주셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**
+
 
 <p>
 <img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="40%">

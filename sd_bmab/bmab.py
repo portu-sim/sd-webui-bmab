@@ -10,7 +10,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, face
 
-bmab_version = 'v23.08.17.1'
+bmab_version = 'v23.08.17.2'
 samplers.override_samplers()
 
 
@@ -51,10 +51,12 @@ class BmabExtScript(scripts.Script):
 		p.prompt = prompt
 		p.setup_prompts()
 
-		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img):
+		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
 			def end_sample(self, s, ar, samples):
 				for idx in range(0, len(samples)):
 					img = util.latent_to_image(samples, idx)
+					pidx = p.iteration * p.batch_size + idx
+					a['current_prompt'] = p.all_prompts[pidx]
 					img = face.process_face_detailing_inner(ar, p, img)
 					s.extra_image.append(img)
 					samples[idx] = util.image_to_latent(p, img)
@@ -108,10 +110,6 @@ class BmabExtScript(scripts.Script):
 		self.process_img2img_process_all(a, p)
 
 	def parse_args(self, args):
-		if len(args) != 20:
-			print('Refresh webui first.')
-			raise Exception('Refresh webui first.')
-
 		params = (
 			('enabled', False),
 			('input_image', None),
@@ -120,6 +118,7 @@ class BmabExtScript(scripts.Script):
 			('sharpeness', 1),
 			('color_temperature', 0),
 			('noise_alpha', 0),
+			('noise_alpha_final', 0),
 			('blend_enabled', False),
 			('blend_alpha', 1),
 			('dino_detect_enabled', False),
@@ -134,6 +133,10 @@ class BmabExtScript(scripts.Script):
 			('resize_by_person_enabled', False),
 			('resize_by_person', 0.85)
 		)
+
+		if len(args) != len(params):
+			print('Refresh webui first.')
+			raise Exception('Refresh webui first.')
 
 		if args[0]:
 			ar = {arg: args[idx] for idx, (arg, d) in enumerate(params)}
@@ -207,6 +210,8 @@ class BmabExtScript(scripts.Script):
 									minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 							with gr.Row():
 								noise_alpha = gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
+							with gr.Row():
+								noise_alpha_final = gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
 							with gr.Row():
 								edge_flavor_enabled = gr.Checkbox(label='Edge enhancement enabled', value=False)
@@ -232,7 +237,7 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								face_detailing_before_hresfix_enabled = gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
 							with gr.Row():
-								face_lighting = gr.Slider(minimum=-1, maximum=1, value=-0.05, step=0.05, label='Face lighting (EXPERIMENTAL)')
+								face_lighting = gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
 								resize_by_person_enabled = gr.Checkbox(label='Enable resize by person', value=False)
@@ -240,7 +245,7 @@ class BmabExtScript(scripts.Script):
 								resize_by_person = gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 
 				return (
-					enabled, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, blend_enabled, blend_alpha,
+					enabled, input_image, contrast, brightness, sharpeness, color_temperature, noise_alpha, noise_alpha_final, blend_enabled, blend_alpha,
 					dino_detect_enabled, dino_prompt, edge_flavor_enabled, edge_low_threadhold, edge_high_threadhold, edge_strength,
 					face_detailing_enabled, face_detailing_before_hresfix_enabled, face_lighting, resize_by_person_enabled, resize_by_person)
 

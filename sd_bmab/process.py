@@ -114,6 +114,12 @@ def calc_color_temperature(temp):
 
 
 def after_process(args, p, bgimg):
+
+	if args['noise_alpha_final'] != 0:
+		p.extra_generation_params['BMAB noise alpha final'] = args['noise_alpha_final']
+		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])
+		bgimg = Image.blend(bgimg, img_noise, alpha=args['noise_alpha_final'])
+
 	if args['contrast'] != 1:
 		p.extra_generation_params['BMAB contrast'] = args['contrast']
 		enhancer = ImageEnhance.Contrast(bgimg)
