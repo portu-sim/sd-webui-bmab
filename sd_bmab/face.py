@@ -79,7 +79,7 @@ def process_face_detailing_inner(args, p, img):
 
 def process_multiple_face(args, p, img):
 	multiple_face = list(args.get('module_config', {}).get('multiple_face', []))
-	order = args.get('module_config', {}).get('multiple_face_opt', {}).get('order', 'size')
+	order = args.get('module_config', {}).get('multiple_face_opt', {}).get('order', 'scale')
 	dilation = args.get('module_config', {}).get('multiple_face_opt', {}).get('mask dilation', 4)
 	limit = args.get('module_config', {}).get('multiple_face_opt', {}).get('limit', -1)
 
@@ -95,7 +95,7 @@ def process_multiple_face(args, p, img):
 	boxes, logits, phrases = dinosam.dino_predict(img, 'face')
 
 	org_size = img.size
-	print('size', org_size, len(boxes))
+	print(f'size {org_size} boxes {len(boxes)} order {order}')
 
 	# sort
 	candidate = []
@@ -111,8 +111,13 @@ def process_multiple_face(args, p, img):
 			print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-		else:
+		elif order == 'size':
 			value = (x2 - x1) * (y2 - y1)
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		else:
+			value = float(logit)
 			print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
