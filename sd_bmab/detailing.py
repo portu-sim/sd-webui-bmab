@@ -297,7 +297,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 
 	img2img_result = process.process_img2img(p, cropped, options=options)
 	img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
-	image.paste(img2img_result, (x1, y1))
+	image.paste(img2img_result, (x1, y1), mask=cropped_mask)
 
 	return image
 
