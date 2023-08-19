@@ -53,21 +53,24 @@ class BmabExtScript(scripts.Script):
 			('resize_by_person', 0.85),
 		]
 
+		ext_params = [
+			('hand_detailing_enabled', False)
+		]
+
 		if len(args) != len(params):
 			print('Refresh webui first.')
 			raise Exception('Refresh webui first.')
 
-		ext_params = [
-			('hand_detailing_enabled', False)
-		]
-		params.extend(ext_params)
-
 		if args[0]:
 			ar = {arg: args[idx] for idx, (arg, d) in enumerate(params)}
+			ext = {arg: d for arg, d in ext_params}
+			ar.update(ext)
 			if self.config:
 				ar.update(self.config)
 		else:
 			ar = {arg: d for arg, d in params}
+			ext = {arg: d for arg, d in ext_params}
+			ar.update(ext)
 			if self.config:
 				ar['enabled'] = True
 				ar.update(self.config)
