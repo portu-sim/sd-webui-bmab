@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, util, process, face
+from sd_bmab import samplers, util, process, detailing
 
-bmab_version = 'v23.08.18.1'
+bmab_version = 'v23.08.19.0'
 samplers.override_samplers()
 
 
@@ -29,7 +29,7 @@ class BmabExtScript(scripts.Script):
 		return self._create_ui()
 
 	def parse_args(self, args):
-		params = (
+		params = [
 			('enabled', False),
 			('input_image', None),
 			('contrast', 1),
@@ -50,12 +50,17 @@ class BmabExtScript(scripts.Script):
 			('face_detailing_before_hresfix_enabled', False),
 			('face_lighting', 0.0),
 			('resize_by_person_enabled', False),
-			('resize_by_person', 0.85)
-		)
+			('resize_by_person', 0.85),
+		]
 
 		if len(args) != len(params):
 			print('Refresh webui first.')
 			raise Exception('Refresh webui first.')
+
+		ext_params = [
+			('hand_detailing_enabled', False)
+		]
+		params.extend(ext_params)
 
 		if args[0]:
 			ar = {arg: args[idx] for idx, (arg, d) in enumerate(params)}
@@ -79,11 +84,24 @@ class BmabExtScript(scripts.Script):
 		p.prompt = prompt
 		p.setup_prompts()
 
+		if a['hand_detailing_enabled'] and isinstance(p, StableDiffusionProcessingImg2Img):
+			p.batch_size = 1
+			p.width = p.init_images[0].width
+			p.height = p.init_images[0].height
+
 		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-			process.process_end_sample(p, self, a)
+			process.process_detailing_before_hires_fix(self, p, a)
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			process.process_dino_detect(p, self, a)
+
+	def before_process_batch(self, p, *args, **kwargs):
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return
+
+		if a['hand_detailing_enabled'] and isinstance(p, StableDiffusionProcessingImg2Img):
+			process.process_img2img_break_sampling(self, p, a)
 
 	def process_batch(self, p, *args, **kwargs):
 		a = self.parse_args(args)
@@ -97,8 +115,9 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		pp.image = face.process_face_detailing(a, p, pp.image)
-		pp.image = process.after_process(a, p, pp.image)
+		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
+		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
+		pp.image = process.after_process(pp.image, self, p, a)
 
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:

@@ -13,6 +13,7 @@ class SamplerCallBack(object):
 		super().__init__()
 		self.script = s
 		self.args = ar
+		self.is_break = False
 
 	def initialize(self, p):
 		pass
@@ -64,6 +65,8 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 	def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps=None, image_conditioning=None):
 		if self.callback:
 			self.callback.sample_img2img(p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning)
+			if self.callback.is_break:
+				return x
 		return super().sample_img2img(p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning)
 
 	def sample(self, p, x, conditioning, unconditional_conditioning, steps=None, image_conditioning=None):

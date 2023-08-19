@@ -85,4 +85,11 @@ def resize_image(resize_mode, im, width, height, upscaler_name=None):
 
 		return res
 
-	return images.resize_image(resize_mode, im, width, height, upscaler_name)\
+	return images.resize_image(resize_mode, im, width, height, upscaler_name)
+
+
+def box_dilation(box, dil):
+	x1, y1, x2, y2 = box
+	dx = int((x2 - x1) * dil)
+	dy = int((y2 - y1) * dil)
+	return x1 - dx, y1 - dy, x2 + dx, y2 + dy

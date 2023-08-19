@@ -7,7 +7,7 @@ from PIL import Image
 from PIL import ImageOps
 from PIL import ImageEnhance
 
-from sd_bmab import dinosam, sdprocessing, util, face, samplers
+from sd_bmab import dinosam, sdprocessing, util, detailing, samplers
 
 from PIL import ImageDraw
 from functools import partial
@@ -123,7 +123,7 @@ def calc_color_temperature(temp):
 	return red / white[0], green / white[1], blue / white[2]
 
 
-def after_process(args, p, bgimg):
+def after_process(bgimg, s, p, args):
 
 	if args['noise_alpha_final'] != 0:
 		p.extra_generation_params['BMAB noise alpha final'] = args['noise_alpha_final']
@@ -294,13 +294,13 @@ def masked_image(img, xyxy):
 	check.convert('RGB').save('check.png')
 
 
-def process_end_sample(p, s, a):
+def process_detailing_before_hires_fix(s, p, a):
 	def end_sample(self, s, ar, samples):
 		for idx in range(0, len(samples)):
 			img = util.latent_to_image(samples, idx)
 			pidx = p.iteration * p.batch_size + idx
 			a['current_prompt'] = p.all_prompts[pidx]
-			img = face.process_face_detailing_inner(ar, p, img)
+			img = detailing.process_face_detailing_inner(img, s, p, a)
 			s.extra_image.append(img)
 			samples[idx] = util.image_to_latent(p, img)
 			devices.torch_gc()
@@ -366,3 +366,15 @@ def process_txt2img_hires_fix(p, s, a):
 					devices.torch_gc()
 
 		p.sampler.register_callback(CallBack(s, a))
+
+
+def process_img2img_break_sampling(s, p, a):
+	if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
+		class CallBack(samplers.SamplerCallBack):
+
+			def __init__(self, s, ar) -> None:
+				super().__init__(s, ar)
+				self.is_break = True
+
+		p.sampler.register_callback(CallBack(s, a))
+
