@@ -93,3 +93,18 @@ def box_dilation(box, dil):
 	dx = int((x2 - x1) * dil)
 	dy = int((y2 - y1) * dil)
 	return x1 - dx, y1 - dy, x2 + dx, y2 + dy
+
+
+def fix_box_size(box):
+	x1, y1, x2, y2 = box
+	w = x2 - x1
+	h = y2 - y1
+	w = (w // 8) * 8
+	h = (h // 8) * 8
+	return x1, y1, x1 + w, y1 + h
+
+
+def fix_size_by_scale(w, h, scale):
+	w = ((w * scale) // 8) * 8
+	h = ((h * scale) // 8) * 8
+	return w, h
