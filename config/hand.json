@@ -10,7 +10,7 @@
       "inpaint_full_res_padding": 32
     },
     "hand_detailing_opt": {
-      "scale": 3,
+      "scale": 2,
       "mode": "inpaint",
       "detailing method": "subframe"
     }

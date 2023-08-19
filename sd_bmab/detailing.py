@@ -249,6 +249,10 @@ def process_hand_detailing_inner(image, s, p, args):
 
 
 def process_hand_detailing_subframe(image, s, p, args):
+	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
+	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
+	detailing_method = hand_detailing_opt.get('detailing method', '')
+
 	boxes, mask = get_subframe(image)
 	if not boxes:
 		return image
@@ -280,11 +284,13 @@ def process_hand_detailing_subframe(image, s, p, args):
 	cropped = image.crop(box=box)
 	cropped_mask = mask.crop(box=box)
 
+	scale = hand_detailing_opt.get('scale', 2)
+
 	options = dict(mask=cropped_mask)
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	options.update(hand_detailing)
-	options['width'] = cropped.width * 2
-	options['height'] = cropped.height * 2
+	options['width'] = cropped.width * scale
+	options['height'] = cropped.height * scale
 
 	img2img_result = process.process_img2img(p, cropped, options=options)
 	img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
