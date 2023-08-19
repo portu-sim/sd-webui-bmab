@@ -3,10 +3,10 @@
   "hand_detailing_enabled": true,
   "module_config": {
     "hand_detailing": {
-      "denoising_strength": 0.5,
+      "denoising_strength": 0.58,
       "steps": 20,
       "cfg_scale": 7,
-      "inpaint_full_res": true,
+      "inpaint_full_res": 0,
       "inpaint_full_res_padding": 32
     },
     "hand_detailing_opt": {
