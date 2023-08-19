@@ -281,6 +281,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 		draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
 		s.extra_image.append(c1)
 	'''
+	box = util.fix_box_size(box)
 	cropped = image.crop(box=box)
 	cropped_mask = mask.crop(box=box)
 
@@ -289,8 +290,10 @@ def process_hand_detailing_subframe(image, s, p, args):
 	options = dict(mask=cropped_mask)
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	options.update(hand_detailing)
-	options['width'] = cropped.width * scale
-	options['height'] = cropped.height * scale
+	w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
+	options['width'] = w
+	options['height'] = h
+	print(f'Scale ({cropped.width},{cropped.height}) -> ({w},{h})')
 
 	img2img_result = process.process_img2img(p, cropped, options=options)
 	img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
