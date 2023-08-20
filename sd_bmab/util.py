@@ -96,7 +96,7 @@ def box_dilation(box, dil):
 
 
 def fix_box_size(box):
-	x1, y1, x2, y2 = box
+	x1, y1, x2, y2 = tuple(int(x) for x in box)
 	w = x2 - x1
 	h = y2 - y1
 	w = (w // 8) * 8
