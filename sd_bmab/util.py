@@ -110,6 +110,15 @@ def fix_size_by_scale(w, h, scale):
 	return w, h
 
 
+def fix_box_by_scale(box, scale):
+	x1, y1, x2, y2 = tuple(int(x) for x in box)
+	w = x2 - x1
+	h = y2 - y1
+	dx = w * scale
+	dy = h * scale
+	return x1 - dx, y1 - dy, x2 + dx, y2 + dy
+
+
 def get_dict_from_args(args, d):
 	ar = {}
 	if d is not None:

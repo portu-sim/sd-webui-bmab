@@ -349,6 +349,43 @@ txt2img로 최초 이미지가 만들어지고 hires.fix 단계를 수행하기 
 너무 큰 수치를 주면 정확한 디테일링이 되지 않을 수 있습니다.   
 모자를 착용하고 있는 경우 얼굴이 정확하게 인식이 안 될 수 있습니다.
 
+## Hand
+
+### Hand Detailing (EXPERIMENTAL)
+
+손 표현이 잘못된 부분을 수정하는 기능.   
+만들어진 그림에서 손 부분을 자동으로 찾아내어 해당 부분을 다시 그리는 기능이다.   
+다만 손의 경우 다시 그려도 잘 그려질지 확실하지 않다.
+
+#### 설정값
+
+* Enable hand detailing : 당 기능을 사용하도록 한다.
+* Block over-scaled image : 다시 그려야 하는 부분의 면적이 원래이미지를 초과하게 되면 작업을 수행하지 않는다.   
+이런 경우에는 Upscale Ratio를 줄이거나, 이 기능을 꺼야하는데, 이 기능을 끄면 매우 큰 그림을 다시 그릴 수도 있어서 GPU에 부하가 걸릴 수 있다.
+* Method
+    * subframe : 손을 포함하여 얼굴/머리 부분까지 찾아내어 상반신을 다시 그린다.
+    * each hand : 손을 찾아내여 3배 크기의 주변부 까지 다시 그려 손만 적용한다.
+    * each hand inpaint : 손을 찾아내어 3재 크기의 주변부를 기반으로 손만 다시 그린다.   
+      매우 극단적으로 변형될 수 있어서 잘 그려지기 어렵다 모양이 갖춰진다면, subframe으로 다시 그리는 것을 추천한다.
+    * at once : 찾아낸 손을 모두 한번에 다시 그린다.
+* Prompt : Subframe에서는 빈칸으로 두기를 권장한다. each hand, each hand inpaint시에 손 관련 프롬프트를 넣는다.
+* Negative Prompt : Subframe에서는 빈칸으로 두기를 권장한다. each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 넣는다.
+* Denoising Strength : 다시 그리는 경우 Denoising Strength 값이다.
+    * subframe : 0.4 권장
+    * 기타 0.55 이상 권장
+* CFG Scale : 다시 그리는 경우 CFG Scale 값이다.
+* Upscale Ratio : 상반신 / 손 주변을 찾아내어 얼마나 크게 확대하여 다시 그릴 것인지 지정한다.   
+무조건 크게 그린다고 성공확률이 올라가는 것은 아니다.  
+  * subframe : 2.0
+  * 기타 : 2.0~4.0
+* Box Threshold : 손을 찾아내지 못하는 경우 이 값을 낮추면, 찾아낼 수 있는 확률이 올라간다.
+* Box Dilation : 찾아낸 박스(손을 포함하여)의 외곽 부분을 얼마나 크게 할 것이 결정한다. (only for subframe)
+* Inpaint Area : 찾아낸 박스 전체를 다시 그릴 것인지, 손만 다시 그릴 것인지를 결정한다.   
+손만 다시그리는 경우 손 모양이 원하지 않게 바뀔 수 있으나 크게 변경된다.
+* Only masked padding : 찾아낸 손의 내부 공간을 얼마 정도로 채울지를 결정한다. 딱히 변경할 일 없다.
+* Additional Parameter : 현재는 제공하지 않지만 향후 고급 사용자를 위한 옵션을 제공할 예정이다.
+
+
 ## Resize
 
 ### Resize by person

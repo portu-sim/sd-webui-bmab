@@ -10,7 +10,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing
 
-bmab_version = 'v23.08.21.1'
+bmab_version = 'v23.08.21.2'
 samplers.override_samplers()
 
 
@@ -33,21 +33,21 @@ class BmabExtScript(scripts.Script):
 	def parse_args(self, args):
 		params = [
 			('enabled', False),
-			('input_image', None),
 			('contrast', 1),
 			('brightness', 1),
 			('sharpeness', 1),
 			('color_temperature', 0),
 			('noise_alpha', 0),
 			('noise_alpha_final', 0),
-			('blend_enabled', False),
-			('blend_alpha', 1),
-			('dino_detect_enabled', False),
-			('dino_prompt', ''),
 			('edge_flavor_enabled', False),
 			('edge_low_threadhold', 50),
 			('edge_high_threadhold', 200),
 			('edge_strength', 0.5),
+			('input_image', None),
+			('blend_enabled', False),
+			('blend_alpha', 1),
+			('dino_detect_enabled', False),
+			('dino_prompt', ''),
 			('face_detailing_enabled', False),
 			('face_detailing_before_hresfix_enabled', False),
 			('face_lighting', 0.0),

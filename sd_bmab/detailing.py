@@ -246,8 +246,10 @@ def process_hand_detailing_inner(image, s, p, args):
 def process_hand_detailing_subframe(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
+	dilation = hand_detailing_opt.get('dilation', 0.1)
 
-	boxes, masks = get_subframe(image)
+	box_threshold = hand_detailing_opt.get('box_threshold', 0.3)
+	boxes, masks = get_subframe(image, dilation, box_threshold=box_threshold)
 	if not boxes:
 		return image
 
@@ -265,7 +267,6 @@ def process_hand_detailing_subframe(image, s, p, args):
 		p.hand_mask_image = c1
 
 	for box, mask in zip(boxes, masks):
-		dilation = hand_detailing_opt.get('dilation', 0.1)
 		box = util.box_dilation(box, dilation)
 		x1, y1, x2, y2 = box
 		'''
@@ -411,9 +412,9 @@ class Hand(Obj):
 	name = 'hand'
 
 
-def get_subframe(pilimg, box_threshold=0.30, text_threshold=0.25):
+def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	text_prompt = "person . head . face . hand ."
-
+	print('threshold', box_threshold)
 	boxes, logits, phrases = dinosam.dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
 
 	people = []
@@ -433,6 +434,8 @@ def get_subframe(pilimg, box_threshold=0.30, text_threshold=0.25):
 			else:
 				people.append(p)
 	people = sorted(people, key=lambda c: c.size(), reverse=True)
+	for p in people:
+		p.xyxy = util.fix_box_by_scale(p.xyxy, dilation)
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		print(float(logit), phrase)
