@@ -162,12 +162,7 @@ def process_hand_detailing(image, s, p, a):
 def process_hand_detailing_inner(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
-	detailing_method = hand_detailing_opt.get('detailing method', '')
-
-	if not isinstance(p, StableDiffusionProcessingImg2Img):
-		return
-
-	image = p.init_images[0].copy()
+	detailing_method = hand_detailing_opt.get('detailing_method', '')
 
 	dinosam.dino_init()
 
@@ -179,7 +174,8 @@ def process_hand_detailing_inner(image, s, p, args):
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
 		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 			if phrase == 'hand':
-				dr.rectangle(tuple(int(x) for x in box), fill=255)
+				b = util.fix_box_size(box)
+				dr.rectangle(b, fill=255)
 		options = dict(mask=mask)
 		options.update(hand_detailing)
 		image = process.process_img2img(p, image, options=options)
@@ -194,12 +190,13 @@ def process_hand_detailing_inner(image, s, p, args):
 				height = y2 - y1
 
 				mbox = (int(x1 - width), int(y1 - height), int(x2 + width), int(y2 + height))
+				mbox = util.fix_box_size(mbox)
 				print(mbox)
 
 				hbox = (width, height, width * 2, height * 2)
-				hand = image.crop(box=mbox)
-				hand_mask = Image.new('L', hand.size, 0)
-				dr = ImageDraw.Draw(hand_mask, 'L')
+				cropped_hand = image.crop(box=mbox)
+				cropped_hand_mask = Image.new('L', cropped_hand.size, 0)
+				dr = ImageDraw.Draw(cropped_hand_mask, 'L')
 				dr.rectangle(hbox, fill=255)
 
 				options = {}
@@ -207,25 +204,23 @@ def process_hand_detailing_inner(image, s, p, args):
 				if scale < 1:
 					normalize = hand_detailing_opt.get('normalize', 768)
 					if width > height:
-						scale = normalize / hand.width
+						scale = normalize / cropped_hand.width
 					else:
-						scale = normalize / hand.height
+						scale = normalize / cropped_hand.height
 				mode = hand_detailing_opt.get('mode', -1)
 				if mode == 'inpaint':
-					options['mask'] = hand_mask
+					options['mask'] = cropped_hand_mask
 
 				options.update(hand_detailing)
-				w = int(hand.width * scale)
-				h = int(hand.height * scale)
+				w, h = util.fix_size_by_scale(cropped_hand.width, cropped_hand.height, scale)
 				options['width'] = w
 				options['height'] = h
 				print(f'scale {scale} width {w} height {h}')
-				hand_img = process.process_img2img(p, hand, options=options)
-				hand = hand_img.resize((hand.width, hand.height), resample=Image.LANCZOS)
+				img2img_result = process.process_img2img(p, cropped_hand, options=options)
+				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
-				print('resize to', (width, height))
-				hand = hand.crop(box=hbox)
-				image.paste(hand, box=(x1, y1))
+				print('resize to', img2img_result.size, cropped_hand_mask.size)
+				image.paste(img2img_result, (mbox[0], mbox[1]), mask=cropped_hand_mask)
 	else:
 		print('no such method')
 		return image
@@ -251,53 +246,63 @@ def process_hand_detailing_inner(image, s, p, args):
 def process_hand_detailing_subframe(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
-	detailing_method = hand_detailing_opt.get('detailing method', '')
 
-	boxes, mask = get_subframe(image)
+	boxes, masks = get_subframe(image)
 	if not boxes:
 		return image
-	box = util.box_dilation(boxes[0], 0.1)
-	x1, y1, x2, y2 = box
 
 	if not hasattr(p, 'hand_mask_image'):
 		c1 = image.copy()
-		draw = ImageDraw.Draw(c1, 'RGBA')
-		draw.rectangle(box, outline=(0, 255, 0, 255), fill=(0, 255, 0, 50), width=3)
-		c2 = image.copy()
-		draw = ImageDraw.Draw(c2, 'RGBA')
-		draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
-		c1.paste(c2, mask=mask)
+		for box, mask in zip(boxes, masks):
+			box = util.box_dilation(box, 0.1)
+			draw = ImageDraw.Draw(c1, 'RGBA')
+			draw.rectangle(box, outline=(0, 255, 0, 255), fill=(0, 255, 0, 50), width=3)
+			c2 = image.copy()
+			draw = ImageDraw.Draw(c2, 'RGBA')
+			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
+			c1.paste(c2, mask=mask)
 		s.extra_image.append(c1)
 		p.hand_mask_image = c1
 
-	'''
-	subimg = image.crop(box=box)
-	boxes2 = get_subframe(subimg)
-	if boxes2:
-		bx1, by1, bx2, by2 = boxes2[0]
-		box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1)
-		c1 = image.copy()
-		draw = ImageDraw.Draw(c1, 'RGBA')
-		draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
-		s.extra_image.append(c1)
-	'''
-	box = util.fix_box_size(box)
-	cropped = image.crop(box=box)
-	cropped_mask = mask.crop(box=box)
+	for box, mask in zip(boxes, masks):
+		dilation = hand_detailing_opt.get('dilation', 0.1)
+		box = util.box_dilation(box, dilation)
+		x1, y1, x2, y2 = box
+		'''
+		subimg = image.crop(box=box)
+		boxes2 = get_subframe(subimg)
+		if boxes2:
+			bx1, by1, bx2, by2 = boxes2[0]
+			box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1)
+			c1 = image.copy()
+			draw = ImageDraw.Draw(c1, 'RGBA')
+			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
+			s.extra_image.append(c1)
+		'''
+		box = util.fix_box_size(box)
+		cropped = image.crop(box=box)
+		cropped_mask = mask.crop(box=box)
 
-	scale = hand_detailing_opt.get('scale', 2)
+		scale = hand_detailing_opt.get('scale', 2)
 
-	options = dict(mask=cropped_mask)
-	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
-	options.update(hand_detailing)
-	w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
-	options['width'] = w
-	options['height'] = h
-	print(f'Scale ({cropped.width},{cropped.height}) -> ({w},{h})')
+		options = dict(mask=cropped_mask)
+		hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
+		options.update(hand_detailing)
+		w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
+		options['width'] = w
+		options['height'] = h
+		print(f'Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
-	img2img_result = process.process_img2img(p, cropped, options=options)
-	img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
-	image.paste(img2img_result, (x1, y1), mask=cropped_mask)
+		if hand_detailing_opt.get('block_overscaled_image', True):
+			area_org = image.width * image.height
+			area_scaled = w * h
+			if area_scaled > area_org:
+				print('It is too large to process.')
+				return image
+
+		img2img_result = process.process_img2img(p, cropped, options=options)
+		img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
+		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
 
 	return image
 
@@ -406,7 +411,7 @@ class Hand(Obj):
 	name = 'hand'
 
 
-def get_subframe(pilimg, box_threshold=0.35, text_threshold=0.25):
+def get_subframe(pilimg, box_threshold=0.30, text_threshold=0.25):
 	text_prompt = "person . head . face . hand ."
 
 	boxes, logits, phrases = dinosam.dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
@@ -452,13 +457,14 @@ def get_subframe(pilimg, box_threshold=0.35, text_threshold=0.25):
 	for person in people:
 		person.cleanup()
 
-	mask = Image.new('L', pilimg.size, color=0)
 	boxes = []
+	masks = []
 	for person in people:
 		if person.is_valid():
+			mask = Image.new('L', pilimg.size, color=0)
 			person.log()
 			person.put(mask)
 			boxes.append(person.get_box())
-
-	return boxes, mask
+			masks.append(mask)
+	return boxes, masks
 

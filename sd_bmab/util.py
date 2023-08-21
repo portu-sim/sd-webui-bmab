@@ -108,3 +108,34 @@ def fix_size_by_scale(w, h, scale):
 	w = ((w * scale) // 8) * 8
 	h = ((h * scale) // 8) * 8
 	return w, h
+
+
+def get_dict_from_args(args, d):
+	ar = {}
+	if d is not None:
+		ar = d
+	for p in args:
+		key = p[0]
+		value = p[1]
+		keys = key.split('.')
+		cur = ar
+		if len(keys) > 1:
+			key = keys[-1]
+			for k in keys[:-1]:
+				if k not in cur:
+					cur[k] = {}
+				cur = cur[k]
+		cur[key] = value
+	return ar
+
+
+def get_param_from_dict(prefix, d):
+	arr = []
+	for key, value in d.items():
+		if isinstance(value, dict):
+			prefix += key + '.'
+			sub = get_param_from_dict(prefix, value)
+			arr.extend(sub)
+			continue
+		arr.append((prefix + key, value))
+	return arr
