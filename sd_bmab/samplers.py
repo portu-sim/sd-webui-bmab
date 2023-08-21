@@ -84,18 +84,15 @@ class KDiffusionSamplerOv(KDiffusionSampler):
 
 
 def override_samplers():
-	try:
-		modules.sd_samplers_kdiffusion.samplers_data_k_diffusion = [
-			modules.sd_samplers_common.SamplerData(label,
-												   lambda model, funcname=funcname: KDiffusionSamplerOv(funcname, model),
-												   aliases, options)
-			for label, funcname, aliases, options in modules.sd_samplers_kdiffusion.samplers_k_diffusion
-			if hasattr(k_diffusion.sampling, funcname)
-		]
-		modules.sd_samplers.all_samplers = [
-			*modules.sd_samplers_kdiffusion.samplers_data_k_diffusion,
-			*modules.sd_samplers_compvis.samplers_data_compvis,
-		]
-		modules.sd_samplers.all_samplers_map = {x.name: x for x in modules.sd_samplers.all_samplers}
-	except:
-		print('Cannot override sampler.')
+	modules.sd_samplers_kdiffusion.samplers_data_k_diffusion = [
+		modules.sd_samplers_common.SamplerData(label,
+											   lambda model, funcname=funcname: KDiffusionSamplerOv(funcname, model),
+											   aliases, options)
+		for label, funcname, aliases, options in modules.sd_samplers_kdiffusion.samplers_k_diffusion
+		if callable(funcname) or hasattr(k_diffusion.sampling, funcname)
+	]
+	modules.sd_samplers.all_samplers = [
+		*modules.sd_samplers_kdiffusion.samplers_data_k_diffusion,
+		*modules.sd_samplers_compvis.samplers_data_compvis,
+	]
+	modules.sd_samplers.all_samplers_map = {x.name: x for x in modules.sd_samplers.all_samplers}
