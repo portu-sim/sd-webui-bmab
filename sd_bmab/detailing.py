@@ -1,9 +1,9 @@
+import math
 from PIL import Image
 from PIL import ImageEnhance
 from PIL import ImageDraw
 
 from modules import devices
-from modules.processing import StableDiffusionProcessingImg2Img
 from sd_bmab import dinosam, util, process
 
 
@@ -247,6 +247,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
 	dilation = hand_detailing_opt.get('dilation', 0.1)
+	print('dilation', dilation)
 
 	box_threshold = hand_detailing_opt.get('box_threshold', 0.3)
 	boxes, masks = get_subframe(image, dilation, box_threshold=box_threshold)
@@ -256,7 +257,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 	if not hasattr(p, 'hand_mask_image'):
 		c1 = image.copy()
 		for box, mask in zip(boxes, masks):
-			box = util.box_dilation(box, 0.1)
+			box = util.fix_box_by_scale(box, dilation)
 			draw = ImageDraw.Draw(c1, 'RGBA')
 			draw.rectangle(box, outline=(0, 255, 0, 255), fill=(0, 255, 0, 50), width=3)
 			c2 = image.copy()
@@ -267,8 +268,6 @@ def process_hand_detailing_subframe(image, s, p, args):
 		p.hand_mask_image = c1
 
 	for box, mask in zip(boxes, masks):
-		box = util.box_dilation(box, dilation)
-		x1, y1, x2, y2 = box
 		'''
 		subimg = image.crop(box=box)
 		boxes2 = get_subframe(subimg)
@@ -280,7 +279,11 @@ def process_hand_detailing_subframe(image, s, p, args):
 			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
 			s.extra_image.append(c1)
 		'''
+		box = util.fix_box_by_scale(box, dilation)
 		box = util.fix_box_size(box)
+		box = util.fix_box_limit(box, image.size)
+		x1, y1, x2, y2 = box
+
 		cropped = image.crop(box=box)
 		cropped_mask = mask.crop(box=box)
 
@@ -298,9 +301,18 @@ def process_hand_detailing_subframe(image, s, p, args):
 			area_org = image.width * image.height
 			area_scaled = w * h
 			if area_scaled > area_org:
-				print('It is too large to process.')
-				return image
-
+				print(f'It is too large to process.')
+				auto_upscale = hand_detailing_opt.get('auto_upscale', True)
+				if not auto_upscale:
+					return image
+				scale = math.sqrt(area_org / (cropped.width * cropped.height))
+				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
+				options['width'] = w
+				options['height'] = h
+				print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+				if scale < 1.2:
+					print(f'Scale {scale} has no effect. skip!!!!!')
+					return image
 		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
 		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
@@ -316,9 +328,10 @@ class Obj(object):
 		self.parent = None
 		self.xyxy = xyxy
 		self.objects = []
+		self.inbox = xyxy
 
 	def is_in(self, obj) -> bool:
-		x1, y1, x2, y2 = self.xyxy
+		x1, y1, x2, y2 = self.inbox
 		mx1, my1, mx2, my2 = obj.xyxy
 		return mx1 <= x1 <= mx2 and mx1 <= x2 <= mx2 and my1 <= y1 <= my2 and my1 <= y2 <= my2
 
@@ -373,6 +386,7 @@ class Person(Obj):
 
 	def __init__(self, xyxy) -> None:
 		super().__init__(xyxy)
+		self.inbox = util.fix_box_by_scale(xyxy, 0.05)
 
 	def is_valid(self):
 		face = False
@@ -434,8 +448,6 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 			else:
 				people.append(p)
 	people = sorted(people, key=lambda c: c.size(), reverse=True)
-	for p in people:
-		p.xyxy = util.fix_box_by_scale(p.xyxy, dilation)
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		print(float(logit), phrase)

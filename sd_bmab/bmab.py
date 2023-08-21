@@ -1,5 +1,3 @@
-from typing import Iterable
-
 import gradio as gr
 
 from modules import scripts
@@ -10,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing
 
-bmab_version = 'v23.08.21.2'
+bmab_version = 'v23.08.22.0'
 samplers.override_samplers()
 
 
@@ -58,6 +56,7 @@ class BmabExtScript(scripts.Script):
 			('module_config.hand_detailing.negative_prompt', ''),
 			('module_config.hand_detailing.denoising_strength', 0.4),
 			('module_config.hand_detailing.cfg_scale', 7),
+			('module_config.hand_detailing_opt.auto_upscale', True),
 			('module_config.hand_detailing_opt.scale', 2),
 			('module_config.hand_detailing_opt.box_threshold', 0.3),
 			('module_config.hand_detailing_opt.dilation', 0.1),
@@ -207,6 +206,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 								with gr.Column():
+									elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
 									elem += gr.Slider(minimum=1, maximum=4, value=2, step=0.01, label='Upscale Ratio')
 									elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
 									elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')

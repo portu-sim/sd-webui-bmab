@@ -105,8 +105,8 @@ def fix_box_size(box):
 
 
 def fix_size_by_scale(w, h, scale):
-	w = ((w * scale) // 8) * 8
-	h = ((h * scale) // 8) * 8
+	w = int(((w * scale) // 8) * 8)
+	h = int(((h * scale) // 8) * 8)
 	return w, h
 
 
@@ -114,9 +114,24 @@ def fix_box_by_scale(box, scale):
 	x1, y1, x2, y2 = tuple(int(x) for x in box)
 	w = x2 - x1
 	h = y2 - y1
-	dx = w * scale
-	dy = h * scale
+	dx = int(w * scale / 2)
+	dy = int(h * scale / 2)
 	return x1 - dx, y1 - dy, x2 + dx, y2 + dy
+
+
+def fix_box_limit(box, size):
+	x1, y1, x2, y2 = tuple(int(x) for x in box)
+	w = size[0]
+	h = size[1]
+	if x1 < 0:
+		x1 = 0
+	if y1 < 0:
+		y1 = 0
+	if x2 >= w:
+		x2 = w-1
+	if y2 >= h:
+		y2 = h-1
+	return x1, y1, x2, y2
 
 
 def get_dict_from_args(args, d):
