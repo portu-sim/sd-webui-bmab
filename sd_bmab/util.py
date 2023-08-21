@@ -89,7 +89,7 @@ def resize_image(resize_mode, im, width, height, upscaler_name=None):
 
 
 def box_dilation(box, dil):
-	x1, y1, x2, y2 = box
+	x1, y1, x2, y2 = tuple(int(x) for x in box)
 	dx = int((x2 - x1) * dil)
 	dy = int((y2 - y1) * dil)
 	return x1 - dx, y1 - dy, x2 + dx, y2 + dy
