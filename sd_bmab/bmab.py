@@ -10,7 +10,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing
 
-bmab_version = 'v23.08.21.0'
+bmab_version = 'v23.08.21.1'
 samplers.override_samplers()
 
 
@@ -59,7 +59,8 @@ class BmabExtScript(scripts.Script):
 			('module_config.hand_detailing.denoising_strength', 0.4),
 			('module_config.hand_detailing.cfg_scale', 7),
 			('module_config.hand_detailing_opt.scale', 2),
-			('module_config.hand_detailing_opt.dilation', 1.1),
+			('module_config.hand_detailing_opt.box_threshold', 0.3),
+			('module_config.hand_detailing_opt.dilation', 0.1),
 			('module_config.hand_detailing.inpaint_full_res', 0),
 			('module_config.hand_detailing.inpaint_full_res_padding', 32),
 			('module_config.hand_detailing_opt.additional_parameter', ''),
@@ -207,6 +208,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 								with gr.Column():
 									elem += gr.Slider(minimum=1, maximum=4, value=2, step=0.01, label='Upscale Ratio')
+									elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
 									elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
 								with gr.Column():
 									elem += gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type="index", value="Whole picture")
