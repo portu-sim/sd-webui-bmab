@@ -36,8 +36,9 @@ def dino_predict(pilimg, prompt, box_threahold=0.35, text_threshold=0.25):
 			T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
 		]
 	)
-	image_source = np.asarray(pilimg)
-	image, _ = transform(pilimg, None)
+	img = pilimg.convert('RGB')
+	image_source = np.asarray(img)
+	image, _ = transform(img, None)
 
 	model = dino_init()
 	boxes, logits, phrases = predict(
