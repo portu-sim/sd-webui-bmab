@@ -2,6 +2,7 @@ import math
 from PIL import Image
 from PIL import ImageEnhance
 from PIL import ImageDraw
+from PIL import ImageFilter
 
 from modules import devices
 from sd_bmab import dinosam, util, process
@@ -199,7 +200,7 @@ def process_hand_detailing_inner(image, s, p, args):
 				dr = ImageDraw.Draw(cropped_hand_mask, 'L')
 				dr.rectangle(hbox, fill=255)
 
-				options = {}
+				options = dict(seed=-1)
 				scale = hand_detailing_opt.get('scale', -1)
 				if scale < 1:
 					normalize = hand_detailing_opt.get('normalize', 768)
@@ -219,6 +220,8 @@ def process_hand_detailing_inner(image, s, p, args):
 				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
 				print('resize to', img2img_result.size, cropped_hand_mask.size)
+				blur = ImageFilter.GaussianBlur(3)
+				cropped_hand_mask = cropped_hand_mask.filter(blur)
 				image.paste(img2img_result, (mbox[0], mbox[1]), mask=cropped_hand_mask)
 	else:
 		print('no such method')
@@ -253,7 +256,20 @@ def process_hand_detailing_subframe(image, s, p, args):
 	if not boxes:
 		return image
 
-	if not hasattr(p, 'hand_mask_image'):
+	'''
+	for box, mask in zip(boxes, masks):
+		subimg = image.crop(box=box)
+		boxes2, masks2 = get_subframe(subimg, dilation)
+		if boxes2:
+			bx1, by1, bx2, by2 = boxes2[0]
+			box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1)
+			c1 = image.copy()
+			draw = ImageDraw.Draw(c1, 'RGBA')
+			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
+			s.extra_image.append(c1)
+	'''
+
+	if not hasattr(args, 'hand_mask_image'):
 		c1 = image.copy()
 		for box, mask in zip(boxes, masks):
 			box = util.fix_box_by_scale(box, dilation)
@@ -267,17 +283,6 @@ def process_hand_detailing_subframe(image, s, p, args):
 		p.hand_mask_image = c1
 
 	for box, mask in zip(boxes, masks):
-		'''
-		subimg = image.crop(box=box)
-		boxes2 = get_subframe(subimg)
-		if boxes2:
-			bx1, by1, bx2, by2 = boxes2[0]
-			box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1)
-			c1 = image.copy()
-			draw = ImageDraw.Draw(c1, 'RGBA')
-			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
-			s.extra_image.append(c1)
-		'''
 		box = util.fix_box_by_scale(box, dilation)
 		box = util.fix_box_size(box)
 		box = util.fix_box_limit(box, image.size)
@@ -288,7 +293,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 
 		scale = hand_detailing_opt.get('scale', 2)
 
-		options = dict(mask=cropped_mask)
+		options = dict(mask=cropped_mask, seed=-1)
 		hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 		options.update(hand_detailing)
 		w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
@@ -297,7 +302,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 		print(f'Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
 		if hand_detailing_opt.get('block_overscaled_image', True):
-			area_org = image.width * image.height
+			area_org = args.get('max_area', image.width * image.height)
 			area_scaled = w * h
 			if area_scaled > area_org:
 				print(f'It is too large to process.')
@@ -314,6 +319,8 @@ def process_hand_detailing_subframe(image, s, p, args):
 					return image
 		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
+		blur = ImageFilter.GaussianBlur(3)
+		cropped_mask = cropped_mask.filter(blur)
 		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
 
 	return image
@@ -383,9 +390,9 @@ class Obj(object):
 class Person(Obj):
 	name = 'person'
 
-	def __init__(self, xyxy) -> None:
+	def __init__(self, xyxy, dilation) -> None:
 		super().__init__(xyxy)
-		self.inbox = util.fix_box_by_scale(xyxy, 0.05)
+		self.inbox = util.fix_box_by_scale(xyxy, dilation)
 
 	def is_valid(self):
 		face = False
@@ -440,7 +447,7 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		if phrase == 'person':
-			p = Person(tuple(int(x) for x in box))
+			p = Person(tuple(int(x) for x in box), dilation)
 			parent = find_person(p)
 			if parent:
 				parent.append(p)

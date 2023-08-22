@@ -50,7 +50,7 @@ def edge_flavor(pil, canny_th1: int, canny_th2: int, strength: float):
 
 
 def check_process(args, p):
-	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_detailing_enabled'] or \
+	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['face_detailing_enabled'] or args['hand_detailing_enabled'] or \
 		   (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
 		   args['resize_by_person_enabled']
 
@@ -300,7 +300,10 @@ def process_detailing_before_hires_fix(s, p, a):
 			img = util.latent_to_image(samples, idx)
 			pidx = p.iteration * p.batch_size + idx
 			a['current_prompt'] = p.all_prompts[pidx]
-			img = detailing.process_face_detailing_inner(img, s, p, a)
+			if a['face_detailing_before_hresfix_enabled']:
+				img = detailing.process_face_detailing_inner(img, s, p, a)
+			if a['hand_detailing_before_hresfix_enabled']:
+				img = detailing.process_hand_detailing(img, s, p, a)
 			s.extra_image.append(img)
 			samples[idx] = util.image_to_latent(p, img)
 			devices.torch_gc()

@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing
 
-bmab_version = 'v23.08.22.1'
+bmab_version = 'v23.08.23.0'
 samplers.override_samplers()
 
 
@@ -68,6 +68,7 @@ class BmabExtScript(scripts.Script):
 		]
 
 		ext_params = [
+			('hand_detailing_before_hresfix_enabled', False)
 		]
 
 		if len(args) != len(params):
@@ -99,9 +100,6 @@ class BmabExtScript(scripts.Script):
 		p.prompt = prompt
 		p.setup_prompts()
 
-		if a['face_detailing_before_hresfix_enabled'] and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-			process.process_detailing_before_hires_fix(self, p, a)
-
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			process.process_dino_detect(p, self, a)
 
@@ -109,6 +107,10 @@ class BmabExtScript(scripts.Script):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
+
+		if (a['face_detailing_before_hresfix_enabled'] or a['hand_detailing_before_hresfix_enabled']) and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+			a['max_area'] = p.hr_upscale_to_x * p.hr_upscale_to_y
+			process.process_detailing_before_hires_fix(self, p, a)
 
 		process.process_img2img_process_all(p, self, a)
 
@@ -175,7 +177,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
-								elem += gr.Image(source='upload')
+								elem += gr.Image(source='upload', type='pil')
 							with gr.Row():
 								elem += gr.Checkbox(label='Blend enabled', value=False)
 							with gr.Row():
