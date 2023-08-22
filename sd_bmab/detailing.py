@@ -179,7 +179,7 @@ def process_hand_detailing_inner(image, s, p, args):
 		options = dict(mask=mask)
 		options.update(hand_detailing)
 		image = process.process_img2img(p, image, options=options)
-	elif detailing_method == 'each hand':
+	elif detailing_method == 'each hand' or detailing_method == 'inpaint each hand':
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
 		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 			print(float(logit), phrase)
@@ -207,8 +207,7 @@ def process_hand_detailing_inner(image, s, p, args):
 						scale = normalize / cropped_hand.width
 					else:
 						scale = normalize / cropped_hand.height
-				mode = hand_detailing_opt.get('mode', -1)
-				if mode == 'inpaint':
+				if detailing_method == 'inpaint each hand':
 					options['mask'] = cropped_hand_mask
 
 				options.update(hand_detailing)
