@@ -68,7 +68,7 @@ class BmabExtScript(scripts.Script):
 		]
 
 		ext_params = [
-			('hand_detailing_before_hresfix_enabled', False)
+			('hand_detailing_before_hresfix_enabled', True)
 		]
 
 		if len(args) != len(params):
@@ -155,18 +155,15 @@ class BmabExtScript(scripts.Script):
 					with gr.Tabs(elem_id='tabs'):
 						with gr.Tab('Basic', elem_id='basic_tabs'):
 							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
-							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
-							with gr.Row():
-								elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
-							with gr.Row():
-								elem += gr.Slider(
-									minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
-							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
-							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
+								with gr.Column():
+									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
+									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
+									elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
+								with gr.Column():
+									elem += gr.Slider(
+										minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
+									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
+									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)
@@ -175,13 +172,17 @@ class BmabExtScript(scripts.Script):
 								elem +=  gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
 							with gr.Row():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
+								gr.Markdown('')
 						with gr.Tab('Imaging', elem_id='imaging_tabs'):
 							with gr.Row():
 								elem += gr.Image(source='upload', type='pil')
 							with gr.Row():
 								elem += gr.Checkbox(label='Blend enabled', value=False)
 							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=1, value=1, step=0.05, label='Blend alpha')
+								with gr.Column():
+									elem += gr.Slider(minimum=0, maximum=1, value=1, step=0.05, label='Blend alpha')
+								with gr.Column():
+									gr.Markdown('')
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable dino detect', value=False)
 							with gr.Row():
@@ -192,7 +193,10 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
 							with gr.Row():
-								elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
+								with gr.Column():
+									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
+								with gr.Column():
+									gr.Markdown('')
 						with gr.Tab('Hand', elem_id='hand_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
@@ -207,21 +211,28 @@ class BmabExtScript(scripts.Script):
 								with gr.Column():
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-								with gr.Column():
 									elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
+								with gr.Column():
 									elem += gr.Slider(minimum=1, maximum=4, value=2, step=0.01, label='Upscale Ratio')
 									elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
 									elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
+							with gr.Row():
+								elem += gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type="index", value="Whole picture")
+							with gr.Row():
 								with gr.Column():
-									elem += gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type="index", value="Whole picture")
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+								with gr.Column():
+									gr.Markdown('')
 							with gr.Row():
 								elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable resize by person', value=False)
 							with gr.Row():
-								elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
+								with gr.Column():
+									elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
+								with gr.Column():
+									gr.Markdown('')
 				return elem
 
 

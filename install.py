@@ -16,8 +16,8 @@ def install_models():
 
     targets = {
         ('sam_vit_b_01ec64.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth'),
-        ('sam_vit_l_0b3195.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth'),
-        ('sam_vit_h_4b8939.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth'),
+        # ('sam_vit_l_0b3195.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth'),
+        # ('sam_vit_h_4b8939.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth'),
         ('groundingdino_swint_ogc.pth', 'https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth'),
         ('GroundingDINO_SwinT_OGC.py', 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py')
     }
