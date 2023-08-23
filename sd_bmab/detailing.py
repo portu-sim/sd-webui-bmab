@@ -35,17 +35,18 @@ def process_face_detailing_inner(image, s, p, a):
 	if multiple_face:
 		return process_multiple_face(image, s, p, a)
 
+	override_parameter = a['face_detailing_override_parameter']
 	dilation = a.get('module_config', {}).get('face_detailing_opt', {}).get('mask dilation', 4)
 
 	dinosam.dino_init()
-	boxes, logits, phrases = dinosam.dino_predict(image, 'face')
+	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .')
 	# print(float(logits))
 	print(phrases)
 
 	org_size = image.size
 	print('size', org_size)
 
-	face_config = dict(a.get('module_config', {}).get('face_detailing', {}))
+	face_config = dict(a.get('module_config', {}).get('face_detailing', {})) if override_parameter else {}
 
 	prompt = face_config.get('prompt')
 	current_prompt = a.get('current_prompt', '')
@@ -54,6 +55,8 @@ def process_face_detailing_inner(image, s, p, a):
 		print('prompt for face', face_config['prompt'])
 
 	for box, logit, phrase in zip(boxes, logits, phrases):
+		if phrase != 'face':
+			continue
 		print('render', phrase, float(logit))
 		x1, y1, x2, y2 = box
 		x1 = int(x1) - dilation
@@ -150,6 +153,7 @@ def process_multiple_face(image, s, p, a):
 				print('prompt for face', multiple_face[idx]['prompt'])
 			options.update(multiple_face[idx])
 		image = process.process_img2img(p, image, options=options)
+		devices.torch_gc()
 
 	return image
 
@@ -322,6 +326,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 		blur = ImageFilter.GaussianBlur(3)
 		cropped_mask = cropped_mask.filter(blur)
 		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
+		devices.torch_gc()
 
 	return image
 

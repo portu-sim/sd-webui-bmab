@@ -1,5 +1,3 @@
-import os
-import json
 import torch
 import numpy as np
 from PIL import Image
@@ -8,28 +6,6 @@ from modules import shared
 from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
-
-
-def get_config(prompt):
-	config_file = None
-	newprompt = []
-	for line in prompt.split('\n'):
-		if line.startswith('##'):
-			config_file = line[2:]
-			continue
-		newprompt.append(line)
-	if config_file is None:
-		return prompt, {}
-
-	cfg_dir = os.path.join(os.path.dirname(__file__), "../config")
-	json_file = os.path.join(cfg_dir, f'{config_file}.json')
-	if not os.path.isfile(json_file):
-		print(f'Not found configuration file {config_file}.json')
-		return '\n'.join(newprompt), {}
-	with open(json_file) as f:
-		config = json.load(f)
-	print('Loading config', json.dumps(config, indent=2))
-	return '\n'.join(newprompt), config
 
 
 def image_to_latent(p, img):
@@ -132,34 +108,3 @@ def fix_box_limit(box, size):
 	if y2 >= h:
 		y2 = h-1
 	return x1, y1, x2, y2
-
-
-def get_dict_from_args(args, d):
-	ar = {}
-	if d is not None:
-		ar = d
-	for p in args:
-		key = p[0]
-		value = p[1]
-		keys = key.split('.')
-		cur = ar
-		if len(keys) > 1:
-			key = keys[-1]
-			for k in keys[:-1]:
-				if k not in cur:
-					cur[k] = {}
-				cur = cur[k]
-		cur[key] = value
-	return ar
-
-
-def get_param_from_dict(prefix, d):
-	arr = []
-	for key, value in d.items():
-		if isinstance(value, dict):
-			prefix += key + '.'
-			sub = get_param_from_dict(prefix, value)
-			arr.extend(sub)
-			continue
-		arr.append((prefix + key, value))
-	return arr

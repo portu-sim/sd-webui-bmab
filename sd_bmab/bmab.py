@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, util, process, detailing
+from sd_bmab import samplers, util, process, detailing, parameters
 
-bmab_version = 'v23.08.23.0'
+bmab_version = 'v23.08.24.0'
 samplers.override_samplers()
 
 
@@ -29,76 +29,15 @@ class BmabExtScript(scripts.Script):
 		return self._create_ui()
 
 	def parse_args(self, args):
-		params = [
-			('enabled', False),
-			('contrast', 1),
-			('brightness', 1),
-			('sharpeness', 1),
-			('color_temperature', 0),
-			('noise_alpha', 0),
-			('noise_alpha_final', 0),
-			('edge_flavor_enabled', False),
-			('edge_low_threadhold', 50),
-			('edge_high_threadhold', 200),
-			('edge_strength', 0.5),
-			('input_image', None),
-			('blend_enabled', False),
-			('blend_alpha', 1),
-			('dino_detect_enabled', False),
-			('dino_prompt', ''),
-			('face_detailing_enabled', False),
-			('face_detailing_before_hresfix_enabled', False),
-			('face_lighting', 0.0),
-			('hand_detailing_enabled', False),
-			('module_config.hand_detailing_opt.block_overscaled_image', True),
-			('module_config.hand_detailing_opt.detailing_method', 'subframe'),
-			('module_config.hand_detailing.prompt', ''),
-			('module_config.hand_detailing.negative_prompt', ''),
-			('module_config.hand_detailing.denoising_strength', 0.4),
-			('module_config.hand_detailing.cfg_scale', 7),
-			('module_config.hand_detailing_opt.auto_upscale', True),
-			('module_config.hand_detailing_opt.scale', 2),
-			('module_config.hand_detailing_opt.box_threshold', 0.3),
-			('module_config.hand_detailing_opt.dilation', 0.1),
-			('module_config.hand_detailing.inpaint_full_res', 0),
-			('module_config.hand_detailing.inpaint_full_res_padding', 32),
-			('module_config.hand_detailing_opt.additional_parameter', ''),
-			('resize_by_person_enabled', False),
-			('resize_by_person', 0.85),
-		]
-
-		ext_params = [
-			('hand_detailing_before_hresfix_enabled', True)
-		]
-
-		if len(args) != len(params):
-			print('Refresh webui first.')
-			raise Exception('Refresh webui first.')
-
-		if args[0]:
-			args_list = [(params[idx][0], v) for idx, v in enumerate(args)]
-			args_list.extend(ext_params)
-			ar = util.get_dict_from_args(args_list, None)
-		else:
-			params.extend(ext_params)
-			ar = util.get_dict_from_args(params, None)
-
-		if self.config:
-			cfgarg = util.get_param_from_dict('', self.config)
-			ar = util.get_dict_from_args(cfgarg, ar)
-			ar['enabled'] = True
+		self.config = parameters.Parameters().load_preset(args)
+		ar = parameters.Parameters().get_dict(args, self.config)
 		return ar
 
 	def before_process(self, p, *args):
 		self.extra_image = []
-
-		prompt, self.config = util.get_config(p.prompt)
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
-
-		p.prompt = prompt
-		p.setup_prompts()
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			process.process_dino_detect(p, self, a)
@@ -169,7 +108,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)
 							with gr.Row():
 								elem += gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
-								elem +=  gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
+								elem += gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
 							with gr.Row():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
 								gr.Markdown('')
@@ -193,6 +132,21 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
 							with gr.Row():
+								elem += gr.Checkbox(label='Overide Parameter', value=False)
+							with gr.Row():
+								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+							with gr.Row():
+								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Row():
+								with gr.Column():
+									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
+									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
+									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
+								with gr.Column():
+									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
+									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
+							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
 								with gr.Column():
@@ -204,9 +158,9 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once'])
 							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', visible=True, value='', label='Prompt')
+								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', visible=True, value='', label='Negative Prompt')
+								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
@@ -217,7 +171,8 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
 									elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
 							with gr.Row():
-								elem += gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type="index", value="Whole picture")
+								inpaint_area = gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type='value', value="Whole picture")
+								elem += inpaint_area
 							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
@@ -233,7 +188,68 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 								with gr.Column():
 									gr.Markdown('')
-				return elem
+						with gr.Tab('Config', elem_id='config_tab'):
+							configs = parameters.Parameters().list_config()
+							config = '' if not configs else configs[0]
+							with gr.Row():
+								with gr.Column(min_width=100):
+									config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
+									elem += config_dd
+								with gr.Column(min_width=100):
+									gr.Markdown('')
+								with gr.Column(min_width=100):
+									gr.Markdown('')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									load_btn = gr.Button('Load', visible=True, interactive=True)
+								with gr.Column(min_width=100):
+									save_btn = gr.Button('Save', visible=True, interactive=True)
+								with gr.Column(min_width=100):
+									reset_btn = gr.Button('Reset', visible=True, interactive=True)
+							with gr.Row():
+								with gr.Column(min_width=100):
+									gr.Markdown('Preset Loader : preset override UI configuration.')
+							with gr.Row():
+								presets = parameters.Parameters().list_preset()
+								with gr.Column(min_width=100):
+									preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
+									elem += preset_dd
+									refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
+
+			def load_config(*args):
+				name = args[0]
+				ret = parameters.Parameters().load_config(name)
+				return ret
+
+			def save_config(*args):
+				name = parameters.Parameters().get_save_config_name(args)
+				parameters.Parameters().save_config(args)
+				return {
+					config_dd: {
+						'choices': parameters.Parameters().list_config(),
+						'value': name,
+						'__type__': 'update'
+					}
+				}
+
+			def reset_config(*args):
+				return parameters.Parameters().get_default()
+
+			def refresh_preset(*args):
+				return {
+					preset_dd: {
+						'choices': parameters.Parameters().list_preset(),
+						'value': 'None',
+						'__type__': 'update'
+					}
+				}
+
+			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
+			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
+			reset_btn.click(reset_config, outputs=elem)
+			refresh_btn.click(refresh_preset, outputs=elem)
+
+		return elem
 
 
 def on_ui_settings():

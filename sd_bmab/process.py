@@ -233,6 +233,13 @@ def process_img2img(p, img, options=None):
 		if p.hr_second_pass_steps != 0:
 			steps = p.hr_second_pass_steps
 
+	if 'inpaint_full_res' in options:
+		res = options['inpaint_full_res']
+		if res == 'Whole picture':
+			options['inpaint_full_res'] = 0
+		if res == 'Only masked':
+			options['inpaint_full_res'] = 1
+
 	i2i_param = dict(
 		init_images=[img],
 		resize_mode=0,
