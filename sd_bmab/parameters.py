@@ -56,7 +56,8 @@ class Parameters(object):
 		]
 
 		self.ext_params = [
-			('hand_detailing_before_hresfix_enabled', False)
+			('hand_detailing_before_hresfix_enabled', False),
+			('people_detailing_enabled', True)
 		]
 
 	@staticmethod
@@ -171,8 +172,6 @@ class Parameters(object):
 		final_args = Parameters.get_param_from_dict('', final_dict)
 		sort_dict = {a[0]: a[1] for a in final_args}
 		ret = [sort_dict[key] for key, value in self.params]
-		for x, y in zip(self.params, ret):
-			print(x, y)
 		return ret
 
 	def save_config(self, args):

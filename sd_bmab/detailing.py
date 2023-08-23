@@ -46,7 +46,14 @@ def process_face_detailing_inner(image, s, p, a):
 	org_size = image.size
 	print('size', org_size)
 
-	face_config = dict(a.get('module_config', {}).get('face_detailing', {})) if override_parameter else {}
+	face_config = {}
+
+	if override_parameter:
+		face_config = dict(a.get('module_config', {}).get('face_detailing', {}))
+		if face_config.get('prompt') == '':
+			del face_config['prompt']
+		if face_config.get('negative_prompt') == '':
+			del face_config['negative_prompt']
 
 	prompt = face_config.get('prompt')
 	current_prompt = a.get('current_prompt', '')
@@ -493,4 +500,81 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 			boxes.append(person.get_box())
 			masks.append(mask)
 	return boxes, masks
+
+
+def process_people_detailing(image, s, p, a):
+	if a['people_detailing_enabled']:
+		return process_people_detailing_inner(image, s, p, a)
+	return image
+
+
+def process_people_detailing_inner(image, s, p, a):
+	multiple_face = a.get('module_config', {}).get('multiple_face', [])
+	if multiple_face:
+		return process_multiple_face(image, s, p, a)
+
+	override_parameter = a['face_detailing_override_parameter']
+	dilation = a.get('module_config', {}).get('face_detailing_opt', {}).get('mask dilation', 4)
+
+	dinosam.dino_init()
+	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
+	# print(float(logits))
+	print(phrases)
+
+	org_size = image.size
+	print('size', org_size)
+
+	face_config = dict(a.get('module_config', {}).get('face_detailing', {})) if override_parameter else {}
+
+	prompt = face_config.get('prompt')
+	current_prompt = a.get('current_prompt', '')
+	if prompt is not None and prompt.find('#!org!#') >= 0:
+		face_config['prompt'] = face_config['prompt'].replace('#!org!#', current_prompt)
+		print('prompt for face', face_config['prompt'])
+
+	for box, logit, phrase in zip(boxes, logits, phrases):
+		print('render', phrase, float(logit))
+		box2 = util.fix_box_size(box)
+		'''
+		ox1, oy1, ox2, oy2 = box2
+		box = util.fix_box_by_scale(box2, 1.5)
+		'''
+		x1, y1, x2, y2 = box2
+
+		'''
+		face_mask = Image.new('L', image.size, color=0)
+		dr = ImageDraw.Draw(face_mask, 'L')
+		dr.rectangle((ox1, oy1, ox2, oy2), fill=255)
+
+		print(image.size, face_mask.size)
+
+		cropped_mask = face_mask.crop(box=box)
+		upscaled_mask = cropped_mask.resize((cropped_mask.width*2, cropped_mask.height*2), resample=Image.LANCZOS)
+		print(cropped_mask.size, upscaled_mask.size)
+		upscaled_mask.save('upscaled_mask.png')
+		'''
+		cropped = image.crop(box=box)
+		upscaled = cropped.resize((cropped.width*4, cropped.height*4), resample=Image.LANCZOS)
+		print(cropped.size, upscaled.size)
+		upscaled.save('upscaled.png')
+
+		options = dict(**face_config)
+		options['width'] = upscaled.width
+		options['height'] = upscaled.height
+		options['inpaint_full_res'] = 1
+		options['inpaint_full_res'] = 32
+
+		img2img_result = process.process_img2img(p, upscaled, options=options)
+		img2img_result.save('img2img_result.png')
+		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
+
+		image.paste(img2img_result, (x1, y1))
+
+	devices.torch_gc()
+	return image
+
+
+
+
+
 

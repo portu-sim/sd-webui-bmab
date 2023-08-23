@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing, parameters
 
-bmab_version = 'v23.08.24.0'
+bmab_version = 'v23.08.24.1'
 samplers.override_samplers()
 
 
@@ -60,6 +60,7 @@ class BmabExtScript(scripts.Script):
 
 		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
+		# pp.image = detailing.process_people_detailing(pp.image, self, p, a)
 		pp.image = process.after_process(pp.image, self, p, a)
 
 	def postprocess(self, p, processed, *args):
