@@ -23,6 +23,13 @@ class Parameters(object):
 			('blend_alpha', 1),
 			('dino_detect_enabled', False),
 			('dino_prompt', ''),
+			('person_detailing_enabled', False),
+			('module_config.person_detailing_opt.block_overscaled_image', True),
+			('module_config.person_detailing_opt.auto_upscale', True),
+			('module_config.person_detailing_opt.scale', 4),
+			('module_config.person_detailing_opt.dilation', 2),
+			('module_config.person_detailing.denoising_strength', 0.4),
+			('module_config.person_detailing.cfg_scale', 7),
 			('face_detailing_enabled', False),
 			('face_detailing_before_hresfix_enabled', False),
 			('face_detailing_override_parameter', False),
@@ -57,7 +64,6 @@ class Parameters(object):
 
 		self.ext_params = [
 			('hand_detailing_before_hresfix_enabled', False),
-			('people_detailing_enabled', True)
 		]
 
 	@staticmethod

@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, util, process, detailing, parameters
 
-bmab_version = 'v23.08.24.1'
+bmab_version = 'v23.08.24.2'
 samplers.override_samplers()
 
 
@@ -58,9 +58,9 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
+		pp.image = detailing.process_person_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
-		# pp.image = detailing.process_people_detailing(pp.image, self, p, a)
 		pp.image = process.after_process(pp.image, self, p, a)
 
 	def postprocess(self, p, processed, *args):
@@ -100,8 +100,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
 									elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
 								with gr.Column():
-									elem += gr.Slider(
-										minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
+									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
 						with gr.Tab('Edge', elem_id='edge_tabs'):
@@ -126,7 +125,20 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable dino detect', value=False)
 							with gr.Row():
-								elem += gr.Textbox(placeholder='1girl:0:0.4:0', visible=True, value='',  label='Prompt')
+								elem += gr.Textbox(placeholder='1girl', visible=True, value='',  label='Prompt')
+						with gr.Tab('Person', elem_id='person_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable person detailing for landscape (EXPERIMENTAL)', value=False)
+							with gr.Row():
+								elem += gr.Checkbox(label='Block over-scaled image', value=True)
+								elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=2, maximum=8, value=4, step=0.01, label='Upscale Ratio')
+									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
+									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing', value=False)
@@ -139,11 +151,11 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 							with gr.Row():
-								with gr.Column():
+								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
 									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
-								with gr.Column():
+								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')

@@ -502,73 +502,74 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	return boxes, masks
 
 
-def process_people_detailing(image, s, p, a):
-	if a['people_detailing_enabled']:
-		return process_people_detailing_inner(image, s, p, a)
+def process_person_detailing(image, s, p, a):
+	if a['person_detailing_enabled']:
+		return process_person_detailing_inner(image, s, p, a)
 	return image
 
 
-def process_people_detailing_inner(image, s, p, a):
-	multiple_face = a.get('module_config', {}).get('multiple_face', [])
-	if multiple_face:
-		return process_multiple_face(image, s, p, a)
+def dilate_mask(mask, value):
+	return mask.filter(ImageFilter.MaxFilter(value))
 
-	override_parameter = a['face_detailing_override_parameter']
-	dilation = a.get('module_config', {}).get('face_detailing_opt', {}).get('mask dilation', 4)
+
+def process_person_detailing_inner(image, s, p, a):
+	person_detailing_opt = a.get('module_config', {}).get('person_detailing_opt', {})
+	dilation = a.get('module_config', {}).get('person_detailing_opt', {}).get('dilation', 3)
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
-	# print(float(logits))
 	print(phrases)
 
 	org_size = image.size
 	print('size', org_size)
 
-	face_config = dict(a.get('module_config', {}).get('face_detailing', {})) if override_parameter else {}
-
-	prompt = face_config.get('prompt')
-	current_prompt = a.get('current_prompt', '')
-	if prompt is not None and prompt.find('#!org!#') >= 0:
-		face_config['prompt'] = face_config['prompt'].replace('#!org!#', current_prompt)
-		print('prompt for face', face_config['prompt'])
+	i2i_config = dict(a.get('module_config', {}).get('person_detailing', {}))
 
 	for box, logit, phrase in zip(boxes, logits, phrases):
 		print('render', phrase, float(logit))
 		box2 = util.fix_box_size(box)
-		'''
-		ox1, oy1, ox2, oy2 = box2
-		box = util.fix_box_by_scale(box2, 1.5)
-		'''
 		x1, y1, x2, y2 = box2
 
-		'''
-		face_mask = Image.new('L', image.size, color=0)
-		dr = ImageDraw.Draw(face_mask, 'L')
-		dr.rectangle((ox1, oy1, ox2, oy2), fill=255)
+		mask = dinosam.sam_predict_box(image, box)
+		if dilation >= 3:
+			print('dilation', dilation)
+			mask = dilate_mask(mask, dilation)
 
-		print(image.size, face_mask.size)
-
-		cropped_mask = face_mask.crop(box=box)
-		upscaled_mask = cropped_mask.resize((cropped_mask.width*2, cropped_mask.height*2), resample=Image.LANCZOS)
-		print(cropped_mask.size, upscaled_mask.size)
-		upscaled_mask.save('upscaled_mask.png')
-		'''
+		cropped_mask = mask.crop(box=box)
 		cropped = image.crop(box=box)
-		upscaled = cropped.resize((cropped.width*4, cropped.height*4), resample=Image.LANCZOS)
-		print(cropped.size, upscaled.size)
-		upscaled.save('upscaled.png')
 
-		options = dict(**face_config)
-		options['width'] = upscaled.width
-		options['height'] = upscaled.height
+		scale = person_detailing_opt.get('scale', 4)
+		w = cropped.width * scale
+		h = cropped.height * scale
+		print(f'Trying x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+
+		options = dict(mask=cropped_mask, **i2i_config)
+		options['width'] = w
+		options['height'] = h
 		options['inpaint_full_res'] = 1
 		options['inpaint_full_res'] = 32
 
-		img2img_result = process.process_img2img(p, upscaled, options=options)
-		img2img_result.save('img2img_result.png')
+		if person_detailing_opt.get('block_overscaled_image', True):
+			area_org = image.width * image.height
+			area_scaled = w * h
+			if area_scaled > area_org:
+				print(f'It is too large to process.')
+				auto_upscale = person_detailing_opt.get('auto_upscale', True)
+				if not auto_upscale:
+					return image
+				scale = math.sqrt(area_org / (cropped.width * cropped.height))
+				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
+				options['width'] = w
+				options['height'] = h
+				print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+				if scale < 1.2:
+					print(f'Scale {scale} has no effect. skip!!!!!')
+					return image
+
+		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
 
-		image.paste(img2img_result, (x1, y1))
+		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
 
 	devices.torch_gc()
 	return image
