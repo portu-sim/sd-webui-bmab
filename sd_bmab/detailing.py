@@ -35,8 +35,10 @@ def process_face_detailing_inner(image, s, p, a):
 	if multiple_face:
 		return process_multiple_face(image, s, p, a)
 
-	override_parameter = a['face_detailing_override_parameter']
-	dilation = a.get('module_config', {}).get('face_detailing_opt', {}).get('mask dilation', 4)
+	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
+	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
+	override_parameter = face_detailing_opt.get('override_parameter', False)
+	dilation = face_detailing_opt.get('mask dilation', 4)
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .')
@@ -49,11 +51,16 @@ def process_face_detailing_inner(image, s, p, a):
 	face_config = {}
 
 	if override_parameter:
-		face_config = dict(a.get('module_config', {}).get('face_detailing', {}))
+		face_config = dict(face_detailing)
 		if face_config.get('prompt') == '':
 			del face_config['prompt']
 		if face_config.get('negative_prompt') == '':
 			del face_config['negative_prompt']
+	else:
+		face_config['width'] = p.width
+		face_config['height'] = p.height
+		face_config['inpaint_full_res'] = 1
+		face_config['inpaint_full_res_padding'] = 32
 
 	prompt = face_config.get('prompt')
 	current_prompt = a.get('current_prompt', '')

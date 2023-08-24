@@ -5,10 +5,10 @@ import numpy as np
 import torch
 
 from PIL import Image
-from groundingdino.util.inference import load_model, load_image, predict, annotate
+from groundingdino.util.inference import load_model, predict
 from modules.paths import models_path
 from modules.safe import unsafe_torch_load, load
-from modules.devices import device, torch_gc, cpu
+from modules.devices import device, torch_gc
 
 from torchvision.ops import box_convert
 from segment_anything import SamPredictor
@@ -113,4 +113,12 @@ def sam_predict_box(pilimg, box):
 	)
 
 	return Image.fromarray(masks[0])
+
+
+def release():
+	global dino_model
+	dino_model = None
+	global sam_model
+	sam_model = None
+	torch_gc()
 

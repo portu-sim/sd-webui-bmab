@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, util, process, detailing, parameters
+from sd_bmab import samplers, dinosam, process, detailing, parameters
 
-bmab_version = 'v23.08.24.2'
+bmab_version = 'v23.08.25.0'
 samplers.override_samplers()
 
 
@@ -66,6 +66,7 @@ class BmabExtScript(scripts.Script):
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
+		dinosam.release()
 
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
@@ -145,11 +146,11 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
 							with gr.Row():
-								elem += gr.Checkbox(label='Overide Parameter', value=False)
-							with gr.Row():
 								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 							with gr.Row():
 								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Row():
+								elem += gr.Checkbox(label='Overide Parameter', value=False)
 							with gr.Row():
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
@@ -159,6 +160,13 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									inpaint_area = gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type='value', value="Only masked")
+									elem += inpaint_area
+									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+								with gr.Column():
+									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
