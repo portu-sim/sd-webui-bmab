@@ -56,6 +56,13 @@ def check_process(args, p):
 		   args['resize_by_person_enabled']
 
 
+def check_hires_fix_process(args, p):
+	return args['edge_flavor_enabled'] or args['noise_alpha'] or args['hand_detailing_before_hiresfix_enabled'] or \
+		   args['hand_detailing_before_hiresfix_enabled'] or \
+		   (args['blend_enabled'] and args['input_image'] is not None and 0 <= args['blend_alpha'] <= 1) or \
+		   args['resize_by_person_enabled']
+
+
 def process_all(args, p, bgimg):
 	if args['resize_by_person_enabled']:
 		bgimg = process_resize_by_person(args, p, bgimg)
@@ -376,8 +383,8 @@ def process_txt2img_hires_fix(p, s, a):
 					self.script.extra_image.append(img)
 					x[idx] = util.image_to_latent(p, img)
 					devices.torch_gc()
-		if a['noise_alpha'] or a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
-			p.sampler.register_callback(CallBack(s, a))
+		print('Register Callback')
+		p.sampler.register_callback(CallBack(s, a))
 
 
 def process_img2img_break_sampling(s, p, a):

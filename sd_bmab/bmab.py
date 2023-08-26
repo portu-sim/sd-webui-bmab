@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.27.1'
+bmab_version = 'v23.08.27.2'
 samplers.override_samplers()
 
 
@@ -86,7 +86,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if not process.check_process(a, p):
+		if not process.check_hires_fix_process(a, p):
 			return
 
 		process.process_txt2img_hires_fix(p, self, a)
