@@ -28,6 +28,7 @@ class Parameters(object):
 			('module_config.person_detailing_opt.auto_upscale', True),
 			('module_config.person_detailing_opt.scale', 4),
 			('module_config.person_detailing_opt.dilation', 2),
+			('module_config.person_detailing_opt.area_ratio', 0.1),
 			('module_config.person_detailing.denoising_strength', 0.4),
 			('module_config.person_detailing.cfg_scale', 7),
 			('face_detailing_enabled', False),
@@ -61,6 +62,10 @@ class Parameters(object):
 			('module_config.hand_detailing_opt.additional_parameter', ''),
 			('resize_by_person_enabled', False),
 			('resize_by_person', 0.85),
+			('upscale_enabled', False),
+			('detailing_after_upscale', True),
+			('upscaler_name', 'None'),
+			('upscale_ratio', 1.5),
 			('config_file', ''),
 			('preset', 'None'),
 		]

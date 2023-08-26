@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.26.0'
+bmab_version = 'v23.08.26.1'
 samplers.override_samplers()
 
 
@@ -66,9 +66,11 @@ class BmabExtScript(scripts.Script):
 			modelname = shared.opts.data['sd_model_checkpoint']
 			util.change_model(shared.opts.bmab_model)
 
+		pp.image = process.process_upscale_before_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_person_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
+		pp.image = process.process_upscale_after_detailing(pp.image, self, p, a)
 		pp.image = process.after_process(pp.image, self, p, a)
 
 		if modelname is not None:
@@ -148,9 +150,11 @@ class BmabExtScript(scripts.Script):
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
 									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
+									elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+									gr.Markdown('')
 						with gr.Tab('Face', elem_id='face_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing', value=False)
@@ -220,6 +224,17 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 								with gr.Column():
 									gr.Markdown('')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
+									elem += gr.Checkbox(label='Detailing after upscale', value=True)
+								with gr.Column(min_width=100):
+									gr.Markdown('')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									upscalers = [x.name for x in shared.sd_upscalers]
+									elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+									elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
 						with gr.Tab('Config', elem_id='config_tab'):
 							configs = parameters.Parameters().list_config()
 							config = '' if not configs else configs[0]

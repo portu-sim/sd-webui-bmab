@@ -14,6 +14,7 @@ from functools import partial
 
 from modules import shared
 from modules import devices
+from modules import images
 from modules.processing import process_images
 from modules.processing import StableDiffusionProcessingTxt2Img
 from modules.processing import StableDiffusionProcessingImg2Img
@@ -325,12 +326,11 @@ def process_dino_detect(p, s, a):
 			s.extra_image.append(p.init_images[0])
 			s.extra_image.append(p.image_mask)
 			p.image_mask = sam(a['dino_prompt'], p.init_images[0])
-			p.image_mask.save('mask.png')
 			s.extra_image.append(p.image_mask)
 			devices.torch_gc()
 		if p.image_mask is None and a['input_image'] is not None:
 			mask = sam(a['dino_prompt'], p.init_images[0])
-			inputimg = Image.fromarray(a['input_image'])
+			inputimg = a['input_image']
 			newpil = Image.new('RGB', p.init_images[0].size)
 			newdata = [bdata if mdata == 0 else ndata for mdata, ndata, bdata in zip(mask.getdata(), p.init_images[0].getdata(), inputimg.getdata())]
 			newpil.putdata(newdata)
@@ -390,3 +390,32 @@ def process_img2img_break_sampling(s, p, a):
 
 		p.sampler.register_callback(CallBack(s, a))
 
+
+def process_upscale_before_detailing(image, s, p, a):
+	if not a['upscale_enabled'] or not a['detailing_after_upscale']:
+		return image
+	return process_upscale_inner(image, s, p, a)
+
+
+def process_upscale_after_detailing(image, s, p, a):
+	if not a['upscale_enabled'] or a['detailing_after_upscale']:
+		return image
+	return process_upscale_inner(image, s, p, a)
+
+
+@detailing.timecalc
+def process_upscale_inner(image, s, p, args):
+	ratio = args['upscale_ratio']
+	upscaler = args['upscaler_name']
+	print(f'Upscale ratio {ratio} Upscaler {upscaler}')
+	if ratio < 1.0 or ratio > 4.0:
+		print('upscale out of range')
+		return image
+	p.extra_generation_params['BMAB process upscale'] = ratio
+	args['max_area'] = image.width * image.height
+	args['upscale_limit'] = True
+
+	w = image.width
+	h = image.height
+	img = images.resize_image(0, image, w * ratio, h * ratio, upscaler)
+	return img

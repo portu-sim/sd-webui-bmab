@@ -94,7 +94,6 @@ def process_face_detailing_inner(image, s, p, a):
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
 		y2 = int(y2) + dilation
-		print('BOX', x1, y1, x2, y2)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
@@ -543,6 +542,7 @@ def dilate_mask(mask, value):
 def process_person_detailing_inner(image, s, p, a):
 	person_detailing_opt = a.get('module_config', {}).get('person_detailing_opt', {})
 	dilation = a.get('module_config', {}).get('person_detailing_opt', {}).get('dilation', 3)
+	area_ratio = a.get('module_config', {}).get('person_detailing_opt', {}).get('area_ratio', 0.1)
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
@@ -567,18 +567,22 @@ def process_person_detailing_inner(image, s, p, a):
 		cropped = image.crop(box=box)
 
 		scale = person_detailing_opt.get('scale', 4)
+
+		area_person = cropped.width * cropped.height
+		area_image = image.width * image.height
+		ratio = area_person / area_image
+		print(f'Ratio {ratio}')
+		if ratio >= area_ratio:
+			print(f'Person is too big to process. {ratio} >= {area_ratio}.')
+			return image
+		p.extra_generation_params['BMAB person ratio'] = '%.3f' % ratio
+
 		w = cropped.width * scale
 		h = cropped.height * scale
 		print(f'Trying x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
-		options = dict(mask=cropped_mask, **i2i_config)
-		options['width'] = w
-		options['height'] = h
-		options['inpaint_full_res'] = 1
-		options['inpaint_full_res'] = 32
-
 		if person_detailing_opt.get('block_overscaled_image', True):
-			area_org = image.width * image.height
+			area_org = a.get('max_area', image.width * image.height)
 			area_scaled = w * h
 			if area_scaled > area_org:
 				print(f'It is too large to process.')
@@ -587,12 +591,16 @@ def process_person_detailing_inner(image, s, p, a):
 					return image
 				scale = math.sqrt(area_org / (cropped.width * cropped.height))
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
-				options['width'] = w
-				options['height'] = h
 				print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 				if scale < 1.2:
 					print(f'Scale {scale} has no effect. skip!!!!!')
 					return image
+
+		options = dict(mask=cropped_mask, **i2i_config)
+		options['width'] = w
+		options['height'] = h
+		options['inpaint_full_res'] = 1
+		options['inpaint_full_res'] = 32
 
 		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
