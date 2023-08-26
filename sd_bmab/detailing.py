@@ -1,11 +1,23 @@
 import math
+import time
 from PIL import Image
 from PIL import ImageEnhance
 from PIL import ImageDraw
 from PIL import ImageFilter
 
 from modules import devices
+from modules import shared
 from sd_bmab import dinosam, util, process
+
+
+def timecalc(func):
+	def wrapper(*args, **kwargs):
+		start = time.time()
+		ret = func(*args, **kwargs)
+		end = time.time()
+		print(f'{end - start:.2f} sec')
+		return ret
+	return wrapper
 
 
 def get_mask(img, prompt):
@@ -30,6 +42,7 @@ def process_face_detailing_old(images, s, p, a):
 			images[idx] = util.image_to_tensor(image)
 
 
+@timecalc
 def process_face_detailing_inner(image, s, p, a):
 	multiple_face = a.get('module_config', {}).get('multiple_face', [])
 	if multiple_face:
@@ -57,8 +70,12 @@ def process_face_detailing_inner(image, s, p, a):
 		if face_config.get('negative_prompt') == '':
 			del face_config['negative_prompt']
 	else:
-		face_config['width'] = p.width
-		face_config['height'] = p.height
+		if shared.opts.bmab_keep_original_setting:
+			face_config['width'] = image.width
+			face_config['height'] = image.height
+		else:
+			face_config['width'] = p.width
+			face_config['height'] = p.height
 		face_config['inpaint_full_res'] = 1
 		face_config['inpaint_full_res_padding'] = 32
 
@@ -77,6 +94,7 @@ def process_face_detailing_inner(image, s, p, a):
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
 		y2 = int(y2) + dilation
+		print('BOX', x1, y1, x2, y2)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
@@ -92,6 +110,7 @@ def process_face_detailing_inner(image, s, p, a):
 
 		options = dict(mask=face_mask, **face_config)
 		image = process.process_img2img(p, image, options=options)
+
 	devices.torch_gc()
 	return image
 
@@ -178,6 +197,7 @@ def process_hand_detailing(image, s, p, a):
 	return image
 
 
+@timecalc
 def process_hand_detailing_inner(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
@@ -519,6 +539,7 @@ def dilate_mask(mask, value):
 	return mask.filter(ImageFilter.MaxFilter(value))
 
 
+@timecalc
 def process_person_detailing_inner(image, s, p, a):
 	person_detailing_opt = a.get('module_config', {}).get('person_detailing_opt', {})
 	dilation = a.get('module_config', {}).get('person_detailing_opt', {}).get('dilation', 3)

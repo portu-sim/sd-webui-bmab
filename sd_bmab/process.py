@@ -307,14 +307,16 @@ def process_detailing_before_hires_fix(s, p, a):
 			img = util.latent_to_image(samples, idx)
 			pidx = p.iteration * p.batch_size + idx
 			a['current_prompt'] = p.all_prompts[pidx]
-			if a['face_detailing_before_hresfix_enabled']:
+			if a['face_detailing_before_hiresfix_enabled']:
 				img = detailing.process_face_detailing_inner(img, s, p, a)
-			if a['hand_detailing_before_hresfix_enabled']:
+			if a['hand_detailing_before_hiresfix_enabled']:
 				img = detailing.process_hand_detailing(img, s, p, a)
 			s.extra_image.append(img)
 			samples[idx] = util.image_to_latent(p, img)
 			devices.torch_gc()
-	p.end_sample = partial(end_sample, p, s, a)
+
+	if a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
+		p.end_sample = partial(end_sample, p, s, a)
 
 
 def process_dino_detect(p, s, a):
@@ -374,8 +376,8 @@ def process_txt2img_hires_fix(p, s, a):
 					self.script.extra_image.append(img)
 					x[idx] = util.image_to_latent(p, img)
 					devices.torch_gc()
-
-		p.sampler.register_callback(CallBack(s, a))
+		if a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
+			p.sampler.register_callback(CallBack(s, a))
 
 
 def process_img2img_break_sampling(s, p, a):

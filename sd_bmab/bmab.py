@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, dinosam, process, detailing, parameters
+from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.25.0'
+bmab_version = 'v23.08.26.0'
 samplers.override_samplers()
 
 
@@ -47,7 +47,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if (a['face_detailing_before_hresfix_enabled'] or a['hand_detailing_before_hresfix_enabled']) and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+		if (a['face_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']) and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
 			a['max_area'] = p.hr_upscale_to_x * p.hr_upscale_to_y
 			process.process_detailing_before_hires_fix(self, p, a)
 
@@ -58,10 +58,21 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
+		if shared.state.interrupted or shared.state.skipped:
+			return
+
+		modelname = None
+		if shared.opts.bmab_use_specific_model:
+			modelname = shared.opts.data['sd_model_checkpoint']
+			util.change_model(shared.opts.bmab_model)
+
 		pp.image = detailing.process_person_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
 		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
 		pp.image = process.after_process(pp.image, self, p, a)
+
+		if modelname is not None:
+			util.change_model(modelname)
 
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:
@@ -135,7 +146,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
 							with gr.Row():
 								with gr.Column(min_width=100):
-									elem += gr.Slider(minimum=2, maximum=8, value=4, step=0.01, label='Upscale Ratio')
+									elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
 									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
@@ -276,6 +287,9 @@ class BmabExtScript(scripts.Script):
 def on_ui_settings():
 	shared.opts.add_option('bmab_show_extends', shared.OptionInfo(False, 'Show before processing image. (DO NOT ENABLE IN CLOUD)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_test_function', shared.OptionInfo(False, 'Show Test Function', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_use_specific_model', shared.OptionInfo(False, 'Use specific model', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_model', shared.OptionInfo(default='', label='Checkpoint for Person, Face, Hand', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 
 
 script_callbacks.on_ui_settings(on_ui_settings)

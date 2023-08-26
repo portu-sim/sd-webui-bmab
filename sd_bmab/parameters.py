@@ -31,7 +31,7 @@ class Parameters(object):
 			('module_config.person_detailing.denoising_strength', 0.4),
 			('module_config.person_detailing.cfg_scale', 7),
 			('face_detailing_enabled', False),
-			('face_detailing_before_hresfix_enabled', False),
+			('face_detailing_before_hiresfix_enabled', False),
 			('module_config.face_detailing.prompt', ''),
 			('module_config.face_detailing.negative_prompt', ''),
 			('module_config.face_detailing_opt.override_parameter', False),
@@ -66,7 +66,7 @@ class Parameters(object):
 		]
 
 		self.ext_params = [
-			('hand_detailing_before_hresfix_enabled', False),
+			('hand_detailing_before_hiresfix_enabled', False),
 		]
 
 	@staticmethod

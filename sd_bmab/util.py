@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from PIL import Image
 
+import modules
 from modules import shared
 from modules import devices
 from modules import images
@@ -108,3 +109,17 @@ def fix_box_limit(box, size):
 	if y2 >= h:
 		y2 = h-1
 	return x1, y1, x2, y2
+
+
+def change_vae(name='auto'):
+	modules.sd_vae.reload_vae_weights(shared.sd_model, vae_file=modules.sd_vae.vae_dict[name])
+
+
+def change_model(name):
+	if name is None:
+		return
+	info = modules.sd_models.get_closet_checkpoint_match(name)
+	if info is None:
+		print(f'Unknown model: {name}')
+		return
+	modules.sd_models.reload_model_weights(shared.sd_model, info)
