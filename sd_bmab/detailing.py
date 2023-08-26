@@ -52,6 +52,10 @@ def process_face_detailing_inner(image, s, p, a):
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
 	dilation = face_detailing_opt.get('mask dilation', 4)
+	order = face_detailing_opt.get('order_by', 'Score')
+	limit = face_detailing_opt.get('limit', 1)
+	limit = 1000 if limit == 0 else limit
+	max_element = 1000 if shared.opts.bmab_max_detailing_element == 0 else shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .')
@@ -79,15 +83,52 @@ def process_face_detailing_inner(image, s, p, a):
 		face_config['inpaint_full_res'] = 1
 		face_config['inpaint_full_res_padding'] = 32
 
-	prompt = face_config.get('prompt')
-	current_prompt = a.get('current_prompt', '')
-	if prompt is not None and prompt.find('#!org!#') >= 0:
-		face_config['prompt'] = face_config['prompt'].replace('#!org!#', current_prompt)
-		print('prompt for face', face_config['prompt'])
-
+	candidate = []
 	for box, logit, phrase in zip(boxes, logits, phrases):
+		x1, y1, x2, y2 = box
+		if order == 'Left':
+			value = x1 + (x2 - x1) // 2
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0])
+		elif order == 'Right':
+			value = x1 + (x2 - x1) // 2
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		elif order == 'Size':
+			value = (x2 - x1) * (y2 - y1)
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		else:
+			value = float(logit)
+			print('detected', phrase, float(logit), value)
+			candidate.append((value, box, logit, phrase))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+
+	for idx, (size, box, logit, phrase) in enumerate(candidate):
 		if phrase != 'face':
 			continue
+
+		if limit != 0 and idx >= limit:
+			print(f'Over limit {limit}')
+			break
+
+		if max_element != 0 and idx >= max_element:
+			print(f'Over limit MAX Element {max_element}')
+			break
+
+		prompt = face_detailing.get(f'prompt{idx}')
+		if prompt is not None and prompt.find('#!org!#') >= 0:
+			current_prompt = a.get('current_prompt', p.prompt)
+			face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
+			print('prompt for face', face_config['prompt'])
+
+		ne_prompt = face_detailing.get(f'negative_prompt{idx}')
+		if ne_prompt is not None and ne_prompt != '':
+			face_config['prompt'] = ne_prompt
+
 		print('render', phrase, float(logit))
 		x1, y1, x2, y2 = box
 		x1 = int(x1) - dilation
@@ -541,8 +582,10 @@ def dilate_mask(mask, value):
 @timecalc
 def process_person_detailing_inner(image, s, p, a):
 	person_detailing_opt = a.get('module_config', {}).get('person_detailing_opt', {})
-	dilation = a.get('module_config', {}).get('person_detailing_opt', {}).get('dilation', 3)
-	area_ratio = a.get('module_config', {}).get('person_detailing_opt', {}).get('area_ratio', 0.1)
+	dilation = person_detailing_opt.get('dilation', 3)
+	area_ratio = person_detailing_opt.get('area_ratio', 0.1)
+	limit = person_detailing_opt.get('limit', 1)
+	max_element = shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
@@ -552,12 +595,17 @@ def process_person_detailing_inner(image, s, p, a):
 	print('size', org_size)
 
 	i2i_config = dict(a.get('module_config', {}).get('person_detailing', {}))
-	max_element = 1000 if shared.opts.bmab_max_detailing_element == 0 else shared.opts.bmab_max_detailing_element
 	print(f'Max element {max_element}')
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-		if idx == max_element:
+		if limit != 0 and idx >= limit:
+			print(f'Over limit {limit}')
 			break
+
+		if max_element != 0 and idx >= max_element:
+			print(f'Over limit MAX Element {max_element}')
+			break
+
 		print('render', phrase, float(logit))
 		box2 = util.fix_box_size(box)
 		x1, y1, x2, y2 = box2

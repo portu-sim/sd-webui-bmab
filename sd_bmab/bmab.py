@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.26.1'
+bmab_version = 'v23.08.27.0'
 samplers.override_samplers()
 
 
@@ -151,6 +151,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
 									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
 									elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
+									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
@@ -161,9 +162,35 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
 							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+								with gr.Column(min_width=100):
+									elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right'], type='value', value='Score')
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
+							with gr.Tab('Face1', elem_id='face1_tabs'):
+								with gr.Row():
+									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+								with gr.Row():
+									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Tab('Face2', elem_id='face2_tabs'):
+								with gr.Row():
+									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+								with gr.Row():
+									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Tab('Face3', elem_id='face3_tabs'):
+								with gr.Row():
+									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+								with gr.Row():
+									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Tab('Face4', elem_id='face4_tabs'):
+								with gr.Row():
+									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+								with gr.Row():
+									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Tab('Face5', elem_id='face5_tabs'):
+								with gr.Row():
+									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+								with gr.Row():
+									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 							with gr.Row():
 								elem += gr.Checkbox(label='Overide Parameter', value=False)
 							with gr.Row():
@@ -177,7 +204,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
 							with gr.Row():
 								with gr.Column(min_width=100):
-									inpaint_area = gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type='value', value="Only masked")
+									inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
 									elem += inpaint_area
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
 								with gr.Column():
@@ -207,7 +234,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
 									elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
 							with gr.Row():
-								inpaint_area = gr.Radio(label="Inpaint area", choices=["Whole picture", "Only masked"], type='value', value="Whole picture")
+								inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Whole picture')
 								elem += inpaint_area
 							with gr.Row():
 								with gr.Column():
