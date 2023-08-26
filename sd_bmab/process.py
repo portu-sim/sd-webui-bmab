@@ -376,7 +376,7 @@ def process_txt2img_hires_fix(p, s, a):
 					self.script.extra_image.append(img)
 					x[idx] = util.image_to_latent(p, img)
 					devices.torch_gc()
-		if a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
+		if a['noise_alpha'] or a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
 			p.sampler.register_callback(CallBack(s, a))
 
 

@@ -69,10 +69,6 @@ def process_face_detailing_inner(image, s, p, a):
 
 	if override_parameter:
 		face_config = dict(face_detailing)
-		if face_config.get('prompt') == '':
-			del face_config['prompt']
-		if face_config.get('negative_prompt') == '':
-			del face_config['negative_prompt']
 	else:
 		if shared.opts.bmab_keep_original_setting:
 			face_config['width'] = image.width
@@ -85,6 +81,8 @@ def process_face_detailing_inner(image, s, p, a):
 
 	candidate = []
 	for box, logit, phrase in zip(boxes, logits, phrases):
+		if phrase != 'face':
+			continue
 		x1, y1, x2, y2 = box
 		if order == 'Left':
 			value = x1 + (x2 - x1) // 2
@@ -119,13 +117,13 @@ def process_face_detailing_inner(image, s, p, a):
 			print(f'Over limit MAX Element {max_element}')
 			break
 
-		prompt = face_detailing.get(f'prompt{idx}')
+		prompt = face_detailing_opt.get(f'prompt{idx}')
 		if prompt is not None and prompt.find('#!org!#') >= 0:
 			current_prompt = a.get('current_prompt', p.prompt)
 			face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
 			print('prompt for face', face_config['prompt'])
 
-		ne_prompt = face_detailing.get(f'negative_prompt{idx}')
+		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['prompt'] = ne_prompt
 
