@@ -552,8 +552,12 @@ def process_person_detailing_inner(image, s, p, a):
 	print('size', org_size)
 
 	i2i_config = dict(a.get('module_config', {}).get('person_detailing', {}))
+	max_element = 1000 if shared.opts.bmab_max_detailing_element == 0 else shared.opts.bmab_max_detailing_element
+	print(f'Max element {max_element}')
 
-	for box, logit, phrase in zip(boxes, logits, phrases):
+	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
+		if idx == max_element:
+			break
 		print('render', phrase, float(logit))
 		box2 = util.fix_box_size(box)
 		x1, y1, x2, y2 = box2
@@ -563,7 +567,7 @@ def process_person_detailing_inner(image, s, p, a):
 			print('dilation', dilation)
 			mask = dilate_mask(mask, dilation)
 
-		cropped_mask = mask.crop(box=box)
+		cropped_mask = mask.crop(box=box).convert('L')
 		cropped = image.crop(box=box)
 
 		scale = person_detailing_opt.get('scale', 4)
@@ -604,7 +608,8 @@ def process_person_detailing_inner(image, s, p, a):
 
 		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
-
+		blur = ImageFilter.GaussianBlur(3)
+		cropped_mask = cropped_mask.filter(blur)
 		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
 
 	devices.torch_gc()
