@@ -125,7 +125,7 @@ def process_face_detailing_inner(image, s, p, a):
 
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
-			face_config['prompt'] = ne_prompt
+			face_config['negative_prompt'] = ne_prompt
 
 		print('render', phrase, float(logit))
 		x1, y1, x2, y2 = box
