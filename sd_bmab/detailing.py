@@ -118,10 +118,14 @@ def process_face_detailing_inner(image, s, p, a):
 			break
 
 		prompt = face_detailing_opt.get(f'prompt{idx}')
-		if prompt is not None and prompt.find('#!org!#') >= 0:
-			current_prompt = a.get('current_prompt', p.prompt)
-			face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
-			print('prompt for face', face_config['prompt'])
+		if prompt is not None:
+			if prompt.find('#!org!#') >= 0:
+				current_prompt = a.get('current_prompt', p.prompt)
+				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
+				print('prompt for face', face_config['prompt'])
+			else:
+				if prompt != '':
+					face_config['prompt'] = prompt
 
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
