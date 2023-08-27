@@ -283,7 +283,7 @@ def process_img2img(p, img, options=None):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings={},
+		override_settings=p.override_settings,
 	)
 	if options is not None:
 		i2i_param.update(options)

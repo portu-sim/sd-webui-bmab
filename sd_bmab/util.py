@@ -126,6 +126,10 @@ def change_model(name):
 	modules.sd_models.reload_model_weights(shared.sd_model, info)
 
 
+def get_seeds(s, p, a):
+	return p.all_seeds[s.index], p.all_subseeds[s.index]
+
+
 def get_cn_args(p):
 	for script_object in p.scripts.alwayson_scripts:
 		filename = Path(script_object.filename).stem

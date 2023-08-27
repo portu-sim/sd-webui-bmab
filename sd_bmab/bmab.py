@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.27.4T'
+bmab_version = 'v23.08.28.0'
 samplers.override_samplers()
 
 
@@ -18,6 +18,7 @@ class BmabExtScript(scripts.Script):
 		super().__init__()
 		self.extra_image = []
 		self.config = {}
+		self.index = 0
 
 	def title(self):
 		return 'BMAB Extension'
@@ -35,6 +36,7 @@ class BmabExtScript(scripts.Script):
 
 	def before_process(self, p, *args):
 		self.extra_image = []
+		self.index = 0
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
@@ -79,6 +81,8 @@ class BmabExtScript(scripts.Script):
 
 		if modelname is not None:
 			util.change_model(modelname)
+
+		self.index += 1
 
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:

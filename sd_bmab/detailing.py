@@ -131,7 +131,16 @@ def process_face_detailing_inner(image, s, p, a):
 			face_config['negative_prompt'] = ne_prompt
 
 		print('render', phrase, float(logit))
-		x1, y1, x2, y2 = box
+		x1, y1, x2, y2 = util.fix_box_by_scale(box, 0.28)
+		w = int((x2 - x1) / 2)
+		h = int((y2 - y1) / 2)
+		x = x1 + w
+		y = y1 + h
+		l = max(w, h)
+		x1 = x - l
+		x2 = x + l
+		y1 = y - l
+		y2 = y + l
 		x1 = int(x1) - dilation
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
@@ -153,8 +162,15 @@ def process_face_detailing_inner(image, s, p, a):
 		print(s.index, p.all_seeds, p.all_subseeds)
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-		image = process.process_img2img(p, image, options=options)
+		img2img_imgage = process.process_img2img(p, image, options=options)
 
+		x1, y1, x2, y2 = util.fix_box_size(box)
+		face_mask = Image.new('L', image.size, color=0)
+		dr = ImageDraw.Draw(face_mask, 'L')
+		dr.rectangle((x1, y1, x2, y2), fill=255)
+		blur = ImageFilter.GaussianBlur(3)
+		mask = face_mask.filter(blur)
+		image.paste(img2img_imgage, mask=mask)
 	devices.torch_gc()
 	return image
 
