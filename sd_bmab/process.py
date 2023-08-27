@@ -236,6 +236,7 @@ def process_img2img(p, img, options=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
 
+	img = img.convert('RGB')
 	steps = p.steps
 	if isinstance(p, StableDiffusionProcessingTxt2Img):
 		if p.hr_second_pass_steps != 0:
@@ -274,7 +275,7 @@ def process_img2img(p, img, options=None):
 		batch_size=1,
 		n_iter=1,
 		steps=steps,
-		cfg_scale=7,
+		cfg_scale=p.cfg_scale,
 		width=img.width,
 		height=img.height,
 		restore_faces=False,
@@ -288,6 +289,8 @@ def process_img2img(p, img, options=None):
 		i2i_param.update(options)
 
 	img2img = sdprocessing.StableDiffusionProcessingImg2ImgOv(**i2i_param)
+	img2img.cached_c = [None, None]
+	img2img.cached_uc = [None, None]
 	img2img.scripts = None
 	img2img.script_args = None
 	img2img.block_tqdm = True
@@ -295,6 +298,9 @@ def process_img2img(p, img, options=None):
 
 	processed = process_images(img2img)
 	img = processed.images[0]
+
+	img2img.close()
+
 	devices.torch_gc()
 	return img
 
@@ -418,6 +424,7 @@ def process_upscale_inner(image, s, p, args):
 	if ratio < 1.0 or ratio > 4.0:
 		print('upscale out of range')
 		return image
+	image = image.convert('RGB')
 	p.extra_generation_params['BMAB process upscale'] = ratio
 	args['max_area'] = image.width * image.height
 	args['upscale_limit'] = True
@@ -425,4 +432,4 @@ def process_upscale_inner(image, s, p, args):
 	w = image.width
 	h = image.height
 	img = images.resize_image(0, image, w * ratio, h * ratio, upscaler)
-	return img
+	return img.convert('RGB')

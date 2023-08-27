@@ -51,11 +51,10 @@ def process_face_detailing_inner(image, s, p, a):
 	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
-	dilation = face_detailing_opt.get('mask dilation', 4)
+	dilation = face_detailing_opt.get('dilation', 4)
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
-	limit = 1000 if limit == 0 else limit
-	max_element = 1000 if shared.opts.bmab_max_detailing_element == 0 else shared.opts.bmab_max_detailing_element
+	max_element = shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .')
@@ -137,6 +136,7 @@ def process_face_detailing_inner(image, s, p, a):
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
 		y2 = int(y2) + dilation
+		print('delation', dilation)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
@@ -150,7 +150,9 @@ def process_face_detailing_inner(image, s, p, a):
 			image.paste(bgimg, mask=sam_mask)
 			p.extra_generation_params['BMAB face lighting'] = a['face_lighting']
 
-		options = dict(mask=face_mask, **face_config)
+		print(s.index, p.all_seeds, p.all_subseeds)
+		seed, subseed = util.get_seeds(s, p, a)
+		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
 		image = process.process_img2img(p, image, options=options)
 
 	devices.torch_gc()

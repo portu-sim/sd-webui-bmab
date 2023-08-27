@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from PIL import Image
+from pathlib import Path
 
 import modules
 from modules import shared
@@ -123,3 +124,11 @@ def change_model(name):
 		print(f'Unknown model: {name}')
 		return
 	modules.sd_models.reload_model_weights(shared.sd_model, info)
+
+
+def get_cn_args(p):
+	for script_object in p.scripts.alwayson_scripts:
+		filename = Path(script_object.filename).stem
+		if filename == 'controlnet':
+			return (script_object.args_from, script_object.args_to)
+	return None

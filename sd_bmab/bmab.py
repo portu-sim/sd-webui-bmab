@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.27.4'
+bmab_version = 'v23.08.27.4T'
 samplers.override_samplers()
 
 
@@ -38,6 +38,10 @@ class BmabExtScript(scripts.Script):
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
+
+		if shared.opts.bmab_test_function:
+			from sd_bmab import ztest
+			ztest.test(self, p, a)
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			process.process_dino_detect(p, self, a)
@@ -76,14 +80,10 @@ class BmabExtScript(scripts.Script):
 		if modelname is not None:
 			util.change_model(modelname)
 
-		# image = process.test(pp.image, self, p, a)
-		# self.extra_image.append(image)
-
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
 		dinosam.release()
-		# processed.images.extend(self.extra_image)
 
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
