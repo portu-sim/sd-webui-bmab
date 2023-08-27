@@ -76,10 +76,14 @@ class BmabExtScript(scripts.Script):
 		if modelname is not None:
 			util.change_model(modelname)
 
+		# image = process.test(pp.image, self, p, a)
+		# self.extra_image.append(image)
+
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
 		dinosam.release()
+		# processed.images.extend(self.extra_image)
 
 	def before_hr(self, p, *args):
 		a = self.parse_args(args)
