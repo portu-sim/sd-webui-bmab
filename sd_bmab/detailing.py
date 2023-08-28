@@ -28,18 +28,11 @@ def get_mask(img, prompt):
 
 def process_face_detailing(image, s, p, a):
 	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
-		return process_face_detailing_inner(image, s, p, a)
+		if shared.opts.bmab_detailing_method == 'YOLO':
+			return process_face_detailing_inner_using_yolo(image, s, p, a)
+		else:
+			return process_face_detailing_inner(image, s, p, a)
 	return image
-
-
-def process_face_detailing_old(images, s, p, a):
-	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
-		for idx in range(0, len(images)):
-			pidx = p.iteration * p.batch_size + idx
-			a['current_prompt'] = p.all_prompts[pidx]
-			image = util.tensor_to_image(images[idx])
-			image = process_face_detailing_inner(image, s, p, a)
-			images[idx] = util.image_to_tensor(image)
 
 
 @timecalc
@@ -129,18 +122,8 @@ def process_face_detailing_inner(image, s, p, a):
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
-
 		print('render', phrase, float(logit))
-		x1, y1, x2, y2 = util.fix_box_by_scale(box, 0.28)
-		w = int((x2 - x1) / 2)
-		h = int((y2 - y1) / 2)
-		x = x1 + w
-		y = y1 + h
-		l = max(w, h)
-		x1 = x - l
-		x2 = x + l
-		y1 = y - l
-		y2 = y + l
+		x1, y1, x2, y2 = util.fix_yolo_box(box)
 		x1 = int(x1) - dilation
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
@@ -170,7 +153,107 @@ def process_face_detailing_inner(image, s, p, a):
 		dr.rectangle((x1, y1, x2, y2), fill=255)
 		blur = ImageFilter.GaussianBlur(3)
 		mask = face_mask.filter(blur)
+
 		image.paste(img2img_imgage, mask=mask)
+	devices.torch_gc()
+	return image
+
+
+@timecalc
+def process_face_detailing_inner_using_yolo(image, s, p, a):
+	multiple_face = a.get('module_config', {}).get('multiple_face', [])
+	if multiple_face:
+		return process_multiple_face(image, s, p, a)
+
+	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
+	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
+	override_parameter = face_detailing_opt.get('override_parameter', False)
+	dilation = face_detailing_opt.get('dilation', 4)
+	order = face_detailing_opt.get('order_by', 'Score')
+	limit = face_detailing_opt.get('limit', 1)
+	max_element = shared.opts.bmab_max_detailing_element
+
+	org_size = image.size
+	print('size', org_size)
+
+	face_config = {}
+
+	if override_parameter:
+		face_config = dict(face_detailing)
+	else:
+		if shared.opts.bmab_keep_original_setting:
+			face_config['width'] = image.width
+			face_config['height'] = image.height
+		else:
+			face_config['width'] = p.width
+			face_config['height'] = p.height
+		face_config['inpaint_full_res'] = 1
+		face_config['inpaint_full_res_padding'] = 32
+
+	boxes = util.ultralytics_predict(image, 0.3)
+
+	candidate = []
+	for box in boxes:
+		x1, y1, x2, y2 = box
+		if order == 'Left':
+			value = x1 + (x2 - x1) // 2
+			print('detected', value)
+			candidate.append((value, box))
+			candidate = sorted(candidate, key=lambda c: c[0])
+		elif order == 'Right':
+			value = x1 + (x2 - x1) // 2
+			print('detected', value)
+			candidate.append((value, box))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		elif order == 'Size':
+			value = (x2 - x1) * (y2 - y1)
+			print('detected', value)
+			candidate.append((value, box))
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		else:
+			value = 0
+			print('detected', value)
+			candidate.append((value, box))
+
+	for idx, (size, box) in enumerate(candidate):
+		if limit != 0 and idx >= limit:
+			print(f'Over limit {limit}')
+			break
+
+		if max_element != 0 and idx >= max_element:
+			print(f'Over limit MAX Element {max_element}')
+			break
+
+		prompt = face_detailing_opt.get(f'prompt{idx}')
+		if prompt is not None:
+			if prompt.find('#!org!#') >= 0:
+				current_prompt = a.get('current_prompt', p.prompt)
+				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
+				print('prompt for face', face_config['prompt'])
+			else:
+				if prompt != '':
+					face_config['prompt'] = prompt
+
+		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
+		if ne_prompt is not None and ne_prompt != '':
+			face_config['negative_prompt'] = ne_prompt
+		x1, y1, x2, y2 = tuple(int(x) for x in box)
+		x1 = x1 - dilation
+		y1 = y1 - dilation
+		x2 = x2 + dilation
+		y2 = y2 + dilation
+		print('delation', dilation)
+
+		face_mask = Image.new('L', image.size, color=0)
+		dr = ImageDraw.Draw(face_mask, 'L')
+		dr.rectangle((x1, y1, x2, y2), fill=255)
+		face_mask.save('mask1.png')
+
+		print(s.index, p.all_seeds, p.all_subseeds)
+		seed, subseed = util.get_seeds(s, p, a)
+		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
+		image = process.process_img2img(p, image, options=options)
+
 	devices.torch_gc()
 	return image
 

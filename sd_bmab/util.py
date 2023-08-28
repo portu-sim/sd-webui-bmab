@@ -1,13 +1,16 @@
+import os
 import torch
 import numpy as np
 from PIL import Image
 from pathlib import Path
-
 import modules
 from modules import shared
 from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
+from modules.paths import models_path
+
+from ultralytics import YOLO
 
 
 def image_to_latent(p, img):
@@ -112,6 +115,20 @@ def fix_box_limit(box, size):
 	return x1, y1, x2, y2
 
 
+def fix_yolo_box(box):
+	x1, y1, x2, y2 = fix_box_by_scale(box, 0.28)
+	w = int((x2 - x1) / 2)
+	h = int((y2 - y1) / 2)
+	x = x1 + w
+	y = y1 + h
+	l = max(w, h)
+	x1 = x - l
+	x2 = x + l
+	y1 = y - l
+	y2 = y + l
+	return x1, y1, x2, y2
+
+
 def change_vae(name='auto'):
 	modules.sd_vae.reload_vae_weights(shared.sd_model, vae_file=modules.sd_vae.vae_dict[name])
 
@@ -136,3 +153,20 @@ def get_cn_args(p):
 		if filename == 'controlnet':
 			return (script_object.args_from, script_object.args_to)
 	return None
+
+
+def ultralytics_predict(image, confidence):
+	bmab_model_path = os.path.join(models_path, "bmab")
+	yolo = f'{bmab_model_path}/face_yolov8n.pt'
+	boxes = []
+	load = torch.load
+	torch.load = modules.safe.unsafe_torch_load
+	try:
+		model = YOLO(yolo)
+		pred = model(image, conf=confidence, device='')
+		boxes = pred[0].boxes.xyxy.cpu().numpy()
+		boxes = boxes.tolist()
+	except:
+		pass
+	torch.load = load
+	return boxes

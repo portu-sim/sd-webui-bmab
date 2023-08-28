@@ -19,7 +19,8 @@ def install_models():
         # ('sam_vit_l_0b3195.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth'),
         # ('sam_vit_h_4b8939.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth'),
         ('groundingdino_swint_ogc.pth', 'https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth'),
-        ('GroundingDINO_SwinT_OGC.py', 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py')
+        ('GroundingDINO_SwinT_OGC.py', 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py'),
+        ('face_yolov8n.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt')
     }
 
     files = glob.glob(bmab_model_path)
@@ -107,12 +108,17 @@ def install_segmentanything():
     launch.run_pip('install segment_anything')
 
 
+def install_ultralytics():
+    launch.run_pip('install ultralytics')
+
+
 install_models()
 
 required = {
     ('pycocotools', install_pycocotools),
     ('groundingdino', install_groundingdino),
-    ('segment_anything', install_segmentanything)
+    ('segment_anything', install_segmentanything),
+    ('ultralytics', install_ultralytics)
 }
 
 for pack_name, func in required:

@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util
 
-bmab_version = 'v23.08.28.0'
+bmab_version = 'v23.08.28.1'
 samplers.override_samplers()
 
 
@@ -338,6 +338,7 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_show_extends', shared.OptionInfo(False, 'Show before processing image. (DO NOT ENABLE IN CLOUD)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_test_function', shared.OptionInfo(False, 'Show Test Function', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_detailing_method', shared.OptionInfo('Grounding DINO', 'Detailing method', component=gr.Radio, component_args={'choices': ('Grounding DINO', 'YOLO')}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_max_detailing_element', shared.OptionInfo(
 		default=0, label='Max Detailing Element', component=gr.Slider, component_args={'minimum': 0, 'maximum': 10, 'step': 1}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_use_specific_model', shared.OptionInfo(False, 'Use specific model', section=('bmab', 'BMAB')))
