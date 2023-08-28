@@ -3,9 +3,9 @@
 
 ##동작환경
 
-Windows, Linux 로컬 환경에서만 동작한다.
+Windows, Linux 로컬 환경에서만 동작합니다..
 
-**<span style="color: red">클라우드에서 동작을 보장할 수 없다.</span>**
+**<span style="color: red">클라우드에서 동작을 보장할 수 없습니다..</span>**
 
 ### Local
 
@@ -19,7 +19,7 @@ CUDA 11.7, 11.8
 
 코랩 유저를 위한 조언.   
 stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
-패키지가 설치된다. 동작 확인은 했지만 원할하게 쓸 수 있는지는 확인하지 못했다.
+패키지가 설치된다. 동작 확인은 했지만 원할하게 쓸 수 있는지는 확인하지 못했습니다.
 
 ```
 !pip3 install https://github.com/Bing-su/GroundingDINO/releases/download/0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl
@@ -30,31 +30,7 @@ stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
 
 ## Quick Test
 
-설치가 완료된 이후에 프롬프트 마지막줄에 "##example"을 추가한다.
-
-```
-1girl, ~~~~~~~
-
-##example
-```
-
-koreanDollLikeness_v15, ulzzang-6500가 있다면
-
-```
-1girl, ~~~~~~~
-
-##example2
-```
-
-같은 방법으로 3명의 서로 다른 캐릭터에 적용하려면 아래 예제를 사용한다.
-
-```
-1girl, ~~~~~~~
-
-##3girls
-```
-
-그럼 아래와 같은 옵션이 적용된다.
+Enable을 체크하고 Config Tab에서 Preset "example"을 선택합니다.
 
 contrast: 1.2   
 brightness: 0.9   
@@ -69,35 +45,6 @@ Resize by person 적용
 ## 기본 옵션
 
 Enabled (VERSION): 기능을 켜고 끌 수 있습니다.
-
-기능이 꺼져있더라도 ##로 설정을 불러온 경우라면 설정파일이 적용되어 동작합니다.
-
-
-~~Process before Img2Img~~   
-~~* 활성화 되면 Img2Img의 경우 이미지 처리전에 기능을 수행합니다.~~   
-~~* 활성화 되면 Txt2Img의 경우 이미지가 생성되고 hires.fix 수행전에 기능을 수행합니다.~~   
-~~Hires가 켜져있지 않다면 기능을 수행하지 않습니다.~~
-
-~~### Random Prompt (삭제 예정)~~
-
-~~기능이 켜지면 항상 동작합니다.~~   
-~~프롬프트 입력창에서 #random이 나타나면 그 이하 줄 단위로 랜덤하게 합쳐집니다.~~
-
-~~(example)~~
-
-~~1girl, standing,~~   
-~~&#35;random~~   
-~~street background,~~  
-~~forest background,~~  
-~~beach background,~~  
-
-~~(결과)~~
-
-~~"1girl, standing, street background,"~~   
-~~"1girl, standing, forest background,"~~   
-~~"1girl, standing, beach background,"~~  
-
-~~셋중에 하나로 프롬프트가 결정됩니다.~~
 
 ### Resize and fill override
 
@@ -116,94 +63,6 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 <img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="40%">
 </p>
 
-### Multi face Detailer
-
-BMAB는 이미지 내의 단일 혹은 여러 캐릭터의 얼굴을 보정하는 기능이 동작한다.   
-BMAB 디렉토리 config 아래 .json파일로 필요한 프리셋을 등록하고 프롬프트에서 이를 호출할 수 있다.
-이 기능은 UI로 설정할 수 없으며, 반드시 config/*.json 파일을 이용하여,   
-prompt에서 적용해야 한다.
-
-이 파일이 example.json이라고 저장되어 있다면 sd-webui 메인 프롬프트에서 "##example"를 완전히 새로운 라인에서   
-추가하면 기존 UI 설정을 무시할 수 있으며, module_config/multiple_face 항목이 설정되어 있으면 디테일링을 수행한다.
-
-```
-1girl,
-
-##example
-```
-
-예제)
-
-```JSON
-{
-  "contrast": 1.2,
-  "brightness": 0.9,
-  "sharpeness": 1.5,
-  "execute_before_img2img": true,
-  "edge_flavor_enabled": true,
-  "edge_low_threadhold": 50,
-  "edge_high_threadhold": 200,
-  "edge_strength": 0.5,
-  "module_config": {
-    "multiple_face": [
-      {
-        "denoising_strength": 0.30,
-        "prompt": "첫번째 프롬프트... <lora:~~~~>, #!org!#",
-        "steps": 15
-      },
-      {
-        "denoising_strength": 0.30,
-        "prompt": "두번째 프롬프트... <lora:~~~~>, #!org!#",
-        "steps": 15
-      },
-      {
-        "denoising_strength": 0.30,
-        "prompt": "세번째 프롬프트... <lora:~~~~>, #!org!#",
-        "steps": 15
-      },
-      {
-        "denoising_strength": 0.30,
-        "prompt": "네번째 프롬프트... <lora:~~~~>, #!org!#",
-        "steps": 15
-      },
-      {
-        "denoising_strength": 0.30,
-        "prompt": "다섯번째 프롬프트... <lora:~~~~>, #!org!#",
-        "steps": 15
-      }
-    ],
-    "multiple_face_opt": {
-      "mask dilation": 4,
-      "limit": -1,
-      "order": "right"
-    }
-  }
-}
-```
-
-캐릭터 별로 별도로 지정할 수 있다.
-
-<img src="https://i.ibb.co/DR8g34t/00037-3214376443.png">
-<img src="https://i.ibb.co/4JXdkpT/00036-3214376443.png">
-
-조건에 따라 왼쪽부터, 오른쪽 부터, 크기 순서대로 적용이 가능하다.
-
-예제는 최대 5개의 얼굴 크기에 따라 디테일링을 수행하며, 5개를 초과하면 디테일링을 수행하지 않는다.
-1개만 등록하게 되면, 주변인들에 대한 불필요하한 디테일링을 막을 수 있으며,   
-간혹 티셔츠에 그려진 얼굴이나, 액자에 그려진 얼굴에 대한 디테일링을 수행하지 않도록 설정할 수 있다.   
-
-다만 limit 옵션을 -1 대신 20으로 주면, 5명을 초과한 20명까지 기본적인 face detailing을 수행한다.
-
-그 밖에 denoising_strength, steps 등을 이용해 정교하게 설정할 수 있으며,   
-프롬프트에 #!org!#이 있다면 그 부분은 사용자가 입력한 프롬프트로 변경된다.
-
-**좋은 결과를 얻기 위한 조언**
-
-* Prompt에 얼굴 관련된 lora, textual inversion등 관련 내용을 뺍니다. sunglass 등은 무관합니다.
-* 설정 파일에 얼굴마다 서로 다른 lora, textual inversion 등을 넣습니다.
-* prompt에 lora, TI가 많을 경우 그림 생성 자유도가 떨어지는 것 같습니다.
-* 그림속 모든 캐릭터가 공유되는 lora는 넣어주셔도 무방합니다.
-
 
 ## 기본 기능
 
@@ -218,6 +77,8 @@ prompt에서 적용해야 한다.
 
 이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.
 
+<img src="https://i.ibb.co/4sjB1Lr/edge.png">
+
 권장설정
 
 * Edge low threshold : 50
@@ -230,7 +91,6 @@ prompt에서 적용해야 한다.
 </p>
 
 Enabled : CHECK!!   
-Process before Img2Img : CHECK!!
 
 Contrast : 1.2   
 Brightness : 0.9   
@@ -296,94 +156,209 @@ DINO detect Prompt에 있는 내용대로 자동으로 마스크를 만들어준
 이번 예제에서는 배경을 변경했으니, inpaint 설정에서 "Inpaint Not Masked"를 선택해야 한다.   
 반대로 "Inpaint Masked"를 하면 인물이 변경된다.
 
+
+## Person
+
+이 기능을 사용하게 되면 프로세스가 완료된 이후에, 인물을 감지하여 다시 그립니다.  
+아래의 경우에 사용하면 효과적입니다.
+
+* 인물이 배경에 비해 매우 작은 경우, 의복, 얼굴 등 인물 전체의 디테일이 올라갑니다.
+* 4K와 같이 큰 이미지를 출력하는 경우, 업 스케일 이후에 인물이 작은 경우 이 기능을 사용하면 인물이 뚜렷해 집니다.
+* Face Detailing과 같이 사용하면 좋은 효과를 볼 수 있습니다.
+
+
+<img src="https://i.ibb.co/RSrvqM1/person.png">
+
+
+#### Enable person detailing for landscape (EXPERIMENTAL)
+
+풍경에서 인물을 자세하게 다시 그리는 기능을 활성화 합니다.
+
+#### Block over-scaled image
+
+이 기능이 켜지게 되면 인물을 찾아내서 크게 키워서 다시 그리는데 이때 확대된 이미지의 면적이 본래 이미지를 초과하게 되면 프로세스를 멈춥니다.   
+sd-webui가 멈추거나 GPU를 보호하기 위한 목적입니다.
+
+#### Auto scale if "Block over-scaled image" enabled
+
+이 기능을 설정하면 위에서 언급한 "Block over-scaled image"로 차단될 경우 본래 이미지의 면적에 맞춰서 스케일을 조정하여 작업합니다.
+
+#### Upscale Ratio
+
+인물이 발견되면 주어진 비율로 키워서 자세하게 그립니다.
+
+#### Denoising Strength
+
+인물의 크기가 클 경우 0.4로 부족할 수 있습니다. 이런 경우 수치를 올려주세요.
+
+#### Dilation mask
+
+찾아낸 인물의 마스크를 확장합니다.
+
+#### CFG Scale
+
+인물을 다시 그릴때 사용하는 CFG scale 값입니다.
+
+#### Large person area limit
+
+인물이 이미지 속에서 차지하는 면적이 이 값을 초과하면 작업하지 않습니다.   
+인물이 충분히 큰 경우 다시 그릴 필요가 없기 때문입니다.
+
+#### Limit
+
+이미지 속에 인물이 너무 많은 경우 면적단위로 큰 것부터 카운트하여 설정값을 초과하여 다시 그리지 않습니다.
+
+
+<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.png">
+<img src="https://i.ibb.co/r2fdSmJ/00399-1097195856.png">
+
+
 ## Face
 
 ### Face Detailing
 
-이 기능을 사용하게 되면 프로스세가 완료된 이후 After Detailer(AD)나 Detection Detailer(DD)와 같이    
+이 기능을 사용하게 되면 프로세스가 완료된 이후 After Detailer(AD)나 Detection Detailer(DD)와 같이    
 얼굴을 보정합니다.   
 이 기능을 동작시킨 후에 AD, DD가 동작하도록 설정한다면, 결과가 좋지 않을 수 있습니다.   
-config 파일을 사용하여 아래와 같이 파라미터를 지정할 수 있습니다.
 
-```JSON
-{
-  "enabled": true,
-  "contrast": 1.2,
-  "brightness": 0.9,
-  "sharpeness": 1.5,
-  "edge_flavor_enabled": true,
-  "edge_low_threadhold": 50,
-  "edge_high_threadhold": 200,
-  "edge_strength": 0.5,
-  "resize_by_person_enabled": true,
-  "resize_by_person": 0.85,
-  "face_detailing_enabled": true,
-  "module_config": {
-    "face_detailing": {
-        "denoising_strength": 0.40,
-        "prompt": "smile, #!org!#",
-        "width": 512,
-        "height": 512,
-        "inpaint_full_res": true,
-        "inpaint_full_res_padding": 32,
-        "cfg_scale": 7
-      },
-    "face_detailing_opt": {
-      "mask dilation": 4
-    }
-  }
-}
+<img src="https://i.ibb.co/frx85BR/face.png">
 
-```
-### Face detailing before hires.fix
-##### (EXPERIMENTAL)
+최대 5개의 캐릭터에 대해 prompt를 별도로 지정할 수 있습니다.
 
-txt2img로 최초 이미지가 만들어지고 hires.fix 단계를 수행하기 전에,   
-얼굴에 대한 보정을 수행한다. 최종적으로 보정하는 것과 합하면 총 두번에 걸쳐서 작업을 수행하게된다.
+#### Enable face detailing
 
+face detailing 기능을 켜고 끌 수 있습니다.
 
-### Face lighting
-##### (EXPERIMENTAL)
+#### Enable face detailing before hires.fix (EXPERIMENTAL)
+
+face detailing 기능을 txt2img 과정의 hires.fix 직전에 한 번 더 수행합니다.   
+얼굴을 보정한 이후에 upscale을 하기 때문에 더 좋은 품질의 이미지를 얻을 수 있습니다.   
+하지만 부하가 더 들어가고, 이미지 변화가 심합니다.
+
+#### Face detailing sort by
+
+이미지 안에 여러 인물이 있는 경우 어떤 순서로 Detailing 할 것인지 결정합니다.
+
+<img src="https://i.ibb.co/DR8g34t/00037-3214376443.png">
+<img src="https://i.ibb.co/4JXdkpT/00036-3214376443.png">
+
+왼쪽, 오른쪽 혹은 크기로 가능하며 없다면 기본적으로 Score 값이 높은 순서로 합니다.
+
+#### Limit
+
+이미지 않에 여러 인물이 있는 경우 위에서 정한 순서로 얼마나 수행할지 결정합니다.   
+Limit이 1이라면 최대 1개만 수행한다는 뜻입니다.
+
+#### Override Parameters
+
+* Denoising Strength
+* CFG Scale
+* Width
+* Height
+* Steps
+* Mask Blur
+
+위 값에 대해 기본값이 아닌 UI에서 지정한 값을 사용합니다.
+
+#### Inpaint Area
+
+전체를 다시 그릴지 얼굴만 다시 그릴지를 결정합니다. 전체를 다시 그리는 것은 별로 추천하지 않습니다.
+
+#### Only masked padding, pixels
+
+기본값을 사용해 주세요.
+
+#### Face lighting (EXPERIMENTAL)
 
 얼굴에 대한 보정 설정을 enable 하는 경우에 얼굴에 대한 밝기를 조정합니다.   
 너무 큰 수치를 주면 정확한 디테일링이 되지 않을 수 있습니다.   
 모자를 착용하고 있는 경우 얼굴이 정확하게 인식이 안 될 수 있습니다.
 
+
+**좋은 결과를 얻기 위한 조언**
+
+* Prompt에 얼굴 관련된 lora, textual inversion등 관련 내용을 뺍니다. sunglass 등은 무관합니다.
+* 설정 파일에 얼굴마다 서로 다른 lora, textual inversion 등을 넣습니다.
+* prompt에 lora, TI가 많을 경우 그림 생성 자유도가 떨어지는 것 같습니다.
+* 그림속 모든 캐릭터가 공유되는 lora는 넣어주셔도 무방합니다.
+
+
+
 ## Hand
 
 ### Hand Detailing (EXPERIMENTAL)
 
-손 표현이 잘못된 부분을 수정하는 기능.   
-만들어진 그림에서 손 부분을 자동으로 찾아내어 해당 부분을 다시 그리는 기능이다.   
-다만 손의 경우 다시 그려도 잘 그려질지 확실하지 않다.
+손 표현이 잘못된 부분을 수정하는 기능입니다.   
+만들어진 그림에서 손 부분을 자동으로 찾아내어 해당 부분을 다시 그리는 기능입니다.   
+다만 손의 경우 다시 그려도 잘 그려질지 확실하지 않으며, 손을 자세하게 그리는 정도입니다.
 
-#### 설정값
+<img src="https://i.ibb.co/fxQh9ZN/hand.png">
 
-* Enable hand detailing : 당 기능을 사용하도록 한다.
-* Block over-scaled image : 다시 그려야 하는 부분의 면적이 원래이미지를 초과하게 되면 작업을 수행하지 않는다.   
-이런 경우에는 Upscale Ratio를 줄이거나, 이 기능을 꺼야하는데, 이 기능을 끄면 매우 큰 그림을 다시 그릴 수도 있어서 GPU에 부하가 걸릴 수 있다.
-* Method
-    * subframe : 손을 포함하여 얼굴/머리 부분까지 찾아내어 상반신을 다시 그린다.
-    * each hand : 손을 찾아내여 3배 크기의 주변부 까지 다시 그려 손만 적용한다.
-    * each hand inpaint : 손을 찾아내어 3재 크기의 주변부를 기반으로 손만 다시 그린다.   
-      매우 극단적으로 변형될 수 있어서 잘 그려지기 어렵다 모양이 갖춰진다면, subframe으로 다시 그리는 것을 추천한다.
-    * at once : 찾아낸 손을 모두 한번에 다시 그린다.
-* Prompt : Subframe에서는 빈칸으로 두기를 권장한다. each hand, each hand inpaint시에 손 관련 프롬프트를 넣는다.
-* Negative Prompt : Subframe에서는 빈칸으로 두기를 권장한다. each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 넣는다.
-* Denoising Strength : 다시 그리는 경우 Denoising Strength 값이다.
-    * subframe : 0.4 권장
-    * 기타 0.55 이상 권장
-* CFG Scale : 다시 그리는 경우 CFG Scale 값이다.
-* Upscale Ratio : 상반신 / 손 주변을 찾아내어 얼마나 크게 확대하여 다시 그릴 것인지 지정한다.   
+#### Enable hand detailing
+
+손 보정 기능을 사용하도록 활성화 합니다.
+
+#### Block over-scaled image
+
+이 기능은 손을 찾아내어 확대해서 다시그리는 방법을 사용합니다.   
+다시 그려야 하는 부분의 면적이 원래이미지를 초과하게 되면 작업을 수행하지 않습니다.   
+이런 경우에는 Upscale Ratio를 줄이거나, 이 기능을 꺼야하는데, 이 기능을 끄면 매우 큰 그림을 다시 그릴 수도 있어서 GPU에 부하가 걸릴 수 있습니다..
+
+#### Method
+* subframe : 손을 포함하여 얼굴/머리 부분까지 찾아내어 상반신을 다시 그린다.
+* each hand : 손을 찾아내여 3배 크기의 주변부 까지 다시 그려 손만 적용한다.
+* each hand inpaint : 손을 찾아내어 3재 크기의 주변부를 기반으로 손만 다시 그린다.   
+  매우 극단적으로 변형될 수 있어서 잘 그려지기 어렵다 모양이 갖춰진다면, subframe으로 다시 그리는 것을 추천한다.
+* at once : 찾아낸 손을 모두 한번에 다시 그린다.
+  
+
+#### Prompt
+
+Subframe에서는 입력하지 않을 것을 권장합니다.   
+each hand, each hand inpaint시에 손 관련 프롬프트를 입력합니다.
+
+#### Negative Prompt
+
+Subframe에서는 입력하지 않을 것을 권장합니다.   
+each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 입력합니다.
+
+#### Denoising Strength
+
+다시 그리는 경우 Denoising Strength 값 입니다.
+* subframe : 0.4 권장
+* 기타 0.55 이상 권장
+
+#### CFG Scale
+
+다시 그리는 경우 CFG Scale 값 입니다.
+
+#### Upscale Ratio
+상반신 / 손 주변을 찾아내어 얼마나 크게 확대하여 다시 그릴 것인지 지정한다.   
 무조건 크게 그린다고 성공확률이 올라가는 것은 아니다.  
-  * subframe : 2.0
-  * 기타 : 2.0~4.0
-* Box Threshold : 손을 찾아내지 못하는 경우 이 값을 낮추면, 찾아낼 수 있는 확률이 올라간다.
-* Box Dilation : 찾아낸 박스(손을 포함하여)의 외곽 부분을 얼마나 크게 할 것이 결정한다. (only for subframe)
-* Inpaint Area : 찾아낸 박스 전체를 다시 그릴 것인지, 손만 다시 그릴 것인지를 결정한다.   
-손만 다시그리는 경우 손 모양이 원하지 않게 바뀔 수 있으나 크게 변경된다.
-* Only masked padding : 찾아낸 손의 내부 공간을 얼마 정도로 채울지를 결정한다. 딱히 변경할 일 없다.
-* Additional Parameter : 현재는 제공하지 않지만 향후 고급 사용자를 위한 옵션을 제공할 예정이다.
+* subframe : 2.0
+* 기타 : 2.0~4.0
+
+#### Box Threshold
+
+손을 찾아내지 못하는 경우 이 값을 낮추면, 찾아낼 수 있는 확률이 올라갑니다.   
+하지만 잘 못 찾아낼 가능성도 올라갑니다.
+
+#### Box Dilation
+
+찾아낸 박스(손을 포함하여)의 외곽 부분을 얼마나 크게 할 것이 결정합니다. (only for subframe)
+
+#### Inpaint Area
+
+찾아낸 박스 전체를 다시 그릴 것인지, 손만 다시 그릴 것인지를 결정한다.   
+손만 다시그리는 경우 손 모양이 원하지 않게 바뀔 수 있으나 크게 변경된다.   
+
+#### Only masked padding
+
+찾아낸 손의 내부 공간을 얼마 정도로 채울지를 결정합니다. 딱히 변경할 일 없습니다.
+
+#### Additional Parameter
+
+현재는 제공하지 않지만 향후 고급 사용자를 위한 옵션을 제공할 예정입니다.
 
 
 ## Resize
@@ -411,3 +386,33 @@ Sharpeness : 1.5
 
 Enable resize by person : CHECK!!   
 Resize by person : 0.85
+
+### Enable upscale at final stage
+
+이미지 생성이 완료되고 난 이후에 Upscale을 수행합니다.   
+960x540으로 생성하고 hires.fix를 x2로 하면 1920x1080 이미지가 나오는데   
+여기서 Upscale을 x2를 하면 4K 이미지가 나오게 됩니다.
+
+#### Detailing after upscale
+
+이 옵션을 설정하면 위에서 언급한 Person, Face, Hand 에 대한 detailing을 upscale 이후에 수행합니다.   
+
+#### Upscale Ratio
+
+이미지를 얼마나 upscale할지 결정합니다.
+
+
+## Control Net (EXPERIMENTAL, NOW TESTING)
+
+BMAB에서 control net을 제어하여 이미지를 생성합니다.
+현재는 resize by person 기능만 제공하며 openpose로 구현되어 있습니다.
+
+<img src="https://i.ibb.co/t8H4dN8/e5f483112a7e5d3169401b495245d14a49fde99a57c7099f8a5bf34769dc12ac.webp">
+
+이미지 생성 준비 단계에서 설정과 동일한 이미지를 뽑아 control net의 입력으로 자동으로 넣어줍니다.
+이때 인물의 크기를 비교하여 설정값에 맞춰 크기를 줄여서 입력을 넣어줍니다.
+
+<img src="https://i.ibb.co/zQtWbSf/00084-2574875327.png" width="40%">
+<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.png" width="40%">
+
+
