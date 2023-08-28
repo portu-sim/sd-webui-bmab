@@ -123,7 +123,7 @@ def process_face_detailing_inner(image, s, p, a):
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
 		print('render', phrase, float(logit))
-		x1, y1, x2, y2 = util.fix_yolo_box(box)
+		x1, y1, x2, y2 = util.fix_sqare_box(box)
 		x1 = int(x1) - dilation
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
@@ -247,7 +247,6 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle((x1, y1, x2, y2), fill=255)
-		face_mask.save('mask1.png')
 
 		print(s.index, p.all_seeds, p.all_subseeds)
 		seed, subseed = util.get_seeds(s, p, a)

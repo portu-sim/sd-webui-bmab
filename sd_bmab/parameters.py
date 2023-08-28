@@ -77,6 +77,9 @@ class Parameters(object):
 			('detailing_after_upscale', True),
 			('upscaler_name', 'None'),
 			('upscale_ratio', 1.5),
+			('module_config.controlnet.enabled', False),
+			('module_config.controlnet.resize_by_person_enabled', False),
+			('module_config.controlnet.resize_by_person', 0.4),
 			('config_file', ''),
 			('preset', 'None'),
 		]

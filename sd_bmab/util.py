@@ -2,7 +2,6 @@ import os
 import torch
 import numpy as np
 from PIL import Image
-from pathlib import Path
 import modules
 from modules import shared
 from modules import devices
@@ -115,8 +114,8 @@ def fix_box_limit(box, size):
 	return x1, y1, x2, y2
 
 
-def fix_yolo_box(box):
-	x1, y1, x2, y2 = fix_box_by_scale(box, 0.28)
+def fix_sqare_box(box):
+	x1, y1, x2, y2 = tuple(int(x) for x in box)
 	w = int((x2 - x1) / 2)
 	h = int((y2 - y1) / 2)
 	x = x1 + w
@@ -145,14 +144,6 @@ def change_model(name):
 
 def get_seeds(s, p, a):
 	return p.all_seeds[s.index], p.all_subseeds[s.index]
-
-
-def get_cn_args(p):
-	for script_object in p.scripts.alwayson_scripts:
-		filename = Path(script_object.filename).stem
-		if filename == 'controlnet':
-			return (script_object.args_from, script_object.args_to)
-	return None
 
 
 def ultralytics_predict(image, confidence):

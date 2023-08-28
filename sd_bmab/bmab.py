@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, dinosam, process, detailing, parameters, util
+from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet
 
-bmab_version = 'v23.08.28.1'
+bmab_version = 'v23.08.28.2'
 samplers.override_samplers()
 
 
@@ -41,9 +41,7 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if shared.opts.bmab_test_function:
-			from sd_bmab import ztest
-			ztest.test(self, p, a)
+		controlnet.process_controlnet(self, p, a)
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
 			process.process_dino_detect(p, self, a)
@@ -270,6 +268,16 @@ class BmabExtScript(scripts.Script):
 									upscalers = [x.name for x in shared.sd_upscalers]
 									elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
 									elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
+						with gr.Tab('ControlNet', elem_id='controlnet_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable ControlNet access (EXPERIMENTAL, TESTING)', value=False)
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable resize by person', value=False)
+							with gr.Row():
+								with gr.Column():
+									elem += gr.Slider(minimum=0.1, maximum=0.95, value=0.4, step=0.01, elem_id='cn_resize', label='Resize person using openpose')
+								with gr.Column():
+									gr.Markdown('')
 						with gr.Tab('Config', elem_id='config_tab'):
 							configs = parameters.Parameters().list_config()
 							config = '' if not configs else configs[0]

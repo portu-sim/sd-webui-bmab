@@ -305,6 +305,51 @@ def process_img2img(p, img, options=None):
 	return img
 
 
+def process_txt2img(s, p, a, options: dict):
+
+	t2i_param = dict(
+		denoising_strength=0.4,
+		sd_model=p.sd_model,
+		outpath_samples=p.outpath_samples,
+		outpath_grids=p.outpath_grids,
+		prompt=p.prompt,
+		negative_prompt=p.negative_prompt,
+		styles=p.styles,
+		seed=p.seed,
+		subseed=p.subseed,
+		subseed_strength=p.subseed_strength,
+		seed_resize_from_h=p.seed_resize_from_h,
+		seed_resize_from_w=p.seed_resize_from_w,
+		sampler_name=p.sampler_name,
+		batch_size=1,
+		n_iter=1,
+		steps=p.steps,
+		cfg_scale=p.cfg_scale,
+		width=p.width,
+		height=p.height,
+		restore_faces=False,
+		tiling=p.tiling,
+		extra_generation_params=p.extra_generation_params,
+		do_not_save_samples=True,
+		do_not_save_grid=True,
+		override_settings={},
+	)
+	if options is not None:
+		t2i_param.update(options)
+
+	txt2img = sdprocessing.StableDiffusionProcessingTxt2ImgOv(**t2i_param)
+	txt2img.scripts = None
+	txt2img.script_args = None
+	shared.state.job_count += 1
+
+	processed = process_images(txt2img)
+	print('seeds', txt2img.seed)
+	print('all seeds', txt2img.all_seeds)
+	img = processed.images[0]
+	devices.torch_gc()
+	return img, txt2img.all_seeds[0]
+
+
 def masked_image(img, xyxy):
 	x1, y1, x2, y2 = xyxy
 	check = img.convert('RGBA')
