@@ -209,7 +209,7 @@ sd-webui가 멈추거나 GPU를 보호하기 위한 목적입니다.
 이미지 속에 인물이 너무 많은 경우 면적단위로 큰 것부터 카운트하여 설정값을 초과하여 다시 그리지 않습니다.
 
 
-<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.png">
+<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.jpg">
 <img src="https://i.ibb.co/r2fdSmJ/00399-1097195856.png">
 
 
@@ -267,6 +267,15 @@ Limit이 1이라면 최대 1개만 수행한다는 뜻입니다.
 #### Only masked padding, pixels
 
 기본값을 사용해 주세요.
+
+#### Dilation
+
+검출된 얼굴의 마스크 크기를 키웁니다.
+
+#### Box threshold
+
+Detector의 검출 값을 결정합니다. 기본값 0.35보다 작으면 face가 아닐 것으로 제외합니다.   
+YOLO를 사용하는 경우 confidence를 대체합니다.
 
 #### Face lighting (EXPERIMENTAL)
 
@@ -413,6 +422,6 @@ BMAB에서 control net을 제어하여 이미지를 생성합니다.
 이때 인물의 크기를 비교하여 설정값에 맞춰 크기를 줄여서 입력을 넣어줍니다.
 
 <img src="https://i.ibb.co/zQtWbSf/00084-2574875327.png" width="40%">
-<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.png" width="40%">
+<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.jpg" width="40%">
 
 

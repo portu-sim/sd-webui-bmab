@@ -45,12 +45,13 @@ def process_face_detailing_inner(image, s, p, a):
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
 	dilation = face_detailing_opt.get('dilation', 4)
+	box_threshold = face_detailing_opt.get('box_threshold', 0.35)
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
-	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .')
+	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .', box_threahold=box_threshold)
 	# print(float(logits))
 	print(phrases)
 
@@ -169,6 +170,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
 	dilation = face_detailing_opt.get('dilation', 4)
+	confidence = face_detailing_opt.get('box_threshold', 0.3)
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
 	max_element = shared.opts.bmab_max_detailing_element
@@ -190,7 +192,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		face_config['inpaint_full_res'] = 1
 		face_config['inpaint_full_res_padding'] = 32
 
-	boxes = util.ultralytics_predict(image, 0.3)
+	boxes = util.ultralytics_predict(image, confidence)
 
 	candidate = []
 	for box in boxes:

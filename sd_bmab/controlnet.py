@@ -42,6 +42,23 @@ def get_openpose_args(image):
 	return cn_args
 
 
+def get_noise_args(image, weight):
+	cn_args = {
+		'input_image': b64_encoding(image),
+		'model': 'control_v11p_sd15_lineart [43d4be0d]',
+		'weight': weight,
+		'starting/ending': (0.1, 0.9),
+		'resize mode': 'Just Resize',
+		'allow preview': False,
+		'pixel perfect': False,
+		'control mode': 'ControlNet is more important',
+		'processor_res': 512,
+		'threshold_a': 64,
+		'threshold_b': 64,
+	}
+	return cn_args
+
+
 def process_resize_by_person(img, s, p, args):
 	controlnet_opt = args.get('module_config', {}).get('controlnet', {})
 	value = controlnet_opt.get('resize_by_person', 0.5)
@@ -88,7 +105,9 @@ def process_controlnet(s, p, a):
 	if not controlnet_opt.get('enabled', False):
 		return
 
-	if not controlnet_opt.get('resize_by_person_enabled', False):
+	resize_by_person_enabled = controlnet_opt.get('resize_by_person_enabled', False)
+	noise_enabled = controlnet_opt.get('noise', False)
+	if not resize_by_person_enabled and not noise_enabled:
 		return
 
 	print('Seed', p.seed)
@@ -97,15 +116,29 @@ def process_controlnet(s, p, a):
 	cn_args = get_cn_args(p)
 	print('ControlNet', cn_args)
 
-	img, seed = process.process_txt2img(s, p, a, {})
-	s.extra_image.append(img)
-	img = process_resize_by_person(img, s, p, a)
-	# img = util.resize_image(2, img, int(img.width * 1.2), int(img.height * 1.2))
+	count = 0
 
-	p.seed = seed
+	if resize_by_person_enabled:
+		img, seed = process.process_txt2img(s, p, a, {})
+		s.extra_image.append(img)
+		img = process_resize_by_person(img, s, p, a)
+		# img = util.resize_image(2, img, int(img.width * 1.2), int(img.height * 1.2))
+		p.seed = seed
+		cn_op_arg = get_openpose_args(img)
+		idx = cn_args[count]
+		count += 1
+		sc_args = list(p.script_args)
+		sc_args[idx] = cn_op_arg
+		p.script_args = tuple(sc_args)
 
-	cn_op_arg = get_openpose_args(img)
-	idx = cn_args[0]
-	sc_args = list(p.script_args)
-	sc_args[idx] = cn_op_arg
-	p.script_args = tuple(sc_args)
+	if noise_enabled:
+		noise_strength = controlnet_opt.get('noise_strength', 0.7)
+		print('noise enabled.', noise_strength)
+
+		img = process.generate_noise(p.width, p.height)
+		cn_op_arg = get_noise_args(img, noise_strength)
+		idx = cn_args[count]
+		count += 1
+		sc_args = list(p.script_args)
+		sc_args[idx] = cn_op_arg
+		p.script_args = tuple(sc_args)

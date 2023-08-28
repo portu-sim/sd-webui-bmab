@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet
 
-bmab_version = 'v23.08.28.2'
+bmab_version = 'v23.08.29.0'
 samplers.override_samplers()
 
 
@@ -148,7 +148,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Textbox(placeholder='1girl', visible=True, value='',  label='Prompt')
 						with gr.Tab('Person', elem_id='person_tabs'):
 							with gr.Row():
-								elem += gr.Checkbox(label='Enable person detailing for landscape (EXPERIMENTAL)', value=False)
+								elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
 							with gr.Row():
 								elem += gr.Checkbox(label='Block over-scaled image', value=True)
 								elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
@@ -198,16 +198,18 @@ class BmabExtScript(scripts.Script):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 							with gr.Row():
-								elem += gr.Checkbox(label='Overide Parameter', value=False)
-							with gr.Row():
-								with gr.Column(min_width=100):
-									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
-									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
-									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
-								with gr.Column(min_width=100):
-									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
-									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
+								with gr.Tab('Parameters', elem_id='parameter_tabs'):
+									with gr.Row():
+										elem += gr.Checkbox(label='Overide Parameters', value=False)
+									with gr.Row():
+										with gr.Column(min_width=100):
+											elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
+											elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
+											elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
+										with gr.Column(min_width=100):
+											elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+											elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
+											elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
 							with gr.Row():
 								with gr.Column(min_width=100):
 									inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
@@ -215,6 +217,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
 								with gr.Column():
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
+									elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
 							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
@@ -251,60 +254,79 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
 						with gr.Tab('Resize', elem_id='resize_tabs'):
 							with gr.Row():
-								elem += gr.Checkbox(label='Enable resize by person', value=False)
+								with gr.Tab('Resize by person', elem_id='resize1_tab'):
+									with gr.Row():
+										elem += gr.Checkbox(label='Enable resize by person', value=False)
+									with gr.Row():
+										with gr.Column():
+											elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
+										with gr.Column():
+											gr.Markdown('')
 							with gr.Row():
-								with gr.Column():
-									elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
-								with gr.Column():
-									gr.Markdown('')
-							with gr.Row():
-								with gr.Column(min_width=100):
-									elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
-									elem += gr.Checkbox(label='Detailing after upscale', value=True)
-								with gr.Column(min_width=100):
-									gr.Markdown('')
-							with gr.Row():
-								with gr.Column(min_width=100):
-									upscalers = [x.name for x in shared.sd_upscalers]
-									elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
-									elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
+								with gr.Tab('Upscale', elem_id='resize2_tab'):
+									with gr.Row():
+										with gr.Column(min_width=100):
+											elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
+											elem += gr.Checkbox(label='Detailing after upscale', value=True)
+										with gr.Column(min_width=100):
+											gr.Markdown('')
+									with gr.Row():
+										with gr.Column(min_width=100):
+											upscalers = [x.name for x in shared.sd_upscalers]
+											elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+											elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
 						with gr.Tab('ControlNet', elem_id='controlnet_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable ControlNet access (EXPERIMENTAL, TESTING)', value=False)
 							with gr.Row():
-								elem += gr.Checkbox(label='Enable resize by person', value=False)
+								with gr.Tab('Resize', elem_id='cn_resize_tabs'):
+									with gr.Row():
+										elem += gr.Checkbox(label='Enable resize by person', value=False)
+									with gr.Row():
+										with gr.Column():
+											elem += gr.Slider(minimum=0.1, maximum=0.95, value=0.4, step=0.01, elem_id='cn_resize', label='Resize person using openpose')
+										with gr.Column():
+											gr.Markdown('')
 							with gr.Row():
-								with gr.Column():
-									elem += gr.Slider(minimum=0.1, maximum=0.95, value=0.4, step=0.01, elem_id='cn_resize', label='Resize person using openpose')
-								with gr.Column():
-									gr.Markdown('')
+								with gr.Tab('Noise', elem_id='cn_noise_tabs'):
+									with gr.Row():
+										elem += gr.Checkbox(label='Enable noise (EXPERIMENTAL)', value=False)
+									with gr.Row():
+										with gr.Column():
+											elem += gr.Slider(minimum=0.0, maximum=2, value=0.7, step=0.05, elem_id='cn_noise', label='Noise strength')
+										with gr.Column():
+											gr.Markdown('')
 						with gr.Tab('Config', elem_id='config_tab'):
 							configs = parameters.Parameters().list_config()
 							config = '' if not configs else configs[0]
 							with gr.Row():
-								with gr.Column(min_width=100):
-									config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
-									elem += config_dd
-								with gr.Column(min_width=100):
-									gr.Markdown('')
-								with gr.Column(min_width=100):
-									gr.Markdown('')
+								with gr.Tab('Configuration', elem_id='configuration_tabs'):
+									with gr.Row():
+										with gr.Column(min_width=100):
+											config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
+											elem += config_dd
+										with gr.Column(min_width=100):
+											gr.Markdown('')
+										with gr.Column(min_width=100):
+											gr.Markdown('')
+									with gr.Row():
+										with gr.Column(min_width=100):
+											load_btn = gr.Button('Load', visible=True, interactive=True)
+										with gr.Column(min_width=100):
+											save_btn = gr.Button('Save', visible=True, interactive=True)
+										with gr.Column(min_width=100):
+											reset_btn = gr.Button('Reset', visible=True, interactive=True)
 							with gr.Row():
-								with gr.Column(min_width=100):
-									load_btn = gr.Button('Load', visible=True, interactive=True)
-								with gr.Column(min_width=100):
-									save_btn = gr.Button('Save', visible=True, interactive=True)
-								with gr.Column(min_width=100):
-									reset_btn = gr.Button('Reset', visible=True, interactive=True)
-							with gr.Row():
-								with gr.Column(min_width=100):
-									gr.Markdown('Preset Loader : preset override UI configuration.')
-							with gr.Row():
-								presets = parameters.Parameters().list_preset()
-								with gr.Column(min_width=100):
-									preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
-									elem += preset_dd
-									refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
+								with gr.Tab('Preset', elem_id='configuration_tabs'):
+									with gr.Row():
+										with gr.Column(min_width=100):
+											gr.Markdown('Preset Loader : preset override UI configuration.')
+									with gr.Row():
+										presets = parameters.Parameters().list_preset()
+										with gr.Column(min_width=100):
+											preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
+											elem += preset_dd
+											refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
 
 			def load_config(*args):
 				name = args[0]

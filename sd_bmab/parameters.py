@@ -56,6 +56,7 @@ class Parameters(object):
 			('module_config.face_detailing.inpaint_full_res', 'Only masked'),
 			('module_config.face_detailing.inpaint_full_res_padding', 32),
 			('module_config.face_detailing_opt.dilation', 4),
+			('module_config.face_detailing_opt.box_threshold', 0.3),
 			('face_lighting', 0.0),
 			('hand_detailing_enabled', False),
 			('module_config.hand_detailing_opt.block_overscaled_image', True),
@@ -80,6 +81,8 @@ class Parameters(object):
 			('module_config.controlnet.enabled', False),
 			('module_config.controlnet.resize_by_person_enabled', False),
 			('module_config.controlnet.resize_by_person', 0.4),
+			('module_config.controlnet.noise', False),
+			('module_config.controlnet.noise_strength', 0.7),
 			('config_file', ''),
 			('preset', 'None'),
 		]
