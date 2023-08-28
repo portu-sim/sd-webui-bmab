@@ -6,9 +6,9 @@ from modules import script_callbacks
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet
+from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet, constants
 
-bmab_version = 'v23.08.29.0'
+bmab_version = 'v23.08.29.1'
 samplers.override_samplers()
 
 
@@ -212,17 +212,16 @@ class BmabExtScript(scripts.Script):
 											elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
 							with gr.Row():
 								with gr.Column(min_width=100):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampler', visible=True, value=asamplers[0], choices=asamplers)
 									inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
 									elem += inpaint_area
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
 								with gr.Column():
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 									elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
-							with gr.Row():
-								with gr.Column():
 									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
-								with gr.Column():
-									gr.Markdown('')
 						with gr.Tab('Hand', elem_id='hand_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)

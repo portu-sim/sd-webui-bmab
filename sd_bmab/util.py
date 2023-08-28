@@ -161,3 +161,7 @@ def ultralytics_predict(image, confidence):
 		pass
 	torch.load = load
 	return boxes
+
+
+def dict_to_str(d):
+	return ','.join([f'{k}={v}' for k, v in d.items()])

@@ -1,5 +1,6 @@
 import os
 import json
+from sd_bmab import constants
 
 
 class Parameters(object):
@@ -53,6 +54,7 @@ class Parameters(object):
 			('module_config.face_detailing.cfg_scale', 7),
 			('module_config.face_detailing.steps', 20),
 			('module_config.face_detailing.mask_blur', 4),
+			('module_config.face_detailing_opt.sampler', constants.sampler_default),
 			('module_config.face_detailing.inpaint_full_res', 'Only masked'),
 			('module_config.face_detailing.inpaint_full_res_padding', 32),
 			('module_config.face_detailing_opt.dilation', 4),

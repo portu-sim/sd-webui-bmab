@@ -5,11 +5,12 @@ import random
 
 from PIL import Image
 from PIL import ImageOps
+from PIL import ImageDraw
 from PIL import ImageEnhance
 
-from sd_bmab import dinosam, sdprocessing, util, detailing, samplers
+from copy import copy, deepcopy
+from pathlib import Path
 
-from PIL import ImageDraw
 from functools import partial
 
 from modules import shared
@@ -18,6 +19,8 @@ from modules import images
 from modules.processing import process_images
 from modules.processing import StableDiffusionProcessingTxt2Img
 from modules.processing import StableDiffusionProcessingImg2Img
+
+from sd_bmab import dinosam, sdprocessing, util, detailing, samplers
 
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
@@ -232,6 +235,21 @@ def sam(prompt, input_image):
 	return mask
 
 
+def apply_extensions(p):
+	script_runner = copy(p.scripts)
+	script_args = deepcopy(p.script_args)
+
+	filtered_alwayson = []
+	for script_object in script_runner.alwayson_scripts:
+		filepath = script_object.filename
+		filename = Path(filepath).stem
+		if filename in ['dynamic_thresholding']:
+			filtered_alwayson.append(script_object)
+
+	script_runner.alwayson_scripts = filtered_alwayson
+	return script_runner, script_args
+
+
 def process_img2img(p, img, options=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
@@ -291,8 +309,7 @@ def process_img2img(p, img, options=None):
 	img2img = sdprocessing.StableDiffusionProcessingImg2ImgOv(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
-	img2img.scripts = None
-	img2img.script_args = None
+	img2img.scripts, img2img.script_args = apply_extensions(p)
 	img2img.block_tqdm = True
 	shared.state.job_count += 1
 
@@ -466,6 +483,8 @@ def process_upscale_inner(image, s, p, args):
 	ratio = args['upscale_ratio']
 	upscaler = args['upscaler_name']
 	print(f'Upscale ratio {ratio} Upscaler {upscaler}')
+	p.extra_generation_params['BMAB_upscale_option'] = f'Upscale ratio {ratio} Upscaler {upscaler}'
+
 	if ratio < 1.0 or ratio > 4.0:
 		print('upscale out of range')
 		return image

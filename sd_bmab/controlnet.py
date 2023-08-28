@@ -105,6 +105,8 @@ def process_controlnet(s, p, a):
 	if not controlnet_opt.get('enabled', False):
 		return
 
+	p.extra_generation_params['BMAB_controlnet_option'] = util.dict_to_str(controlnet_opt)
+
 	resize_by_person_enabled = controlnet_opt.get('resize_by_person_enabled', False)
 	noise_enabled = controlnet_opt.get('noise', False)
 	if not resize_by_person_enabled and not noise_enabled:
@@ -125,7 +127,7 @@ def process_controlnet(s, p, a):
 		# img = util.resize_image(2, img, int(img.width * 1.2), int(img.height * 1.2))
 		p.seed = seed
 		cn_op_arg = get_openpose_args(img)
-		idx = cn_args[count]
+		idx = cn_args[0] + count
 		count += 1
 		sc_args = list(p.script_args)
 		sc_args[idx] = cn_op_arg
@@ -137,7 +139,7 @@ def process_controlnet(s, p, a):
 
 		img = process.generate_noise(p.width, p.height)
 		cn_op_arg = get_noise_args(img, noise_strength)
-		idx = cn_args[count]
+		idx = cn_args[0] + count
 		count += 1
 		sc_args = list(p.script_args)
 		sc_args[idx] = cn_op_arg

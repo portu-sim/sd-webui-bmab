@@ -7,7 +7,7 @@ from PIL import ImageFilter
 
 from modules import devices
 from modules import shared
-from sd_bmab import dinosam, util, process
+from sd_bmab import dinosam, util, process, constants
 
 
 def timecalc(func):
@@ -48,6 +48,7 @@ def process_face_detailing_inner(image, s, p, a):
 	box_threshold = face_detailing_opt.get('box_threshold', 0.35)
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
+	sampler = face_detailing_opt.get('sampler', constants.sampler_default)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
@@ -58,7 +59,10 @@ def process_face_detailing_inner(image, s, p, a):
 	org_size = image.size
 	print('size', org_size)
 
-	face_config = {}
+	face_config = {
+		'inpaint_full_res': face_detailing['inpaint_full_res'],
+		'inpaint_full_res_padding': face_detailing['inpaint_full_res_padding'],
+	}
 
 	if override_parameter:
 		face_config = dict(face_detailing)
@@ -69,8 +73,12 @@ def process_face_detailing_inner(image, s, p, a):
 		else:
 			face_config['width'] = p.width
 			face_config['height'] = p.height
-		face_config['inpaint_full_res'] = 1
-		face_config['inpaint_full_res_padding'] = 32
+
+	if sampler != constants.sampler_default:
+		face_config['sampler_name'] = sampler
+
+	p.extra_generation_params['BMAB_face_option'] = util.dict_to_str(face_detailing_opt)
+	p.extra_generation_params['BMAB_face_parameter'] = util.dict_to_str(face_config)
 
 	candidate = []
 	for box, logit, phrase in zip(boxes, logits, phrases):
@@ -143,7 +151,6 @@ def process_face_detailing_inner(image, s, p, a):
 			image.paste(bgimg, mask=sam_mask)
 			p.extra_generation_params['BMAB face lighting'] = a['face_lighting']
 
-		print(s.index, p.all_seeds, p.all_subseeds)
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
 		img2img_imgage = process.process_img2img(p, image, options=options)
@@ -173,12 +180,16 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	confidence = face_detailing_opt.get('box_threshold', 0.3)
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
+	sampler = face_detailing_opt.get('sampler', constants.sampler_default)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	org_size = image.size
 	print('size', org_size)
 
-	face_config = {}
+	face_config = {
+		'inpaint_full_res': face_detailing['inpaint_full_res'],
+		'inpaint_full_res_padding': face_detailing['inpaint_full_res_padding'],
+	}
 
 	if override_parameter:
 		face_config = dict(face_detailing)
@@ -189,8 +200,12 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		else:
 			face_config['width'] = p.width
 			face_config['height'] = p.height
-		face_config['inpaint_full_res'] = 1
-		face_config['inpaint_full_res_padding'] = 32
+
+	if sampler != constants.sampler_default:
+		face_config['sampler_name'] = sampler
+
+	p.extra_generation_params['BMAB_face_option'] = util.dict_to_str(face_detailing_opt)
+	p.extra_generation_params['BMAB_face_parameter'] = util.dict_to_str(face_config)
 
 	boxes = util.ultralytics_predict(image, confidence)
 
@@ -250,7 +265,6 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle((x1, y1, x2, y2), fill=255)
 
-		print(s.index, p.all_seeds, p.all_subseeds)
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
 		image = process.process_img2img(p, image, options=options)
@@ -690,6 +704,8 @@ def process_person_detailing_inner(image, s, p, a):
 	area_ratio = person_detailing_opt.get('area_ratio', 0.1)
 	limit = person_detailing_opt.get('limit', 1)
 	max_element = shared.opts.bmab_max_detailing_element
+
+	p.extra_generation_params['BMAB_person_option'] = util.dict_to_str(person_detailing_opt)
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
