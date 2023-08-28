@@ -132,7 +132,7 @@ def process_face_detailing_inner(image, s, p, a):
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
 		print('render', phrase, float(logit))
-		x1, y1, x2, y2 = util.fix_sqare_box(box)
+		x1, y1, x2, y2 = box
 		x1 = int(x1) - dilation
 		y1 = int(y1) - dilation
 		x2 = int(x2) + dilation
