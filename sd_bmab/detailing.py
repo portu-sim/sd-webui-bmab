@@ -137,7 +137,7 @@ def process_face_detailing_inner(image, s, p, a):
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle(box, fill=255)
-		face_mask = util.dilate_mask(image, dilation)
+		face_mask = util.dilate_mask(face_mask, dilation)
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
@@ -246,7 +246,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle(box, fill=255)
-		face_mask = util.dilate_mask(image, dilation)
+		face_mask = util.dilate_mask(face_mask, dilation)
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
@@ -308,7 +308,7 @@ def process_multiple_face(image, s, p, a):
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle(box, fill=255)
-		face_mask = util.dilate_mask(image, dilation)
+		face_mask = util.dilate_mask(face_mask, dilation)
 
 		# face_mask = dinosam.sam_predict_box(img, box)
 
