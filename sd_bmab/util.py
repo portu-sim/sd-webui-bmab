@@ -1,6 +1,8 @@
 import os
+import cv2
 import torch
 import numpy as np
+
 from PIL import Image
 import modules
 from modules import shared
@@ -165,3 +167,10 @@ def ultralytics_predict(image, confidence):
 
 def dict_to_str(d):
 	return ','.join([f'{k}={v}' for k, v in d.items()])
+
+
+def dilate_mask(mask, dilation):
+	arr = np.array(mask)
+	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (dilation, dilation))
+	arr = cv2.dilate(arr, kernel, iterations=1)
+	return Image.fromarray(arr)

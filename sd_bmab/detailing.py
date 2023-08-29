@@ -132,16 +132,12 @@ def process_face_detailing_inner(image, s, p, a):
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
 		print('render', phrase, float(logit))
-		x1, y1, x2, y2 = box
-		x1 = int(x1) - dilation
-		y1 = int(y1) - dilation
-		x2 = int(x2) + dilation
-		y2 = int(y2) + dilation
 		print('delation', dilation)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
-		dr.rectangle((x1, y1, x2, y2), fill=255)
+		dr.rectangle(box, fill=255)
+		face_mask = util.dilate_mask(image, dilation)
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
@@ -240,23 +236,17 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 				current_prompt = a.get('current_prompt', p.prompt)
 				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
 				print('prompt for face', face_config['prompt'])
-			else:
-				if prompt != '':
+			elif prompt != '':
 					face_config['prompt'] = prompt
 
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
-		x1, y1, x2, y2 = tuple(int(x) for x in box)
-		x1 = x1 - dilation
-		y1 = y1 - dilation
-		x2 = x2 + dilation
-		y2 = y2 + dilation
-		print('delation', dilation)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
-		dr.rectangle((x1, y1, x2, y2), fill=255)
+		dr.rectangle(box, fill=255)
+		face_mask = util.dilate_mask(image, dilation)
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
@@ -315,15 +305,10 @@ def process_multiple_face(image, s, p, a):
 		if idx == limit:
 			break
 		print('render', phrase, float(logit), size)
-		x1, y1, x2, y2 = box
-		x1 = int(x1) - dilation
-		y1 = int(y1) - dilation
-		x2 = int(x2) + dilation
-		y2 = int(y2) + dilation
-
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
-		dr.rectangle((x1, y1, x2, y2), fill=255)
+		dr.rectangle(box, fill=255)
+		face_mask = util.dilate_mask(image, dilation)
 
 		# face_mask = dinosam.sam_predict_box(img, box)
 
@@ -724,10 +709,7 @@ def process_person_detailing_inner(image, s, p, a):
 		x1, y1, x2, y2 = box2
 
 		mask = dinosam.sam_predict_box(image, box)
-		if dilation >= 3:
-			print('dilation', dilation)
-			mask = dilate_mask(mask, dilation)
-
+		mask = util.dilate_mask(mask, dilation)
 		cropped_mask = mask.crop(box=box).convert('L')
 		cropped = image.crop(box=box)
 

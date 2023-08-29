@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet, constants
 
-bmab_version = 'v23.08.29.3'
+bmab_version = 'v23.08.29.4'
 samplers.override_samplers()
 
 
