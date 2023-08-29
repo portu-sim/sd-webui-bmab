@@ -170,6 +170,8 @@ def dict_to_str(d):
 
 
 def dilate_mask(mask, dilation):
+	if dilation < 4:
+		return mask
 	arr = np.array(mask)
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (dilation, dilation))
 	arr = cv2.dilate(arr, kernel, iterations=1)
