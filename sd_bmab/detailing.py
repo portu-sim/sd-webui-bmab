@@ -124,13 +124,17 @@ def process_face_detailing_inner(image, s, p, a):
 				current_prompt = a.get('current_prompt', p.prompt)
 				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
 				print('prompt for face', face_config['prompt'])
+			elif prompt != '':
+				face_config['prompt'] = prompt
 			else:
-				if prompt != '':
-					face_config['prompt'] = prompt
+				face_config['prompt'] = p.all_prompts[s.index]
 
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
+		else:
+			face_config['negative_prompt'] = p.all_negative_prompts[s.index]
+
 		print('render', phrase, float(logit))
 		print('delation', dilation)
 
@@ -237,11 +241,15 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
 				print('prompt for face', face_config['prompt'])
 			elif prompt != '':
-					face_config['prompt'] = prompt
+				face_config['prompt'] = prompt
+			else:
+				face_config['prompt'] = p.all_prompts[s.index]
 
 		ne_prompt = face_detailing_opt.get(f'negative_prompt{idx}')
 		if ne_prompt is not None and ne_prompt != '':
 			face_config['negative_prompt'] = ne_prompt
+		else:
+			face_config['negative_prompt'] = p.all_negative_prompts[s.index]
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
