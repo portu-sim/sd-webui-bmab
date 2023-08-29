@@ -134,7 +134,7 @@ def process_controlnet(s, p, a):
 		p.script_args = tuple(sc_args)
 
 	if noise_enabled:
-		noise_strength = controlnet_opt.get('noise_strength', 0.7)
+		noise_strength = controlnet_opt.get('noise_strength', 0.4)
 		print('noise enabled.', noise_strength)
 
 		img = process.generate_noise(p.width, p.height)

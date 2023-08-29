@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet, constants
 
-bmab_version = 'v23.08.29.1'
+bmab_version = 'v23.08.29.2'
 samplers.override_samplers()
 
 
@@ -41,6 +41,9 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
+		if isinstance(p, StableDiffusionProcessingTxt2Img):
+			process.override_sample(self, p, a)
+
 		controlnet.process_controlnet(self, p, a)
 
 		if isinstance(p, StableDiffusionProcessingImg2Img):
@@ -51,9 +54,8 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if (a['face_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']) and isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
+		if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
 			a['max_area'] = p.hr_upscale_to_x * p.hr_upscale_to_y
-			process.process_detailing_before_hires_fix(self, p, a)
 
 		process.process_img2img_process_all(p, self, a)
 
@@ -86,16 +88,6 @@ class BmabExtScript(scripts.Script):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
 		dinosam.release()
-
-	def before_hr(self, p, *args):
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
-
-		if not process.check_hires_fix_process(a, p):
-			return
-
-		process.process_txt2img_hires_fix(p, self, a)
 
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
@@ -292,7 +284,7 @@ class BmabExtScript(scripts.Script):
 										elem += gr.Checkbox(label='Enable noise (EXPERIMENTAL)', value=False)
 									with gr.Row():
 										with gr.Column():
-											elem += gr.Slider(minimum=0.0, maximum=2, value=0.7, step=0.05, elem_id='cn_noise', label='Noise strength')
+											elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='cn_noise', label='Noise strength')
 										with gr.Column():
 											gr.Markdown('')
 						with gr.Tab('Config', elem_id='config_tab'):

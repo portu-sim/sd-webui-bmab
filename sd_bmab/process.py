@@ -3,6 +3,8 @@ import numpy as np
 import math
 import random
 
+from functools import partial
+
 from PIL import Image
 from PIL import ImageOps
 from PIL import ImageDraw
@@ -21,7 +23,6 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import dinosam, sdprocessing, util, detailing, samplers
-
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
@@ -135,7 +136,6 @@ def calc_color_temperature(temp):
 
 
 def after_process(bgimg, s, p, args):
-
 	if args['noise_alpha_final'] != 0:
 		p.extra_generation_params['BMAB noise alpha final'] = args['noise_alpha_final']
 		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])
@@ -255,10 +255,6 @@ def process_img2img(p, img, options=None):
 		return img
 
 	img = img.convert('RGB')
-	steps = p.steps
-	if isinstance(p, StableDiffusionProcessingTxt2Img):
-		if p.hr_second_pass_steps != 0:
-			steps = p.hr_second_pass_steps
 
 	if 'inpaint_full_res' in options:
 		res = options['inpaint_full_res']
@@ -292,7 +288,7 @@ def process_img2img(p, img, options=None):
 		sampler_name=p.sampler_name,
 		batch_size=1,
 		n_iter=1,
-		steps=steps,
+		steps=p.steps,
 		cfg_scale=p.cfg_scale,
 		width=img.width,
 		height=img.height,
@@ -323,7 +319,6 @@ def process_img2img(p, img, options=None):
 
 
 def process_txt2img(s, p, a, options: dict):
-
 	t2i_param = dict(
 		denoising_strength=0.4,
 		sd_model=p.sd_model,
@@ -377,24 +372,6 @@ def masked_image(img, xyxy):
 	check.convert('RGB').save('check.png')
 
 
-def process_detailing_before_hires_fix(s, p, a):
-	def end_sample(self, s, ar, samples):
-		for idx in range(0, len(samples)):
-			img = util.latent_to_image(samples, idx)
-			pidx = p.iteration * p.batch_size + idx
-			a['current_prompt'] = p.all_prompts[pidx]
-			if a['face_detailing_before_hiresfix_enabled']:
-				img = detailing.process_face_detailing_inner(img, s, p, a)
-			if a['hand_detailing_before_hiresfix_enabled']:
-				img = detailing.process_hand_detailing(img, s, p, a)
-			s.extra_image.append(img)
-			samples[idx] = util.image_to_latent(p, img)
-			devices.torch_gc()
-
-	if a['hand_detailing_before_hiresfix_enabled'] or a['hand_detailing_before_hiresfix_enabled']:
-		p.end_sample = partial(end_sample, p, s, a)
-
-
 def process_dino_detect(p, s, a):
 	if a['dino_detect_enabled']:
 		if p.image_mask is not None:
@@ -441,29 +418,40 @@ def process_img2img_process_all(p, s, a):
 					devices.torch_gc()
 
 
-def process_txt2img_hires_fix(p, s, a):
-	if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
-		class CallBack(samplers.SamplerCallBack):
-			def sample_img2img(self, p, x, noise, conditioning, unconditional_conditioning, steps, image_conditioning):
-				for idx in range(0, len(x)):
-					img = util.latent_to_image(x, idx)
-					img = process_all(self.args, p, img)
-					self.script.extra_image.append(img)
-					x[idx] = util.image_to_latent(p, img)
-					devices.torch_gc()
-		print('Register Callback')
-		p.sampler.register_callback(CallBack(s, a))
+def override_sample(s, p, a):
+	if hasattr(p, '__sample'):
+		return
+	p.__sample = p.sample
 
+	def resize(_p, _s, arg, resize_mode, img, width, height, upscaler_name=None):
+		pidx = _p.iteration * _p.batch_size
+		_p.__idx += 1
+		print(_p.__idx, pidx, len(_p.all_prompts))
+		arg['current_prompt'] = _p.all_prompts[pidx]
+		if arg['face_detailing_before_hiresfix_enabled']:
+			img = detailing.process_face_detailing_inner(img, _s, _p, arg)
+		if arg['hand_detailing_before_hiresfix_enabled']:
+			img = detailing.process_hand_detailing(img, _s, _p, arg)
+		# s.extra_image.append(img)
 
-def process_img2img_break_sampling(s, p, a):
-	if isinstance(p.sampler, samplers.KDiffusionSamplerOv):
-		class CallBack(samplers.SamplerCallBack):
+		im = _p.resize_hook(resize_mode, img, width, height, upscaler_name)
+		return process_all(arg, _p, im)
 
-			def __init__(self, s, ar) -> None:
-				super().__init__(s, ar)
-				self.is_break = True
+	def _sample(self, s, a, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
+		self.resize_hook = images.resize_image
+		p.__idx = 0
 
-		p.sampler.register_callback(CallBack(s, a))
+		images.resize_image = partial(resize, self, s, a)
+		try:
+			ret = self.__sample(conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts)
+		except Exception as e:
+			raise e
+		finally:
+			images.resize_image = self.resize_hook
+
+		return ret
+
+	p.sample = partial(_sample, p, s, a)
 
 
 def process_upscale_before_detailing(image, s, p, a):
