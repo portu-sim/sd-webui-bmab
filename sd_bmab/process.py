@@ -424,23 +424,22 @@ def override_sample(s, p, a):
 	p.__sample = p.sample
 
 	def resize(_p, _s, arg, resize_mode, img, width, height, upscaler_name=None):
+		images.resize_image = p.resize_hook
 		pidx = _p.iteration * _p.batch_size
 		_p.__idx += 1
-		print(_p.__idx, pidx, len(_p.all_prompts))
 		arg['current_prompt'] = _p.all_prompts[pidx]
 		if arg['face_detailing_before_hiresfix_enabled']:
 			img = detailing.process_face_detailing_inner(img, _s, _p, arg)
 		if arg['hand_detailing_before_hiresfix_enabled']:
 			img = detailing.process_hand_detailing(img, _s, _p, arg)
 		# s.extra_image.append(img)
-
 		im = _p.resize_hook(resize_mode, img, width, height, upscaler_name)
+		images.resize_image = partial(resize, p, s, a)
 		return process_all(arg, _p, im)
 
 	def _sample(self, s, a, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
 		self.resize_hook = images.resize_image
 		p.__idx = 0
-
 		images.resize_image = partial(resize, self, s, a)
 		try:
 			ret = self.__sample(conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts)
@@ -448,7 +447,6 @@ def override_sample(s, p, a):
 			raise e
 		finally:
 			images.resize_image = self.resize_hook
-
 		return ret
 
 	p.sample = partial(_sample, p, s, a)
