@@ -3,8 +3,6 @@ import numpy as np
 import math
 import random
 
-from functools import partial
-
 from PIL import Image
 from PIL import ImageOps
 from PIL import ImageDraw
@@ -19,10 +17,10 @@ from modules import shared
 from modules import devices
 from modules import images
 from modules.processing import process_images
-from modules.processing import StableDiffusionProcessingTxt2Img
 from modules.processing import StableDiffusionProcessingImg2Img
 
-from sd_bmab import dinosam, sdprocessing, util, detailing, samplers
+from sd_bmab import dinosam, sdprocessing, util, detailing
+
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
@@ -136,6 +134,7 @@ def calc_color_temperature(temp):
 
 
 def after_process(bgimg, s, p, args):
+
 	if args['noise_alpha_final'] != 0:
 		p.extra_generation_params['BMAB noise alpha final'] = args['noise_alpha_final']
 		img_noise = generate_noise(bgimg.size[0], bgimg.size[1])
@@ -319,6 +318,7 @@ def process_img2img(p, img, options=None):
 
 
 def process_txt2img(s, p, a, options: dict):
+
 	t2i_param = dict(
 		denoising_strength=0.4,
 		sd_model=p.sd_model,

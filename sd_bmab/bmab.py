@@ -27,7 +27,7 @@ class BmabExtScript(scripts.Script):
 		return scripts.AlwaysVisible
 
 	def ui(self, is_img2img):
-		return self._create_ui()
+		return self._create_ui(is_img2img)
 
 	def parse_args(self, args):
 		self.config = parameters.Parameters().load_preset(args)
@@ -92,7 +92,7 @@ class BmabExtScript(scripts.Script):
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
 
-	def _create_ui(self):
+	def _create_ui(self, is_img2img):
 		class ListOv(list):
 			def __iadd__(self, x):
 				self.append(x)
@@ -195,7 +195,6 @@ class BmabExtScript(scripts.Script):
 										elem += gr.Checkbox(label='Overide Parameters', value=False)
 									with gr.Row():
 										with gr.Column(min_width=100):
-											elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 											elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
 											elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
 										with gr.Column(min_width=100):
@@ -211,9 +210,9 @@ class BmabExtScript(scripts.Script):
 									elem += inpaint_area
 									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
 								with gr.Column():
+									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 									elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
-									elem += gr.Slider(minimum=-1, maximum=1, value=0, step=0.05, label='Face lighting (EXPERIMENTAL)')
 						with gr.Tab('Hand', elem_id='hand_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)

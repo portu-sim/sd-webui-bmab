@@ -1,7 +1,6 @@
 import math
 import time
 from PIL import Image
-from PIL import ImageEnhance
 from PIL import ImageDraw
 from PIL import ImageFilter
 
@@ -60,6 +59,7 @@ def process_face_detailing_inner(image, s, p, a):
 	print('size', org_size)
 
 	face_config = {
+		'denoising_strength': face_detailing['denoising_strength'],
 		'inpaint_full_res': face_detailing['inpaint_full_res'],
 		'inpaint_full_res_padding': face_detailing['inpaint_full_res_padding'],
 	}
@@ -143,14 +143,6 @@ def process_face_detailing_inner(image, s, p, a):
 		dr = ImageDraw.Draw(face_mask, 'L')
 		dr.rectangle((x1, y1, x2, y2), fill=255)
 
-		print('face lighting', a['face_lighting'])
-		if a['face_lighting'] != 0:
-			sam_mask = dinosam.sam_predict_box(image, box)
-			enhancer = ImageEnhance.Brightness(image)
-			bgimg = enhancer.enhance(1 + a['face_lighting'])
-			image.paste(bgimg, mask=sam_mask)
-			p.extra_generation_params['BMAB face lighting'] = a['face_lighting']
-
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
 		img2img_imgage = process.process_img2img(p, image, options=options)
@@ -187,6 +179,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	print('size', org_size)
 
 	face_config = {
+		'denoising_strength': face_detailing['denoising_strength'],
 		'inpaint_full_res': face_detailing['inpaint_full_res'],
 		'inpaint_full_res_padding': face_detailing['inpaint_full_res_padding'],
 	}
