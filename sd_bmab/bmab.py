@@ -3,13 +3,54 @@ import gradio as gr
 from modules import scripts
 from modules import shared
 from modules import script_callbacks
+from modules import processing
+from modules import img2img
 from modules.processing import StableDiffusionProcessingImg2Img
-from modules.processing import StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessingTxt2Img, Processed
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet, constants
 
-bmab_version = 'v23.08.30.3'
-samplers.override_samplers()
+from copy import copy, deepcopy
+
+
+bmab_version = 'v23.08.30.4'
+#samplers.override_samplers()
+
+
+class PreventControlNet:
+	process_images_inner = processing.process_images_inner
+	process_batch = img2img.process_batch
+
+	def __init__(self, p) -> None:
+		self._process_images_inner = processing.process_images_inner
+		self._process_batch = img2img.process_batch
+		self.allow_script_control = None
+		self.p = p
+		self.all_prompts = copy(p.all_prompts)
+		self.all_negative_prompts = copy(p.all_negative_prompts)
+
+	def __enter__(self):
+		if self.p.scripts is not None:
+			dummy = Processed(self.p, [], self.p.seed, "")
+			self.p.scripts.postprocess(copy(self.p), dummy)
+		self.p.all_prompts = self.all_prompts
+		self.p.all_negative_prompts = self.all_negative_prompts
+		processing.process_images_inner = PreventControlNet.process_images_inner
+		img2img.process_batch = PreventControlNet.process_batch
+		self.allow_script_control = shared.opts.data["control_net_allow_script_control"]
+		shared.opts.data["control_net_allow_script_control"] = True
+		self.multiple_tqdm = shared.opts.data.get("multiple_tqdm", True)
+		shared.opts.data["multiple_tqdm"] = False
+
+	def __exit__(self, *args, **kwargs):
+		processing.process_images_inner = self._process_images_inner
+		img2img.process_batch = self._process_batch
+		shared.opts.data["control_net_allow_script_control"] = self.allow_script_control
+		shared.opts.data["multiple_tqdm"] = self.multiple_tqdm
+		if self.p.scripts is not None:
+			self.p.scripts.process(copy(self.p))
+		self.p.all_prompts = self.all_prompts
+		self.p.all_negative_prompts = self.all_negative_prompts
 
 
 class BmabExtScript(scripts.Script):
@@ -59,6 +100,7 @@ class BmabExtScript(scripts.Script):
 
 		process.process_img2img_process_all(p, self, a)
 
+
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
 		if not a['enabled']:
@@ -72,12 +114,13 @@ class BmabExtScript(scripts.Script):
 			modelname = shared.opts.data['sd_model_checkpoint']
 			util.change_model(shared.opts.bmab_model)
 
-		pp.image = process.process_upscale_before_detailing(pp.image, self, p, a)
-		pp.image = detailing.process_person_detailing(pp.image, self, p, a)
-		pp.image = detailing.process_face_detailing(pp.image, self, p, a)
-		pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
-		pp.image = process.process_upscale_after_detailing(pp.image, self, p, a)
-		pp.image = process.after_process(pp.image, self, p, a)
+		with PreventControlNet(p):
+			pp.image = process.process_upscale_before_detailing(pp.image, self, p, a)
+			pp.image = detailing.process_person_detailing(pp.image, self, p, a)
+			pp.image = detailing.process_face_detailing(pp.image, self, p, a)
+			pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
+			pp.image = process.process_upscale_after_detailing(pp.image, self, p, a)
+			pp.image = process.after_process(pp.image, self, p, a)
 
 		if modelname is not None:
 			util.change_model(modelname)

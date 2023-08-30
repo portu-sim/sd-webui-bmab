@@ -243,20 +243,11 @@ def apply_extensions(p):
 	script_runner = copy(p.scripts)
 	script_args = deepcopy(p.script_args)
 
-	for obj in script_args:
-		if "controlnet" in obj.__class__.__name__.lower():
-			if hasattr(obj, "enabled"):
-				obj.enabled = False
-			if hasattr(obj, "input_mode"):
-				obj.input_mode = getattr(obj.input_mode, "SIMPLE", "simple")
-		elif isinstance(obj, dict) and "module" in obj:
-			obj["enabled"] = False
-
 	filtered_alwayson = []
 	for script_object in script_runner.alwayson_scripts:
 		filepath = script_object.filename
 		filename = Path(filepath).stem
-		if filename in ['dynamic_thresholding', 'controlnet']:
+		if filename in ['dynamic_thresholding']:
 			filtered_alwayson.append(script_object)
 
 	script_runner.alwayson_scripts = filtered_alwayson
