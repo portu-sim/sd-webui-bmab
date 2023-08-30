@@ -12,6 +12,7 @@ class Parameters(object):
 			('contrast', 1),
 			('brightness', 1),
 			('sharpeness', 1),
+			('color_saturation', 1),
 			('color_temperature', 0),
 			('noise_alpha', 0),
 			('noise_alpha_final', 0),

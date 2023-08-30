@@ -8,7 +8,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import samplers, dinosam, process, detailing, parameters, util, controlnet, constants
 
-bmab_version = 'v23.08.30.2'
+bmab_version = 'v23.08.30.3'
 samplers.override_samplers()
 
 
@@ -111,6 +111,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
 									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
 									elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
+									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, label='Color')
 								with gr.Column():
 									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')

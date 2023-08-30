@@ -155,6 +155,11 @@ def after_process(bgimg, s, p, args):
 		enhancer = ImageEnhance.Sharpness(bgimg)
 		bgimg = enhancer.enhance(args['sharpeness'])
 
+	if args['color_saturation'] != 1:
+		p.extra_generation_params['BMAB color'] = args['color_saturation']
+		enhancer = ImageEnhance.Color(bgimg)
+		bgimg = enhancer.enhance(args['color_saturation'])
+
 	if args['color_temperature'] != 0:
 		p.extra_generation_params['BMAB color temperature'] = args['color_temperature']
 		temp = calc_color_temperature(6500 + args['color_temperature'])
