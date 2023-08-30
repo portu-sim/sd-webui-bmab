@@ -28,7 +28,7 @@ def get_openpose_args(image):
 	cn_args = {
 		'input_image': b64_encoding(image),
 		'module': 'openpose',
-		'model': 'control_sd15_openpose [fef5e48e]',
+		'model': 'control_v11p_sd15_openpose_fp16 [73c2b67d]',
 		'weight': 1,
 		"guidance_start": 0,
 		"guidance_end": 1,
