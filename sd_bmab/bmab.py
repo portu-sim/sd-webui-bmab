@@ -12,7 +12,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img, Processed
 from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, constants
 
 
-bmab_version = 'v23.08.31.1'
+bmab_version = 'v23.09.01.0'
 
 
 class PreventControlNet:
@@ -263,6 +263,11 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 									elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Dropdown(label='Detection Model', choices=['GroundingDINO', 'face_yolov8n.pt'], type='value', value='GroundingDINO')
+								with gr.Column():
+									gr.Markdown('')
 						with gr.Tab('Hand', elem_id='hand_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
@@ -403,10 +408,10 @@ class BmabExtScript(scripts.Script):
 
 
 def on_ui_settings():
+	shared.opts.add_option('bmab_debug_print', shared.OptionInfo(False, 'Print debug message.', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_show_extends', shared.OptionInfo(False, 'Show before processing image. (DO NOT ENABLE IN CLOUD)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_test_function', shared.OptionInfo(False, 'Show Test Function', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
-	shared.opts.add_option('bmab_detailing_method', shared.OptionInfo('Grounding DINO', 'Detailing method', component=gr.Radio, component_args={'choices': ('Grounding DINO', 'YOLO')}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_max_detailing_element', shared.OptionInfo(
 		default=0, label='Max Detailing Element', component=gr.Slider, component_args={'minimum': 0, 'maximum': 10, 'step': 1}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_use_specific_model', shared.OptionInfo(False, 'Use specific model', section=('bmab', 'BMAB')))

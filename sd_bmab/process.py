@@ -21,6 +21,7 @@ from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import dinosam, constants, util, detailing, controlnet
+from sd_bmab.util import debug_print
 
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
@@ -221,12 +222,12 @@ def process_resize_by_person_intermedate(img, s, p, a):
 
 	p.extra_generation_params['BMAB process_resize_by_person'] = value
 
-	print('prepare dino')
+	debug_print('prepare dino')
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
 
 	org_size = img.size
-	print('size', org_size)
+	debug_print('size', org_size)
 
 	largest = (0, None)
 	for box in boxes:
@@ -240,14 +241,14 @@ def process_resize_by_person_intermedate(img, s, p, a):
 
 	x1, y1, x2, y2 = largest[1]
 	ratio = (y2 - y1) / img.height
-	print('ratio', ratio)
-	print('org_size', org_size)
+	debug_print('ratio', ratio)
+	debug_print('org_size', org_size)
 
 	if ratio > value:
 		image_ratio = ratio / value
 		if image_ratio < 1.0:
 			return img
-		print('image resize ratio', image_ratio)
+		debug_print('image resize ratio', image_ratio)
 		img = util.resize_image(2, img, int(img.width * image_ratio), int(img.height * image_ratio))
 		img = img.resize(org_size, resample=LANCZOS)
 		p.extra_generation_params['BMAB process_resize_by_person_ratio'] = '%.3s' % image_ratio
@@ -285,12 +286,12 @@ def process_resize_by_person_using_inpaint(img, s, p, a):
 	denoising_strength = resize_by_person_opt.get('denoising_strength', 0.4)
 	dilation = resize_by_person_opt.get('dilation', 0.4)
 
-	print('prepare dino')
+	debug_print('prepare dino')
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
 
 	org_size = img.size
-	print('size', org_size)
+	debug_print('size', org_size)
 
 	largest = (0, None)
 	for box in boxes:
@@ -304,14 +305,14 @@ def process_resize_by_person_using_inpaint(img, s, p, a):
 
 	x1, y1, x2, y2 = largest[1]
 	ratio = (y2 - y1) / img.height
-	print('ratio', ratio)
-	print('org_size', org_size)
+	debug_print('ratio', ratio)
+	debug_print('org_size', org_size)
 	if ratio <= value:
 		return img
 	image_ratio = ratio / value
 	if image_ratio < 1.0:
 		return img
-	print('scale', image_ratio)
+	debug_print('scale', image_ratio)
 	ratio = image_ratio
 
 	org_size = img.size
@@ -495,8 +496,8 @@ def process_txt2img(s, p, a, options: dict):
 	txt2img.script_args = None
 
 	processed = process_images(txt2img)
-	print('seeds', txt2img.seed)
-	print('all seeds', txt2img.all_seeds)
+	debug_print('seeds', txt2img.seed)
+	debug_print('all seeds', txt2img.all_seeds)
 	img = processed.images[0]
 	devices.torch_gc()
 	return img, txt2img.all_seeds[0]
@@ -609,11 +610,11 @@ def process_upscale_after_detailing(image, s, p, a):
 def process_upscale_inner(image, s, p, args):
 	ratio = args['upscale_ratio']
 	upscaler = args['upscaler_name']
-	print(f'Upscale ratio {ratio} Upscaler {upscaler}')
+	debug_print(f'Upscale ratio {ratio} Upscaler {upscaler}')
 	p.extra_generation_params['BMAB_upscale_option'] = f'Upscale ratio {ratio} Upscaler {upscaler}'
 
 	if ratio < 1.0 or ratio > 4.0:
-		print('upscale out of range')
+		debug_print('upscale out of range')
 		return image
 	image = image.convert('RGB')
 	p.extra_generation_params['BMAB process upscale'] = ratio

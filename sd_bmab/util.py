@@ -14,6 +14,11 @@ from modules.paths import models_path
 from ultralytics import YOLO
 
 
+def debug_print(*args):
+	if shared.opts.bmab_debug_print:
+		print(*args)
+
+
 def image_to_latent(p, img):
 	image = np.array(img).astype(np.float32) / 255.0
 	image = np.moveaxis(image, 2, 0)

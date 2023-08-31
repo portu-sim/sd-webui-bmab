@@ -60,6 +60,7 @@ class Parameters(object):
 			('module_config.face_detailing.denoising_strength', 0.4),
 			('module_config.face_detailing_opt.dilation', 4),
 			('module_config.face_detailing_opt.box_threshold', 0.3),
+			('module_config.face_detailing_opt.detection_model', 'GroundingDINO'),
 			('hand_detailing_enabled', False),
 			('module_config.hand_detailing_opt.block_overscaled_image', True),
 			('module_config.hand_detailing_opt.detailing_method', 'subframe'),

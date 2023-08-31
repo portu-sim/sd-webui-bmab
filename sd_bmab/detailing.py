@@ -7,6 +7,7 @@ from PIL import ImageFilter
 from modules import devices
 from modules import shared
 from sd_bmab import dinosam, util, process, constants
+from sd_bmab.util import debug_print
 
 
 def timecalc(func):
@@ -14,7 +15,7 @@ def timecalc(func):
 		start = time.time()
 		ret = func(*args, **kwargs)
 		end = time.time()
-		print(f'{end - start:.2f} sec')
+		debug_print(f'{end - start:.2f} sec')
 		return ret
 	return wrapper
 
@@ -26,11 +27,13 @@ def get_mask(img, prompt):
 
 
 def process_face_detailing(image, s, p, a):
+	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
+	detection_model = face_detailing_opt.get('detection_model', 'GroundingDINO')
 	if a['face_detailing_enabled'] or a.get('module_config', {}).get('multiple_face'):
-		if shared.opts.bmab_detailing_method == 'YOLO':
-			return process_face_detailing_inner_using_yolo(image, s, p, a)
-		else:
+		if detection_model == 'GroundingDINO':
 			return process_face_detailing_inner(image, s, p, a)
+		else:
+			return process_face_detailing_inner_using_yolo(image, s, p, a)
 	return image
 
 
@@ -48,11 +51,11 @@ def process_face_detailing_inner(image, s, p, a):
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people . face .', box_threahold=box_threshold)
-	# print(float(logits))
-	print(phrases)
+	# debug_print(float(logits))
+	debug_print(phrases)
 
 	org_size = image.size
-	print('size', org_size)
+	debug_print('size', org_size)
 
 	face_config = {
 		'denoising_strength': face_detailing['denoising_strength'],
@@ -83,22 +86,22 @@ def process_face_detailing_inner(image, s, p, a):
 		x1, y1, x2, y2 = box
 		if order == 'Left':
 			value = x1 + (x2 - x1) // 2
-			print('detected', phrase, float(logit), value)
+			debug_print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0])
 		elif order == 'Right':
 			value = x1 + (x2 - x1) // 2
-			print('detected', phrase, float(logit), value)
+			debug_print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 		elif order == 'Size':
 			value = (x2 - x1) * (y2 - y1)
-			print('detected', phrase, float(logit), value)
+			debug_print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 		else:
 			value = float(logit)
-			print('detected', phrase, float(logit), value)
+			debug_print('detected', phrase, float(logit), value)
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
@@ -109,11 +112,11 @@ def process_face_detailing_inner(image, s, p, a):
 			continue
 
 		if limit != 0 and idx >= limit:
-			print(f'Over limit {limit}')
+			debug_print(f'Over limit {limit}')
 			break
 
 		if max_element != 0 and idx >= max_element:
-			print(f'Over limit MAX Element {max_element}')
+			debug_print(f'Over limit MAX Element {max_element}')
 			break
 
 		prompt = face_detailing_opt.get(f'prompt{idx}')
@@ -121,7 +124,7 @@ def process_face_detailing_inner(image, s, p, a):
 			if prompt.find('#!org!#') >= 0:
 				current_prompt = a.get('current_prompt', p.prompt)
 				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
-				print('prompt for face', face_config['prompt'])
+				debug_print('prompt for face', face_config['prompt'])
 			elif prompt != '':
 				face_config['prompt'] = prompt
 			else:
@@ -133,8 +136,8 @@ def process_face_detailing_inner(image, s, p, a):
 		else:
 			face_config['negative_prompt'] = p.all_negative_prompts[s.index]
 
-		print('render', phrase, float(logit))
-		print('delation', dilation)
+		debug_print('render', phrase, float(logit))
+		debug_print('delation', dilation)
 
 		face_mask = Image.new('L', image.size, color=0)
 		dr = ImageDraw.Draw(face_mask, 'L')
@@ -170,7 +173,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	max_element = shared.opts.bmab_max_detailing_element
 
 	org_size = image.size
-	print('size', org_size)
+	debug_print('size', org_size)
 
 	face_config = {
 		'denoising_strength': face_detailing['denoising_strength'],
@@ -201,33 +204,33 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 		x1, y1, x2, y2 = box
 		if order == 'Left':
 			value = x1 + (x2 - x1) // 2
-			print('detected', value)
+			debug_print('detected', value)
 			candidate.append((value, box))
 			candidate = sorted(candidate, key=lambda c: c[0])
 		elif order == 'Right':
 			value = x1 + (x2 - x1) // 2
-			print('detected', value)
+			debug_print('detected', value)
 			candidate.append((value, box))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 		elif order == 'Size':
 			value = (x2 - x1) * (y2 - y1)
-			print('detected', value)
+			debug_print('detected', value)
 			candidate.append((value, box))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 		else:
 			value = 0
-			print('detected', value)
+			debug_print('detected', value)
 			candidate.append((value, box))
 
 	shared.state.job_count += min(limit, len(candidate))
 
 	for idx, (size, box) in enumerate(candidate):
 		if limit != 0 and idx >= limit:
-			print(f'Over limit {limit}')
+			debug_print(f'Over limit {limit}')
 			break
 
 		if max_element != 0 and idx >= max_element:
-			print(f'Over limit MAX Element {max_element}')
+			debug_print(f'Over limit MAX Element {max_element}')
 			break
 
 		prompt = face_detailing_opt.get(f'prompt{idx}')
@@ -235,7 +238,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 			if prompt.find('#!org!#') >= 0:
 				current_prompt = a.get('current_prompt', p.prompt)
 				face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
-				print('prompt for face', face_config['prompt'])
+				debug_print('prompt for face', face_config['prompt'])
 			elif prompt != '':
 				face_config['prompt'] = prompt
 			else:
@@ -291,7 +294,7 @@ def process_hand_detailing_inner(image, s, p, args):
 	elif detailing_method == 'each hand' or detailing_method == 'inpaint each hand':
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
 		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-			print(float(logit), phrase)
+			debug_print(float(logit), phrase)
 			if phrase == 'hand':
 				x1, y1, x2, y2 = tuple(int(x) for x in box)
 
@@ -300,7 +303,7 @@ def process_hand_detailing_inner(image, s, p, args):
 
 				mbox = (int(x1 - width), int(y1 - height), int(x2 + width), int(y2 + height))
 				mbox = util.fix_box_size(mbox)
-				print(mbox)
+				debug_print(mbox)
 
 				hbox = (width, height, width * 2, height * 2)
 				cropped_hand = image.crop(box=mbox)
@@ -323,17 +326,17 @@ def process_hand_detailing_inner(image, s, p, args):
 				w, h = util.fix_size_by_scale(cropped_hand.width, cropped_hand.height, scale)
 				options['width'] = w
 				options['height'] = h
-				print(f'scale {scale} width {w} height {h}')
+				debug_print(f'scale {scale} width {w} height {h}')
 				shared.state.job_count += 1
 				img2img_result = process.process_img2img(p, cropped_hand, options=options)
 				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
-				print('resize to', img2img_result.size, cropped_hand_mask.size)
+				debug_print('resize to', img2img_result.size, cropped_hand_mask.size)
 				blur = ImageFilter.GaussianBlur(3)
 				cropped_hand_mask = cropped_hand_mask.filter(blur)
 				image.paste(img2img_result, (mbox[0], mbox[1]), mask=cropped_hand_mask)
 	else:
-		print('no such method')
+		debug_print('no such method')
 		return image
 
 	return image
@@ -343,7 +346,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
 	dilation = hand_detailing_opt.get('dilation', 0.1)
-	print('dilation', dilation)
+	debug_print('dilation', dilation)
 
 	box_threshold = hand_detailing_opt.get('box_threshold', 0.3)
 	boxes, masks = get_subframe(image, dilation, box_threshold=box_threshold)
@@ -380,13 +383,13 @@ def process_hand_detailing_subframe(image, s, p, args):
 		w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
 		options['width'] = w
 		options['height'] = h
-		print(f'Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+		debug_print(f'Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
 		if hand_detailing_opt.get('block_overscaled_image', True):
 			area_org = args.get('max_area', image.width * image.height)
 			area_scaled = w * h
 			if area_scaled > area_org:
-				print(f'It is too large to process.')
+				debug_print(f'It is too large to process.')
 				auto_upscale = hand_detailing_opt.get('auto_upscale', True)
 				if not auto_upscale:
 					return image
@@ -394,9 +397,9 @@ def process_hand_detailing_subframe(image, s, p, args):
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
 				options['width'] = w
 				options['height'] = h
-				print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+				debug_print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 				if scale < 1.2:
-					print(f'Scale {scale} has no effect. skip!!!!!')
+					debug_print(f'Scale {scale} has no effect. skip!!!!!')
 					return image
 		shared.state.job_count += 1
 		img2img_result = process.process_img2img(p, cropped, options=options)
@@ -465,7 +468,7 @@ class Obj(object):
 		return x1, y1, x2, ret[3]
 
 	def log(self):
-		print(self.name, self.xyxy)
+		debug_print(self.name, self.xyxy)
 		for x in self.objects:
 			x.log()
 
@@ -488,7 +491,7 @@ class Person(Obj):
 		return face and hand
 
 	def cleanup(self):
-		print([xg.name for xg in self.objects])
+		debug_print([xg.name for xg in self.objects])
 		nw = []
 		for xg in self.objects:
 			if xg.name == 'person':
@@ -517,7 +520,7 @@ class Hand(Obj):
 
 def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	text_prompt = "person . head . face . hand ."
-	print('threshold', box_threshold)
+	debug_print('threshold', box_threshold)
 	boxes, logits, phrases = dinosam.dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
 
 	people = []
@@ -539,7 +542,7 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	people = sorted(people, key=lambda c: c.size(), reverse=True)
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-		print(float(logit), phrase)
+		debug_print(float(logit), phrase)
 		bb = tuple(int(x) for x in box)
 
 		if phrase == 'head':
@@ -595,26 +598,26 @@ def process_person_detailing_inner(image, s, p, a):
 
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(image, 'people')
-	print(phrases)
+	debug_print(phrases)
 
 	org_size = image.size
-	print('size', org_size)
+	debug_print('size', org_size)
 
 	i2i_config = dict(a.get('module_config', {}).get('person_detailing', {}))
-	print(f'Max element {max_element}')
+	debug_print(f'Max element {max_element}')
 
 	shared.state.job_count += min(limit, len(boxes))
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		if limit != 0 and idx >= limit:
-			print(f'Over limit {limit}')
+			debug_print(f'Over limit {limit}')
 			break
 
 		if max_element != 0 and idx >= max_element:
-			print(f'Over limit MAX Element {max_element}')
+			debug_print(f'Over limit MAX Element {max_element}')
 			break
 
-		print('render', phrase, float(logit))
+		debug_print('render', phrase, float(logit))
 		box2 = util.fix_box_size(box)
 		x1, y1, x2, y2 = box2
 
@@ -628,29 +631,29 @@ def process_person_detailing_inner(image, s, p, a):
 		area_person = cropped.width * cropped.height
 		area_image = image.width * image.height
 		ratio = area_person / area_image
-		print(f'Ratio {ratio}')
+		debug_print(f'Ratio {ratio}')
 		if ratio >= area_ratio:
-			print(f'Person is too big to process. {ratio} >= {area_ratio}.')
+			debug_print(f'Person is too big to process. {ratio} >= {area_ratio}.')
 			return image
 		p.extra_generation_params['BMAB person ratio'] = '%.3f' % ratio
 
 		w = cropped.width * scale
 		h = cropped.height * scale
-		print(f'Trying x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+		debug_print(f'Trying x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
 		if person_detailing_opt.get('block_overscaled_image', True):
 			area_org = a.get('max_area', image.width * image.height)
 			area_scaled = w * h
 			if area_scaled > area_org:
-				print(f'It is too large to process.')
+				debug_print(f'It is too large to process.')
 				auto_upscale = person_detailing_opt.get('auto_upscale', True)
 				if not auto_upscale:
 					return image
 				scale = math.sqrt(area_org / (cropped.width * cropped.height))
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
-				print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
+				debug_print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 				if scale < 1.2:
-					print(f'Scale {scale} has no effect. skip!!!!!')
+					debug_print(f'Scale {scale} has no effect. skip!!!!!')
 					return image
 
 		options = dict(mask=cropped_mask, **i2i_config)
