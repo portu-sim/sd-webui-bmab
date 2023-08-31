@@ -36,10 +36,6 @@ def process_face_detailing(image, s, p, a):
 
 @timecalc
 def process_face_detailing_inner(image, s, p, a):
-	multiple_face = a.get('module_config', {}).get('multiple_face', [])
-	if multiple_face:
-		return process_multiple_face(image, s, p, a)
-
 	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
@@ -106,6 +102,8 @@ def process_face_detailing_inner(image, s, p, a):
 			candidate.append((value, box, logit, phrase))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
+	shared.state.job_count += min(limit, len(candidate))
+
 	for idx, (size, box, logit, phrase) in enumerate(candidate):
 		if phrase != 'face':
 			continue
@@ -161,10 +159,6 @@ def process_face_detailing_inner(image, s, p, a):
 
 @timecalc
 def process_face_detailing_inner_using_yolo(image, s, p, a):
-	multiple_face = a.get('module_config', {}).get('multiple_face', [])
-	if multiple_face:
-		return process_multiple_face(image, s, p, a)
-
 	face_detailing_opt = a.get('module_config', {}).get('face_detailing_opt', {})
 	face_detailing = dict(a.get('module_config', {}).get('face_detailing', {}))
 	override_parameter = face_detailing_opt.get('override_parameter', False)
@@ -225,6 +219,8 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 			print('detected', value)
 			candidate.append((value, box))
 
+	shared.state.job_count += min(limit, len(candidate))
+
 	for idx, (size, box) in enumerate(candidate):
 		if limit != 0 and idx >= limit:
 			print(f'Over limit {limit}')
@@ -264,77 +260,6 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	return image
 
 
-def process_multiple_face(image, s, p, a):
-	multiple_face = list(a.get('module_config', {}).get('multiple_face', []))
-	order = a.get('module_config', {}).get('multiple_face_opt', {}).get('order', 'scale')
-	dilation = a.get('module_config', {}).get('multiple_face_opt', {}).get('mask dilation', 4)
-	limit = a.get('module_config', {}).get('multiple_face_opt', {}).get('limit', -1)
-
-	print('processing multiple face')
-	print(f'config : order={order}, dilation={dilation}, limit={limit}')
-
-	if limit < 0:
-		limit = len(multiple_face)
-		if limit == 0:
-			return image
-
-	dinosam.dino_init()
-	boxes, logits, phrases = dinosam.dino_predict(image, 'face')
-
-	org_size = image.size
-	print(f'size {org_size} boxes {len(boxes)} order {order}')
-
-	# sort
-	candidate = []
-	for box, logit, phrase in zip(boxes, logits, phrases):
-		x1, y1, x2, y2 = box
-		if order == 'left':
-			value = x1 + (x2 - x1) // 2
-			print('detected', phrase, float(logit), value)
-			candidate.append((value, box, logit, phrase))
-			candidate = sorted(candidate, key=lambda c: c[0])
-		elif order == 'right':
-			value = x1 + (x2 - x1) // 2
-			print('detected', phrase, float(logit), value)
-			candidate.append((value, box, logit, phrase))
-			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-		elif order == 'size':
-			value = (x2 - x1) * (y2 - y1)
-			print('detected', phrase, float(logit), value)
-			candidate.append((value, box, logit, phrase))
-			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-		else:
-			value = float(logit)
-			print('detected', phrase, float(logit), value)
-			candidate.append((value, box, logit, phrase))
-			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-
-	for idx, (size, box, logit, phrase) in enumerate(candidate):
-		if idx == limit:
-			break
-		print('render', phrase, float(logit), size)
-		face_mask = Image.new('L', image.size, color=0)
-		dr = ImageDraw.Draw(face_mask, 'L')
-		dr.rectangle(box, fill=255)
-		face_mask = util.dilate_mask(face_mask, dilation)
-
-		# face_mask = dinosam.sam_predict_box(img, box)
-
-		options = dict(mask=face_mask)
-
-		if idx < len(multiple_face):
-			prompt = multiple_face[idx].get('prompt')
-			current_prompt = a.get('current_prompt', '')
-			if prompt is not None and prompt.find('#!org!#') >= 0:
-				multiple_face[idx]['prompt'] = multiple_face[idx]['prompt'].replace('#!org!#', current_prompt)
-				print('prompt for face', multiple_face[idx]['prompt'])
-			options.update(multiple_face[idx])
-		image = process.process_img2img(p, image, options=options)
-		devices.torch_gc()
-
-	return image
-
-
 def process_hand_detailing(image, s, p, a):
 	if a['hand_detailing_enabled']:
 		return process_hand_detailing_inner(image, s, p, a)
@@ -361,6 +286,7 @@ def process_hand_detailing_inner(image, s, p, args):
 				dr.rectangle(b, fill=255)
 		options = dict(mask=mask)
 		options.update(hand_detailing)
+		shared.state.job_count += 1
 		image = process.process_img2img(p, image, options=options)
 	elif detailing_method == 'each hand' or detailing_method == 'inpaint each hand':
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
@@ -398,6 +324,7 @@ def process_hand_detailing_inner(image, s, p, args):
 				options['width'] = w
 				options['height'] = h
 				print(f'scale {scale} width {w} height {h}')
+				shared.state.job_count += 1
 				img2img_result = process.process_img2img(p, cropped_hand, options=options)
 				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
@@ -408,21 +335,6 @@ def process_hand_detailing_inner(image, s, p, args):
 	else:
 		print('no such method')
 		return image
-	'''
-	mask = Image.new('L', image.size, 0)
-	dr = ImageDraw.Draw(mask, 'L')
-	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-		if phrase == 'hand':
-			x1, y1, x2, y2 = box
-			x1 = int(x1)
-			y1 = int(y1)
-			x2 = int(x2)
-			y2 = int(y2)
-			dr.rectangle((x1, y1, x2, y2), fill=255)
-
-	options = dict(denoising_strength=0.3, steps=20, mask=mask)
-	image = process.process_img2img(p, image, options=options)
-	'''
 
 	return image
 
@@ -437,19 +349,6 @@ def process_hand_detailing_subframe(image, s, p, args):
 	boxes, masks = get_subframe(image, dilation, box_threshold=box_threshold)
 	if not boxes:
 		return image
-
-	'''
-	for box, mask in zip(boxes, masks):
-		subimg = image.crop(box=box)
-		boxes2, masks2 = get_subframe(subimg, dilation)
-		if boxes2:
-			bx1, by1, bx2, by2 = boxes2[0]
-			box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1)
-			c1 = image.copy()
-			draw = ImageDraw.Draw(c1, 'RGBA')
-			draw.rectangle(box, outline=(255, 0, 0, 255), fill=(255, 0, 0, 50), width=3)
-			s.extra_image.append(c1)
-	'''
 
 	if not hasattr(args, 'hand_mask_image'):
 		c1 = image.copy()
@@ -499,6 +398,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 				if scale < 1.2:
 					print(f'Scale {scale} has no effect. skip!!!!!')
 					return image
+		shared.state.job_count += 1
 		img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
 		blur = ImageFilter.GaussianBlur(3)
@@ -702,6 +602,8 @@ def process_person_detailing_inner(image, s, p, a):
 
 	i2i_config = dict(a.get('module_config', {}).get('person_detailing', {}))
 	print(f'Max element {max_element}')
+
+	shared.state.job_count += min(limit, len(boxes))
 
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		if limit != 0 and idx >= limit:

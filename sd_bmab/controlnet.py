@@ -1,5 +1,10 @@
 from pathlib import Path
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFilter
+
+from modules import shared
+from modules import processing
 
 from sd_bmab import util, dinosam, process
 
@@ -28,7 +33,7 @@ def get_openpose_args(image):
 	cn_args = {
 		'input_image': b64_encoding(image),
 		'module': 'openpose',
-		'model': 'control_v11p_sd15_openpose_fp16 [73c2b67d]',
+		'model': shared.opts.bmab_cn_openpose,
 		'weight': 1,
 		"guidance_start": 0,
 		"guidance_end": 1,
@@ -43,10 +48,30 @@ def get_openpose_args(image):
 	return cn_args
 
 
+def get_inpaint_lama_args(image, mask):
+	cn_args = {
+		'input_image': b64_encoding(image),
+		'mask': b64_encoding(mask),
+		'module': 'inpaint_only+lama',
+		'model': shared.opts.bmab_cn_inpaint,
+		'weight': 1,
+		"guidance_start": 0,
+		"guidance_end": 1,
+		'resize mode': 'Resize and Fill',
+		'allow preview': False,
+		'pixel perfect': False,
+		'control mode': 'ControlNet is more important',
+		'processor_res': 512,
+		'threshold_a': 64,
+		'threshold_b': 64,
+	}
+	return cn_args
+
+
 def get_noise_args(image, weight):
 	cn_args = {
 		'input_image': b64_encoding(image),
-		'model': 'control_v11p_sd15_lineart [43d4be0d]',
+		'model': shared.opts.bmab_cn_lineart,
 		'weight': weight,
 		"guidance_start": 0.1,
 		"guidance_end": 0.9,
@@ -61,16 +86,12 @@ def get_noise_args(image, weight):
 	return cn_args
 
 
-def process_resize_by_person(img, s, p, args):
-	controlnet_opt = args.get('module_config', {}).get('controlnet', {})
-	value = controlnet_opt.get('resize_by_person', 0.5)
+def get_ratio(img, s, p, args, value):
 	p.extra_generation_params['BMAB process_resize_by_person'] = value
 
+	final_ratio = 1
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
-
-	org_size = img.size
-	print('size', org_size)
 
 	largest = (0, None)
 	for box in boxes:
@@ -80,25 +101,61 @@ def process_resize_by_person(img, s, p, args):
 			largest = (size, box)
 
 	if largest[0] == 0:
-		return img
+		return final_ratio
 
 	x1, y1, x2, y2 = largest[1]
 	ratio = (y2 - y1) / img.height
 	print('ratio', ratio)
-	print('org_size', org_size)
+	dinosam.release()
 
 	if ratio > value:
 		image_ratio = ratio / value
 		if image_ratio < 1.0:
-			return img
-		print('image resize ratio', image_ratio)
-		img = util.resize_image(2, img, int(img.width * image_ratio), int(img.height * image_ratio))
-		img = img.resize(org_size, resample=LANCZOS)
-		p.extra_generation_params['BMAB process_resize_by_person_ratio'] = '%.3s' % image_ratio
+			return final_ratio
+		final_ratio = image_ratio
+	return final_ratio
 
-	dinosam.release()
 
-	return img
+def resize_by_person_using_controlnet(s, p, a, cn_num, value, dilation):
+	if not isinstance(p, processing.StableDiffusionProcessingImg2Img):
+		return False
+
+	cn_args = get_cn_args(p)
+
+	print('resize_by_person_enabled_inpaint', value)
+	img = p.init_images[0]
+	s.extra_image.append(img)
+
+	ratio = get_ratio(img, s, p, a, value)
+	print('image resize ratio', ratio)
+	org_size = img.size
+	dw, dh = org_size
+
+	p.extra_generation_params['BMAB controlnet mode'] = 'inpaint'
+	p.extra_generation_params['BMAB resize by person ratio'] = '%.3s' % ratio
+
+	resized_width = int(dw / ratio)
+	resized_height = int(dh / ratio)
+	resized = img.resize((resized_width, resized_height), resample=LANCZOS)
+	p.resize_mode = 2
+	input_image = util.resize_image(2, resized, dw, dh)
+	p.init_images[0] = input_image
+
+	offset_x = int((dw - resized_width) / 2)
+	offset_y = dh - resized_height
+
+	mask = Image.new('L', (dw, dh), 255)
+	dr = ImageDraw.Draw(mask, 'L')
+	dr.rectangle((offset_x, offset_y, offset_x + resized_width, offset_y + resized_height), fill=0)
+	mask = mask.resize(org_size, resample=LANCZOS)
+	mask = util.dilate_mask(mask, dilation)
+
+	cn_op_arg = get_inpaint_lama_args(input_image, mask)
+	idx = cn_args[0] + cn_num
+	sc_args = list(p.script_args)
+	sc_args[idx] = cn_op_arg
+	p.script_args = tuple(sc_args)
+	return True
 
 
 def process_controlnet(s, p, a):
@@ -108,10 +165,8 @@ def process_controlnet(s, p, a):
 		return
 
 	p.extra_generation_params['BMAB_controlnet_option'] = util.dict_to_str(controlnet_opt)
-
-	resize_by_person_enabled = controlnet_opt.get('resize_by_person_enabled', False)
 	noise_enabled = controlnet_opt.get('noise', False)
-	if not resize_by_person_enabled and not noise_enabled:
+	if not noise_enabled:
 		return
 
 	print('Seed', p.seed)
@@ -122,22 +177,11 @@ def process_controlnet(s, p, a):
 
 	count = 0
 
-	if resize_by_person_enabled:
-		img, seed = process.process_txt2img(s, p, a, {})
-		s.extra_image.append(img)
-		img = process_resize_by_person(img, s, p, a)
-		# img = util.resize_image(2, img, int(img.width * 1.2), int(img.height * 1.2))
-		p.seed = seed
-		cn_op_arg = get_openpose_args(img)
-		idx = cn_args[0] + count
-		count += 1
-		sc_args = list(p.script_args)
-		sc_args[idx] = cn_op_arg
-		p.script_args = tuple(sc_args)
-
 	if noise_enabled:
 		noise_strength = controlnet_opt.get('noise_strength', 0.4)
 		print('noise enabled.', noise_strength)
+		p.extra_generation_params['BMAB controlnet mode'] = 'lineart'
+		p.extra_generation_params['BMAB noise strength'] = noise_strength
 
 		img = process.generate_noise(p.width, p.height)
 		cn_op_arg = get_noise_args(img, noise_strength)

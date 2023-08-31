@@ -18,8 +18,9 @@ from modules import devices
 from modules import images
 from modules.processing import process_images
 from modules.processing import StableDiffusionProcessingImg2Img
+from modules.processing import StableDiffusionProcessingTxt2Img
 
-from sd_bmab import dinosam, sdprocessing, util, detailing
+from sd_bmab import dinosam, constants, util, detailing, controlnet
 
 
 LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
@@ -65,9 +66,9 @@ def check_hires_fix_process(args, p):
 		   args['resize_by_person_enabled']
 
 
-def process_all(args, p, bgimg):
+def process_all(s, p, args, bgimg, caller='before_img2img'):
 	if args['resize_by_person_enabled']:
-		bgimg = process_resize_by_person(args, p, bgimg)
+		bgimg = process_resize_by_person(bgimg, s, p, args, caller=caller)
 
 	if args['noise_alpha'] != 0:
 		p.extra_generation_params['BMAB noise alpha'] = args['noise_alpha']
@@ -187,19 +188,40 @@ def process_prompt(prompt):
 	return base_prompt
 
 
-def process_resize_by_person(arg, p, img):
-	print('prepare dino')
+def process_resize_by_person(img, s, p, arg, caller='before_img2img'):
+	if shared.state.skipped or shared.state.interrupted:
+		return img
 
 	enabled = arg.get('resize_by_person_enabled', False)
+	resize_by_person_opt = arg.get('module_config', {}).get('resize_by_person_opt', {})
+	mode = resize_by_person_opt.get('mode', constants.resize_mode_default)
+	value = resize_by_person_opt.get('scale', 0)
+
 	if not enabled:
 		return img
-
-	value = arg.get('resize_by_person', 0)
 	if 0.79 > value >= 1.0:
 		return img
+	if caller == 'before_img2img' and mode != 'Intermediate':
+		return img
+
+	if mode == 'Intermediate':
+		return process_resize_by_person_intermedate(img, s, p, arg)
+	if mode == 'ControlNet inpaint+lama':
+		return process_resize_by_person_using_controlnet(img, s, p, arg)
+	if mode == 'Inpaint':
+		return process_resize_by_person_using_inpaint(img, s, p, arg)
+
+	return img
+
+
+@detailing.timecalc
+def process_resize_by_person_intermedate(img, s, p, a):
+	resize_by_person_opt = a.get('module_config', {}).get('resize_by_person_opt', {})
+	value = resize_by_person_opt.get('scale', 0)
 
 	p.extra_generation_params['BMAB process_resize_by_person'] = value
 
+	print('prepare dino')
 	dinosam.dino_init()
 	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
 
@@ -233,30 +255,139 @@ def process_resize_by_person(arg, p, img):
 	return img
 
 
+@detailing.timecalc
+def process_resize_by_person_using_controlnet(img, s, p, a):
+	resize_by_person_opt = a.get('module_config', {}).get('resize_by_person_opt', {})
+	value = resize_by_person_opt.get('scale', 0)
+	denoising_strength = resize_by_person_opt.get('denoising_strength', 0.4)
+
+	opt = dict(denoising_strength=denoising_strength)
+	i2i_param = build_img2img(p, img, opt)
+
+	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img.cached_c = [None, None]
+	img2img.cached_uc = [None, None]
+	img2img.scripts, img2img.script_args = apply_extensions(p, cn_enabled=True)
+
+	controlnet.resize_by_person_using_controlnet(s, img2img, a, 0, value)
+
+	processed = process_images(img2img)
+	img = processed.images[0]
+
+	img2img.close()
+
+	devices.torch_gc()
+	return img
+
+
+@detailing.timecalc
+def process_resize_by_person_using_inpaint(img, s, p, a):
+	resize_by_person_opt = a.get('module_config', {}).get('resize_by_person_opt', {})
+	value = resize_by_person_opt.get('scale', 0)
+	denoising_strength = resize_by_person_opt.get('denoising_strength', 0.4)
+	dilation = resize_by_person_opt.get('dilation', 0.4)
+
+	print('prepare dino')
+	dinosam.dino_init()
+	boxes, logits, phrases = dinosam.dino_predict(img, 'person')
+
+	org_size = img.size
+	print('size', org_size)
+
+	largest = (0, None)
+	for box in boxes:
+		x1, y1, x2, y2 = box
+		size = (x2 - x1) * (y2 - y1)
+		if size > largest[0]:
+			largest = (size, box)
+
+	if largest[0] == 0:
+		return img
+
+	x1, y1, x2, y2 = largest[1]
+	ratio = (y2 - y1) / img.height
+	print('ratio', ratio)
+	print('org_size', org_size)
+	if ratio <= value:
+		return img
+	image_ratio = ratio / value
+	if image_ratio < 1.0:
+		return img
+	print('scale', image_ratio)
+	ratio = image_ratio
+
+	org_size = img.size
+	dw, dh = org_size
+
+	p.extra_generation_params['BMAB controlnet mode'] = 'inpaint'
+	p.extra_generation_params['BMAB resize by person ratio'] = '%.3s' % ratio
+
+	resized_width = int(dw / ratio)
+	resized_height = int(dh / ratio)
+	resized = img.resize((resized_width, resized_height), resample=LANCZOS)
+	p.resize_mode = 2
+	input_image = util.resize_image(2, resized, dw, dh)
+
+	offset_x = int((dw - resized_width) / 2)
+	offset_y = dh - resized_height
+
+	mask = Image.new('L', (dw, dh), 255)
+	dr = ImageDraw.Draw(mask, 'L')
+	dr.rectangle((offset_x, offset_y, offset_x + resized_width, offset_y + resized_height), fill=0)
+	mask = mask.resize(org_size, resample=LANCZOS)
+	mask = util.dilate_mask(mask, dilation)
+
+	opt = dict(mask=mask, denoising_strength=denoising_strength)
+	i2i_param = build_img2img(p, input_image, opt)
+
+	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img.cached_c = [None, None]
+	img2img.cached_uc = [None, None]
+	img2img.scripts, img2img.script_args = apply_extensions(p, cn_enabled=False)
+
+	processed = process_images(img2img)
+	img = processed.images[0]
+
+	img2img.close()
+
+	devices.torch_gc()
+	return img
+
+
 def sam(prompt, input_image):
 	boxes, logits, phrases = dinosam.dino_predict(input_image, prompt, 0.35, 0.25)
 	mask = dinosam.sam_predict(input_image, boxes)
 	return mask
 
 
-def apply_extensions(p):
+def apply_extensions(p, cn_enabled=False):
 	script_runner = copy(p.scripts)
 	script_args = deepcopy(p.script_args)
+	active_script = ['dynamic_thresholding']
+
+	if cn_enabled:
+		active_script.append('controlnet')
+		for idx, obj in enumerate(script_args):
+			if 'controlnet' in obj.__class__.__name__.lower():
+				if hasattr(obj, 'enabled'):
+					obj.enabled = False
+				if hasattr(obj, 'input_mode'):
+					obj.input_mode = getattr(obj.input_mode, 'SIMPLE', 'simple')
+			elif isinstance(obj, dict) and 'module' in obj:
+				obj['enabled'] = False
 
 	filtered_alwayson = []
 	for script_object in script_runner.alwayson_scripts:
 		filepath = script_object.filename
 		filename = Path(filepath).stem
-		if filename in ['dynamic_thresholding']:
+		if filename in active_script:
 			filtered_alwayson.append(script_object)
 
 	script_runner.alwayson_scripts = filtered_alwayson
 	return script_runner, script_args
 
 
-def process_img2img(p, img, options=None):
-	if shared.state.skipped or shared.state.interrupted:
-		return img
+def build_img2img(p, img, options):
 
 	img = img.convert('RGB')
 
@@ -306,12 +437,19 @@ def process_img2img(p, img, options=None):
 	if options is not None:
 		i2i_param.update(options)
 
-	img2img = sdprocessing.StableDiffusionProcessingImg2ImgOv(**i2i_param)
+	return i2i_param
+
+
+def process_img2img(p, img, options=None):
+	if shared.state.skipped or shared.state.interrupted:
+		return img
+
+	i2i_param = build_img2img(p, img, options)
+
+	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(p)
-	img2img.block_tqdm = True
-	shared.state.job_count += 1
 
 	processed = process_images(img2img)
 	img = processed.images[0]
@@ -354,10 +492,9 @@ def process_txt2img(s, p, a, options: dict):
 	if options is not None:
 		t2i_param.update(options)
 
-	txt2img = sdprocessing.StableDiffusionProcessingTxt2ImgOv(**t2i_param)
+	txt2img = StableDiffusionProcessingTxt2Img(**t2i_param)
 	txt2img.scripts = None
 	txt2img.script_args = None
-	shared.state.job_count += 1
 
 	processed = process_images(txt2img)
 	print('seeds', txt2img.seed)
@@ -395,7 +532,7 @@ def process_dino_detect(p, s, a):
 			s.extra_image.append(newpil)
 
 
-def process_img2img_process_all(p, s, a):
+def process_img2img_process_all(s, p, a):
 	if isinstance(p, StableDiffusionProcessingImg2Img):
 		if p.resize_mode == 2 and len(p.init_images) == 1:
 			im = p.init_images[0]
@@ -409,7 +546,7 @@ def process_img2img_process_all(p, s, a):
 		if check_process(a, p):
 			if len(p.init_images) == 1:
 				img = util.latent_to_image(p.init_latent, 0)
-				img = process_all(a, p, img)
+				img = process_all(s, p, a, img)
 				s.extra_image.append(img)
 				for idx in range(0, len(p.init_latent)):
 					p.init_latent[idx] = util.image_to_latent(p, img)
@@ -417,7 +554,7 @@ def process_img2img_process_all(p, s, a):
 			else:
 				for idx in range(0, len(p.init_latent)):
 					img = util.latent_to_image(p.init_latent, idx)
-					img = process_all(a, p, img)
+					img = process_all(s, p, a, img)
 					s.extra_image.append(img)
 					p.init_latent[idx] = util.image_to_latent(p, img)
 					devices.torch_gc()
@@ -439,8 +576,9 @@ def override_sample(s, p, a):
 			img = detailing.process_hand_detailing(img, _s, _p, arg)
 		# s.extra_image.append(img)
 		im = _p.resize_hook(resize_mode, img, width, height, upscaler_name)
+		im = process_all(_s, _p, arg, im)
 		images.resize_image = partial(resize, p, s, a)
-		return process_all(arg, _p, im)
+		return im
 
 	def _sample(self, s, a, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
 		self.resize_hook = images.resize_image

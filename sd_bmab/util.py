@@ -176,3 +176,12 @@ def dilate_mask(mask, dilation):
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (dilation, dilation))
 	arr = cv2.dilate(arr, kernel, iterations=1)
 	return Image.fromarray(arr)
+
+
+def erode_mask(mask, erosion):
+	if erosion < 4:
+		return mask
+	arr = np.array(mask)
+	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (erosion, erosion))
+	arr = cv2.erode(arr, kernel, iterations=1)
+	return Image.fromarray(arr)
