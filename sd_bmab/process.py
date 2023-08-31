@@ -260,6 +260,7 @@ def process_resize_by_person_using_controlnet(img, s, p, a):
 	resize_by_person_opt = a.get('module_config', {}).get('resize_by_person_opt', {})
 	value = resize_by_person_opt.get('scale', 0)
 	denoising_strength = resize_by_person_opt.get('denoising_strength', 0.4)
+	dilation = resize_by_person_opt.get('dilation', 0.4)
 
 	opt = dict(denoising_strength=denoising_strength)
 	i2i_param = build_img2img(p, img, opt)
@@ -269,14 +270,11 @@ def process_resize_by_person_using_controlnet(img, s, p, a):
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(p, cn_enabled=True)
 
-	controlnet.resize_by_person_using_controlnet(s, img2img, a, 0, value)
-
-	processed = process_images(img2img)
-	img = processed.images[0]
-
-	img2img.close()
-
-	devices.torch_gc()
+	if controlnet.resize_by_person_using_controlnet(s, img2img, a, 0, value, dilation):
+		processed = process_images(img2img)
+		img = processed.images[0]
+		img2img.close()
+		devices.torch_gc()
 	return img
 
 

@@ -131,6 +131,9 @@ def resize_by_person_using_controlnet(s, p, a, cn_num, value, dilation):
 	org_size = img.size
 	dw, dh = org_size
 
+	if ratio == 1:
+		return False
+
 	p.extra_generation_params['BMAB controlnet mode'] = 'inpaint'
 	p.extra_generation_params['BMAB resize by person ratio'] = '%.3s' % ratio
 

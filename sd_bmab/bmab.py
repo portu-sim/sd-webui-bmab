@@ -12,7 +12,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img, Processed
 from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, constants
 
 
-bmab_version = 'v23.08.31.0'
+bmab_version = 'v23.08.31.1'
 
 
 class PreventControlNet:
