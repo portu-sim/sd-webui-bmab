@@ -379,22 +379,40 @@ each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 입�
 배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
 배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
 
+이 기능은 3가지 방법을 제공하는데 다음과 같습니다.
+
+#### Intermediate
+
+txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경합니다.   
+이 과정은 변경된 이미지가 hires.fix 과정에서 매끄럽게 변하게 하기 위한 것입니다.   
 **<span style="color: red">denoising strength는 0.6 이상 주셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**
 
+#### Inpaint
 
-<p>
-<img src="https://i.ibb.co/j3WzZrc/00408-3188840002.png" width="40%">
-<img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="40%">
-</p>
+Face Detailing과 같은 방법으로 이미지가 완전히 생성되고 난 후에 주변부를 확장합니다.   
+이때 이미 생성된 이미지를 훼손하지 않고 주변부만 확장하기 때문에 직관적으로 확인이 가능합니다.
+가장 빠르고 효과적으로 추천합니다.
 
-Enabled : CHECK!!   
+#### Inpaint + lama
 
-Contrast : 1.2   
-Brightness : 0.9   
-Sharpeness : 1.5   
+Inpaint와 같은 방법인데 BMAB에서 ControlNet을 불러서 Inpaint+lama를 이용해서 동작합니다.
+이미지가 생성되고나서 디테일링 시작하기 전에 img2img를 이용하여 배경을 확장하여 전체적으로 인물을 작게 만드는 효과가 있습니다.
 
-Enable resize by person : CHECK!!   
-Resize by person : 0.85
+<table>
+<tr>
+<td><img src="https://i.ibb.co/X7P8kmH/00012-2131442442.jpg"></td>
+<td><img src="https://i.ibb.co/Zc1nTz7/00022-2131442442.jpg"></td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/d0rSW0q/00013-2131442443.jpg"></td>
+<td><img src="https://i.ibb.co/vHh2940/00023-2131442443.jpg"></td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/4jNJQ3b/00016-2131442446.jpg"></td>
+<td><img src="https://i.ibb.co/HdcMpTH/00026-2131442446.jpg"></td>
+</tr>
+</table>
+
 
 ### Enable upscale at final stage
 
@@ -413,15 +431,22 @@ Resize by person : 0.85
 
 ## Control Net (EXPERIMENTAL, NOW TESTING)
 
-BMAB에서 control net을 제어하여 이미지를 생성합니다.
-현재는 resize by person 기능만 제공하며 openpose로 구현되어 있습니다.
+ControlNet을 이용한 노이즈 추가기능이 테스트 중입니다.
 
-<img src="https://i.ibb.co/t8H4dN8/e5f483112a7e5d3169401b495245d14a49fde99a57c7099f8a5bf34769dc12ac.webp">
+아래는 모두 같은 seed입니다.
+<table>
+<tr>
+<td>기본이미지</td>
+<td>0.4</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/ypRrwmN/00007-51151519.jpg"></td>
+<td><img src="https://i.ibb.co/j54HfHF/00009-51151519.jpg"></td>
+<td><img src="https://i.ibb.co/MsgCZS3/00008-51151519.jpg"></td>
+</tr>
+</table>
 
-이미지 생성 준비 단계에서 설정과 동일한 이미지를 뽑아 control net의 입력으로 자동으로 넣어줍니다.
-이때 인물의 크기를 비교하여 설정값에 맞춰 크기를 줄여서 입력을 넣어줍니다.
 
-<img src="https://i.ibb.co/zQtWbSf/00084-2574875327.png" width="40%">
-<img src="https://i.ibb.co/n8PmL3P/00057-2574875327.jpg" width="40%">
 
 
