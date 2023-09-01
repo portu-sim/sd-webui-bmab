@@ -203,8 +203,8 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
 									elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
 									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
-									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.bmab_test_function, label='Background color (HIDDEN)')
-									elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.bmab_test_function, label='Background blur (HIDDEN)')
+									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.data.get('bmab_test_function', False), label='Background color (HIDDEN)')
+									elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.data.get('bmab_test_function', False), label='Background blur (HIDDEN)')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
