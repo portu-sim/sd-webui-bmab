@@ -3,11 +3,32 @@ import time
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
+from PIL import ImageEnhance
 
 from modules import devices
 from modules import shared
 from sd_bmab import dinosam, util, process, constants
 from sd_bmab.util import debug_print
+
+
+class VAEMethodOverride:
+
+	def __init__(self) -> None:
+		super().__init__()
+		self.org_encode_method = None
+		self.org_decode_method = None
+
+	def __enter__(self):
+		if ('sd_vae_encode_method' in shared.opts.data) and shared.opts.bmab_detail_full:
+			self.encode_method = shared.opts.sd_vae_encode_method
+			self.decode_method = shared.opts.sd_vae_decode_method
+			shared.opts.sd_vae_encode_method = 'Full'
+			shared.opts.sd_vae_decode_method = 'Full'
+
+	def __exit__(self, *args, **kwargs):
+		if ('sd_vae_encode_method' in shared.opts.data) and shared.opts.bmab_detail_full:
+			shared.opts.sd_vae_encode_method = self.encode_method
+			shared.opts.sd_vae_decode_method = self.decode_method
 
 
 def timecalc(func):
@@ -146,7 +167,8 @@ def process_face_detailing_inner(image, s, p, a):
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-		img2img_imgage = process.process_img2img(p, image, options=options)
+		with VAEMethodOverride():
+			img2img_imgage = process.process_img2img(p, image, options=options)
 
 		x1, y1, x2, y2 = util.fix_box_size(box)
 		face_mask = Image.new('L', image.size, color=0)
@@ -257,7 +279,8 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-		image = process.process_img2img(p, image, options=options)
+		with VAEMethodOverride():
+			image = process.process_img2img(p, image, options=options)
 
 	devices.torch_gc()
 	return image
@@ -290,7 +313,8 @@ def process_hand_detailing_inner(image, s, p, args):
 		options = dict(mask=mask)
 		options.update(hand_detailing)
 		shared.state.job_count += 1
-		image = process.process_img2img(p, image, options=options)
+		with VAEMethodOverride():
+			image = process.process_img2img(p, image, options=options)
 	elif detailing_method == 'each hand' or detailing_method == 'inpaint each hand':
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
 		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
@@ -328,7 +352,8 @@ def process_hand_detailing_inner(image, s, p, args):
 				options['height'] = h
 				debug_print(f'scale {scale} width {w} height {h}')
 				shared.state.job_count += 1
-				img2img_result = process.process_img2img(p, cropped_hand, options=options)
+				with VAEMethodOverride():
+					img2img_result = process.process_img2img(p, cropped_hand, options=options)
 				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
 				debug_print('resize to', img2img_result.size, cropped_hand_mask.size)
@@ -402,7 +427,8 @@ def process_hand_detailing_subframe(image, s, p, args):
 					debug_print(f'Scale {scale} has no effect. skip!!!!!')
 					return image
 		shared.state.job_count += 1
-		img2img_result = process.process_img2img(p, cropped, options=options)
+		with VAEMethodOverride():
+			img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=Image.LANCZOS)
 		blur = ImageFilter.GaussianBlur(3)
 		cropped_mask = cropped_mask.filter(blur)
@@ -592,6 +618,9 @@ def process_person_detailing_inner(image, s, p, a):
 	dilation = person_detailing_opt.get('dilation', 3)
 	area_ratio = person_detailing_opt.get('area_ratio', 0.1)
 	limit = person_detailing_opt.get('limit', 1)
+	force_one_on_one = person_detailing_opt.get('force_1:1', False)
+	background_color = person_detailing_opt.get('background_color', 1)
+	background_blur = person_detailing_opt.get('background_blur', 0)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	p.extra_generation_params['BMAB_person_option'] = util.dict_to_str(person_detailing_opt)
@@ -608,6 +637,7 @@ def process_person_detailing_inner(image, s, p, a):
 
 	shared.state.job_count += min(limit, len(boxes))
 
+	processed = []
 	for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 		if limit != 0 and idx >= limit:
 			debug_print(f'Over limit {limit}')
@@ -627,33 +657,45 @@ def process_person_detailing_inner(image, s, p, a):
 		cropped = image.crop(box=box)
 
 		scale = person_detailing_opt.get('scale', 4)
+		if force_one_on_one:
+			scale = 1.0
 
 		area_person = cropped.width * cropped.height
 		area_image = image.width * image.height
 		ratio = area_person / area_image
 		debug_print(f'Ratio {ratio}')
-		if ratio >= area_ratio:
+		if scale > 1 and ratio >= area_ratio:
 			debug_print(f'Person is too big to process. {ratio} >= {area_ratio}.')
+			if background_color != 1:
+				processed.append((cropped, (x1, y1), cropped_mask))
+				continue
 			return image
+
 		p.extra_generation_params['BMAB person ratio'] = '%.3f' % ratio
 
-		w = cropped.width * scale
-		h = cropped.height * scale
+		w = int(cropped.width * scale)
+		h = int(cropped.height * scale)
 		debug_print(f'Trying x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 
-		if person_detailing_opt.get('block_overscaled_image', True):
+		if scale > 1 and person_detailing_opt.get('block_overscaled_image', True):
 			area_org = a.get('max_area', image.width * image.height)
 			area_scaled = w * h
 			if area_scaled > area_org:
 				debug_print(f'It is too large to process.')
 				auto_upscale = person_detailing_opt.get('auto_upscale', True)
 				if not auto_upscale:
+					if background_color != 1:
+						processed.append((cropped, (x1, y1), cropped_mask))
+						continue
 					return image
 				scale = math.sqrt(area_org / (cropped.width * cropped.height))
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
 				debug_print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 				if scale < 1.2:
 					debug_print(f'Scale {scale} has no effect. skip!!!!!')
+					if background_color != 1:
+						processed.append((cropped, (x1, y1), cropped_mask))
+						continue
 					return image
 
 		options = dict(mask=cropped_mask, **i2i_config)
@@ -662,11 +704,22 @@ def process_person_detailing_inner(image, s, p, a):
 		options['inpaint_full_res'] = 1
 		options['inpaint_full_res'] = 32
 
-		img2img_result = process.process_img2img(p, cropped, options=options)
+		with VAEMethodOverride():
+			img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
 		blur = ImageFilter.GaussianBlur(3)
 		cropped_mask = cropped_mask.filter(blur)
-		image.paste(img2img_result, (x1, y1), mask=cropped_mask)
+		processed.append((img2img_result, (x1, y1), cropped_mask))
+
+	if background_color != 1:
+		enhancer = ImageEnhance.Color(image)
+		image = enhancer.enhance(background_color)
+	if background_blur > 3:
+		blur = ImageFilter.GaussianBlur(background_blur)
+		image = image.filter(blur)
+
+	for img2img_result, pos, cropped_mask in processed:
+		image.paste(img2img_result, pos, mask=cropped_mask)
 
 	devices.torch_gc()
 	return image

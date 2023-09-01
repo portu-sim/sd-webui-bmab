@@ -12,7 +12,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img, Processed
 from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, constants
 
 
-bmab_version = 'v23.09.01.0'
+bmab_version = 'v23.09.01.1'
 
 
 class PreventControlNet:
@@ -35,15 +35,17 @@ class PreventControlNet:
 		self.p.all_negative_prompts = self.all_negative_prompts
 		processing.process_images_inner = PreventControlNet.process_images_inner
 		img2img.process_batch = PreventControlNet.process_batch
-		self.allow_script_control = shared.opts.data["control_net_allow_script_control"]
-		shared.opts.data["control_net_allow_script_control"] = True
+		if 'control_net_allow_script_control' in shared.opts.data:
+			self.allow_script_control = shared.opts.data["control_net_allow_script_control"]
+			shared.opts.data["control_net_allow_script_control"] = True
 		self.multiple_tqdm = shared.opts.data.get("multiple_tqdm", True)
 		shared.opts.data["multiple_tqdm"] = False
 
 	def __exit__(self, *args, **kwargs):
 		processing.process_images_inner = self._process_images_inner
 		img2img.process_batch = self._process_batch
-		shared.opts.data["control_net_allow_script_control"] = self.allow_script_control
+		if 'control_net_allow_script_control' in shared.opts.data:
+			shared.opts.data["control_net_allow_script_control"] = self.allow_script_control
 		shared.opts.data["multiple_tqdm"] = self.multiple_tqdm
 		if self.p.scripts is not None:
 			self.p.scripts.process(copy(self.p))
@@ -191,6 +193,7 @@ class BmabExtScript(scripts.Script):
 						with gr.Tab('Person', elem_id='person_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
+								elem += gr.Checkbox(label='Force upscale ratio 1:1 without area limit', value=False)
 							with gr.Row():
 								elem += gr.Checkbox(label='Block over-scaled image', value=True)
 								elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
@@ -200,6 +203,8 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
 									elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
 									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
+									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.bmab_test_function, label='Background color (HIDDEN)')
+									elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.bmab_test_function, label='Background blur (HIDDEN)')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
@@ -414,6 +419,7 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_max_detailing_element', shared.OptionInfo(
 		default=0, label='Max Detailing Element', component=gr.Slider, component_args={'minimum': 0, 'maximum': 10, 'step': 1}, section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_detail_full', shared.OptionInfo(True, 'Allways use FULL, VAE type for encode when detail anything. (v1.6.0)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_use_specific_model', shared.OptionInfo(False, 'Use specific model', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_model', shared.OptionInfo(default='', label='Checkpoint for Person, Face, Hand', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_openpose', shared.OptionInfo(default='control_v11p_sd15_openpose_fp16 [73c2b67d]', label='ControlNet openpose model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))

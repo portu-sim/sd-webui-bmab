@@ -623,5 +623,5 @@ def process_upscale_inner(image, s, p, args):
 
 	w = image.width
 	h = image.height
-	img = images.resize_image(0, image, w * ratio, h * ratio, upscaler)
+	img = images.resize_image(0, image, int(w * ratio), int(h * ratio), upscaler)
 	return img.convert('RGB')
