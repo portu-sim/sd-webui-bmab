@@ -300,6 +300,9 @@ def process_hand_detailing_inner(image, s, p, args):
 
 	dinosam.dino_init()
 
+	p.extra_generation_params['BMAB_hand_option'] = util.dict_to_str(hand_detailing_opt)
+	p.extra_generation_params['BMAB_hand_parameter'] = util.dict_to_str(hand_detailing)
+
 	if detailing_method == 'subframe':
 		return process_hand_detailing_subframe(image, s, p, args)
 	elif detailing_method == 'at once':
