@@ -157,6 +157,9 @@ class BmabExtScript(scripts.Script):
 			image = process.after_process(image, self, p, a)
 		pp.image = image
 
+		if shared.opts.bmab_save_image_after_process:
+			images.save_image(pp.image, p.outpath_samples, "", p.all_seeds[self.index], p.all_prompts[self.index], shared.opts.samples_format, p=p, suffix="-after-bmab")
+
 		self.index += 1
 
 	def postprocess(self, p, processed, *args):
@@ -448,6 +451,7 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_test_function', shared.OptionInfo(False, 'Show Test Function', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_save_image_before_process', shared.OptionInfo(False, 'Save image that before processing', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_save_image_after_process', shared.OptionInfo(False, 'Save image that after processing (some bugs)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_max_detailing_element', shared.OptionInfo(
 		default=0, label='Max Detailing Element', component=gr.Slider, component_args={'minimum': 0, 'maximum': 10, 'step': 1}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_detail_full', shared.OptionInfo(True, 'Allways use FULL, VAE type for encode when detail anything. (v1.6.0)', section=('bmab', 'BMAB')))
