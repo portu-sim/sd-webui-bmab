@@ -13,10 +13,12 @@ from sd_bmab.util import debug_print
 
 class VAEMethodOverride:
 
-	def __init__(self) -> None:
+	def __init__(self, hiresfix=False) -> None:
 		super().__init__()
 		self.org_encode_method = None
 		self.org_decode_method = None
+		self.img2img_fix_steps = None
+		self.hiresfix = hiresfix
 
 	def __enter__(self):
 		if ('sd_vae_encode_method' in shared.opts.data) and shared.opts.bmab_detail_full:
@@ -24,11 +26,16 @@ class VAEMethodOverride:
 			self.decode_method = shared.opts.sd_vae_decode_method
 			shared.opts.sd_vae_encode_method = 'Full'
 			shared.opts.sd_vae_decode_method = 'Full'
+		if self.hiresfix and not shared.opts.img2img_fix_steps:
+			self.img2img_fix_steps = shared.opts.img2img_fix_steps
+			shared.opts.img2img_fix_steps = True
 
 	def __exit__(self, *args, **kwargs):
 		if ('sd_vae_encode_method' in shared.opts.data) and shared.opts.bmab_detail_full:
 			shared.opts.sd_vae_encode_method = self.encode_method
 			shared.opts.sd_vae_decode_method = self.decode_method
+		if self.img2img_fix_steps is not None:
+			shared.opts.img2img_fix_steps = self.img2img_fix_steps
 
 
 def timecalc(func):
@@ -68,6 +75,7 @@ def process_face_detailing_inner(image, s, p, a):
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
 	sampler = face_detailing_opt.get('sampler', constants.sampler_default)
+	best_quality = face_detailing_opt.get('best_quality', False)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	dinosam.dino_init()
@@ -87,7 +95,7 @@ def process_face_detailing_inner(image, s, p, a):
 	if override_parameter:
 		face_config = dict(face_detailing)
 	else:
-		if shared.opts.bmab_keep_original_setting:
+		if best_quality or shared.opts.bmab_keep_original_setting:
 			face_config['width'] = image.width
 			face_config['height'] = image.height
 		else:
@@ -167,7 +175,7 @@ def process_face_detailing_inner(image, s, p, a):
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-		with VAEMethodOverride():
+		with VAEMethodOverride(hiresfix=best_quality):
 			img2img_imgage = process.process_img2img(p, image, options=options)
 
 		x1, y1, x2, y2 = util.fix_box_size(box)
@@ -192,6 +200,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	order = face_detailing_opt.get('order_by', 'Score')
 	limit = face_detailing_opt.get('limit', 1)
 	sampler = face_detailing_opt.get('sampler', constants.sampler_default)
+	best_quality = face_detailing_opt.get('best_quality', False)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	org_size = image.size
@@ -206,7 +215,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 	if override_parameter:
 		face_config = dict(face_detailing)
 	else:
-		if shared.opts.bmab_keep_original_setting:
+		if best_quality or shared.opts.bmab_keep_original_setting:
 			face_config['width'] = image.width
 			face_config['height'] = image.height
 		else:
@@ -279,7 +288,7 @@ def process_face_detailing_inner_using_yolo(image, s, p, a):
 
 		seed, subseed = util.get_seeds(s, p, a)
 		options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-		with VAEMethodOverride():
+		with VAEMethodOverride(hiresfix=best_quality):
 			image = process.process_img2img(p, image, options=options)
 
 	devices.torch_gc()
@@ -297,6 +306,7 @@ def process_hand_detailing_inner(image, s, p, args):
 	hand_detailing = dict(args.get('module_config', {}).get('hand_detailing', {}))
 	hand_detailing_opt = args.get('module_config', {}).get('hand_detailing_opt', {})
 	detailing_method = hand_detailing_opt.get('detailing_method', '')
+	best_quality = hand_detailing_opt.get('best_quality', False)
 
 	dinosam.dino_init()
 
@@ -324,7 +334,7 @@ def process_hand_detailing_inner(image, s, p, args):
 			debug_print(float(logit), phrase)
 			if phrase != 'hand':
 				continue
-				
+
 			x1, y1, x2, y2 = tuple(int(x) for x in box)
 
 			width = x2 - x1
@@ -357,7 +367,7 @@ def process_hand_detailing_inner(image, s, p, args):
 			options['height'] = h
 			debug_print(f'scale {scale} width {w} height {h}')
 			shared.state.job_count += 1
-			with VAEMethodOverride():
+			with VAEMethodOverride(hiresfix=best_quality):
 				img2img_result = process.process_img2img(p, cropped_hand, options=options)
 			img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
@@ -628,6 +638,7 @@ def process_person_detailing_inner(image, s, p, a):
 	force_one_on_one = person_detailing_opt.get('force_1:1', False)
 	background_color = person_detailing_opt.get('background_color', 1)
 	background_blur = person_detailing_opt.get('background_blur', 0)
+	best_quality = person_detailing_opt.get('best_quality', False)
 	max_element = shared.opts.bmab_max_detailing_element
 
 	p.extra_generation_params['BMAB_person_option'] = util.dict_to_str(person_detailing_opt)
@@ -714,7 +725,7 @@ def process_person_detailing_inner(image, s, p, a):
 		options['inpaint_full_res'] = 1
 		options['inpaint_full_res'] = 32
 
-		with VAEMethodOverride():
+		with VAEMethodOverride(hiresfix=best_quality):
 			img2img_result = process.process_img2img(p, cropped, options=options)
 		img2img_result = img2img_result.resize(cropped.size, resample=Image.LANCZOS)
 		blur = ImageFilter.GaussianBlur(3)

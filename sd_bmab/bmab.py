@@ -13,7 +13,7 @@ from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, c
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v23.09.02.0'
+bmab_version = 'v23.09.02.1'
 
 
 class PreventControlNet:
@@ -213,6 +213,8 @@ class BmabExtScript(scripts.Script):
 						with gr.Tab('Person', elem_id='person_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 								elem += gr.Checkbox(label='Force upscale ratio 1:1 without area limit', value=False)
 							with gr.Row():
 								elem += gr.Checkbox(label='Block over-scaled image', value=True)
@@ -234,6 +236,8 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Checkbox(label='Enable face detailing', value=False)
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 							with gr.Row():
 								with gr.Column(min_width=100):
 									elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right'], type='value', value='Score')
@@ -297,6 +301,8 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
 								elem += gr.Checkbox(label='Block over-scaled image', value=True)
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 							with gr.Row():
 								elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once'])
 							with gr.Row():
