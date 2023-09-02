@@ -10,9 +10,10 @@ from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img, Processed
 
 from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, constants
+from sd_bmab.util import debug_print
 
 
-bmab_version = 'v23.09.01.1'
+bmab_version = 'v23.09.02.0'
 
 
 class PreventControlNet:
@@ -27,12 +28,28 @@ class PreventControlNet:
 		self.all_prompts = copy(p.all_prompts)
 		self.all_negative_prompts = copy(p.all_negative_prompts)
 
+	def is_controlnet_used(self):
+		if not self.p.script_args:
+			return False
+
+		for idx, obj in enumerate(self.p.script_args):
+			if 'controlnet' in obj.__class__.__name__.lower():
+				if hasattr(obj, 'enabled') and obj.enabled:
+					debug_print('Use controlnet True')
+					return True
+			elif isinstance(obj, dict) and 'module' in obj and obj['enabled']:
+				debug_print('Use controlnet True')
+				return True
+
+		debug_print('Use controlnet False')
+		return False
+
 	def __enter__(self):
-		if self.p.scripts is not None:
+		if self.p.scripts is not None and self.is_controlnet_used():
 			dummy = Processed(self.p, [], self.p.seed, "")
 			self.p.scripts.postprocess(copy(self.p), dummy)
-		self.p.all_prompts = self.all_prompts
-		self.p.all_negative_prompts = self.all_negative_prompts
+			self.p.all_prompts = self.all_prompts
+			self.p.all_negative_prompts = self.all_negative_prompts
 		processing.process_images_inner = PreventControlNet.process_images_inner
 		img2img.process_batch = PreventControlNet.process_batch
 		if 'control_net_allow_script_control' in shared.opts.data:
@@ -47,10 +64,10 @@ class PreventControlNet:
 		if 'control_net_allow_script_control' in shared.opts.data:
 			shared.opts.data["control_net_allow_script_control"] = self.allow_script_control
 		shared.opts.data["multiple_tqdm"] = self.multiple_tqdm
-		if self.p.scripts is not None:
+		if self.p.scripts is not None and self.is_controlnet_used():
 			self.p.scripts.process(copy(self.p))
-		self.p.all_prompts = self.all_prompts
-		self.p.all_negative_prompts = self.all_negative_prompts
+			self.p.all_prompts = self.all_prompts
+			self.p.all_negative_prompts = self.all_negative_prompts
 
 
 class CheckpointChanger:
@@ -124,14 +141,17 @@ class BmabExtScript(scripts.Script):
 		if shared.state.interrupted or shared.state.skipped:
 			return
 
+		image = pp.image.copy()
+		self.extra_image.append(pp.image)
 		with PreventControlNet(p), CheckpointChanger():
-			pp.image = process.process_resize_by_person(pp.image, self, p, a, caller='postprocess_image')
-			pp.image = process.process_upscale_before_detailing(pp.image, self, p, a)
-			pp.image = detailing.process_person_detailing(pp.image, self, p, a)
-			pp.image = detailing.process_face_detailing(pp.image, self, p, a)
-			pp.image = detailing.process_hand_detailing(pp.image, self, p, a)
-			pp.image = process.process_upscale_after_detailing(pp.image, self, p, a)
-			pp.image = process.after_process(pp.image, self, p, a)
+			image = process.process_resize_by_person(image, self, p, a, caller='postprocess_image')
+			image = process.process_upscale_before_detailing(image, self, p, a)
+			image = detailing.process_person_detailing(image, self, p, a)
+			image = detailing.process_face_detailing(image, self, p, a)
+			image = detailing.process_hand_detailing(image, self, p, a)
+			image = process.process_upscale_after_detailing(image, self, p, a)
+			image = process.after_process(image, self, p, a)
+		pp.image = image
 
 		self.index += 1
 

@@ -322,47 +322,49 @@ def process_hand_detailing_inner(image, s, p, args):
 		boxes, logits, phrases = dinosam.dino_predict(image, 'person . hand')
 		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
 			debug_print(float(logit), phrase)
-			if phrase == 'hand':
-				x1, y1, x2, y2 = tuple(int(x) for x in box)
+			if phrase != 'hand':
+				continue
+				
+			x1, y1, x2, y2 = tuple(int(x) for x in box)
 
-				width = x2 - x1
-				height = y2 - y1
+			width = x2 - x1
+			height = y2 - y1
 
-				mbox = (int(x1 - width), int(y1 - height), int(x2 + width), int(y2 + height))
-				mbox = util.fix_box_size(mbox)
-				debug_print(mbox)
+			mbox = (int(x1 - width), int(y1 - height), int(x2 + width), int(y2 + height))
+			mbox = util.fix_box_size(mbox)
+			debug_print(mbox)
 
-				hbox = (width, height, width * 2, height * 2)
-				cropped_hand = image.crop(box=mbox)
-				cropped_hand_mask = Image.new('L', cropped_hand.size, 0)
-				dr = ImageDraw.Draw(cropped_hand_mask, 'L')
-				dr.rectangle(hbox, fill=255)
+			hbox = (width, height, width * 2, height * 2)
+			cropped_hand = image.crop(box=mbox)
+			cropped_hand_mask = Image.new('L', cropped_hand.size, 0)
+			dr = ImageDraw.Draw(cropped_hand_mask, 'L')
+			dr.rectangle(hbox, fill=255)
 
-				options = dict(seed=-1)
-				scale = hand_detailing_opt.get('scale', -1)
-				if scale < 1:
-					normalize = hand_detailing_opt.get('normalize', 768)
-					if width > height:
-						scale = normalize / cropped_hand.width
-					else:
-						scale = normalize / cropped_hand.height
-				if detailing_method == 'inpaint each hand':
-					options['mask'] = cropped_hand_mask
+			options = dict(seed=-1)
+			scale = hand_detailing_opt.get('scale', -1)
+			if scale < 1:
+				normalize = hand_detailing_opt.get('normalize', 768)
+				if width > height:
+					scale = normalize / cropped_hand.width
+				else:
+					scale = normalize / cropped_hand.height
+			if detailing_method == 'inpaint each hand':
+				options['mask'] = cropped_hand_mask
 
-				options.update(hand_detailing)
-				w, h = util.fix_size_by_scale(cropped_hand.width, cropped_hand.height, scale)
-				options['width'] = w
-				options['height'] = h
-				debug_print(f'scale {scale} width {w} height {h}')
-				shared.state.job_count += 1
-				with VAEMethodOverride():
-					img2img_result = process.process_img2img(p, cropped_hand, options=options)
-				img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
+			options.update(hand_detailing)
+			w, h = util.fix_size_by_scale(cropped_hand.width, cropped_hand.height, scale)
+			options['width'] = w
+			options['height'] = h
+			debug_print(f'scale {scale} width {w} height {h}')
+			shared.state.job_count += 1
+			with VAEMethodOverride():
+				img2img_result = process.process_img2img(p, cropped_hand, options=options)
+			img2img_result = img2img_result.resize(cropped_hand.size, resample=Image.LANCZOS)
 
-				debug_print('resize to', img2img_result.size, cropped_hand_mask.size)
-				blur = ImageFilter.GaussianBlur(3)
-				cropped_hand_mask = cropped_hand_mask.filter(blur)
-				image.paste(img2img_result, (mbox[0], mbox[1]), mask=cropped_hand_mask)
+			debug_print('resize to', img2img_result.size, cropped_hand_mask.size)
+			blur = ImageFilter.GaussianBlur(3)
+			cropped_hand_mask = cropped_hand_mask.filter(blur)
+			image.paste(img2img_result, (mbox[0], mbox[1]), mask=cropped_hand_mask)
 	else:
 		debug_print('no such method')
 		return image
@@ -420,6 +422,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 				debug_print(f'It is too large to process.')
 				auto_upscale = hand_detailing_opt.get('auto_upscale', True)
 				if not auto_upscale:
+					p.extra_generation_params['BMAB_hand_SKIP'] = f'Image too large to process {cropped.width}x{cropped.height} {w}x{h}'
 					return image
 				scale = math.sqrt(area_org / (cropped.width * cropped.height))
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
@@ -428,6 +431,7 @@ def process_hand_detailing_subframe(image, s, p, args):
 				debug_print(f'Auto Scale x{scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
 				if scale < 1.2:
 					debug_print(f'Scale {scale} has no effect. skip!!!!!')
+					p.extra_generation_params['BMAB_hand_SKIP'] = f'{scale} < 1.2'
 					return image
 		shared.state.job_count += 1
 		with VAEMethodOverride():
@@ -672,6 +676,7 @@ def process_person_detailing_inner(image, s, p, a):
 			if background_color != 1:
 				processed.append((cropped, (x1, y1), cropped_mask))
 				continue
+			p.extra_generation_params['BMAB_person_SKIP'] = f'Person is too big to process. {ratio} >= {area_ratio}.'
 			return image
 
 		p.extra_generation_params['BMAB person ratio'] = '%.3f' % ratio
@@ -690,6 +695,7 @@ def process_person_detailing_inner(image, s, p, a):
 					if background_color != 1:
 						processed.append((cropped, (x1, y1), cropped_mask))
 						continue
+					p.extra_generation_params['BMAB_person_SKIP'] = f'It is too large to process.'
 					return image
 				scale = math.sqrt(area_org / (cropped.width * cropped.height))
 				w, h = util.fix_size_by_scale(cropped.width, cropped.height, scale)
@@ -699,6 +705,7 @@ def process_person_detailing_inner(image, s, p, a):
 					if background_color != 1:
 						processed.append((cropped, (x1, y1), cropped_mask))
 						continue
+					p.extra_generation_params['BMAB_person_SKIP'] = f'Scale {scale} has no effect. skip!!!!!'
 					return image
 
 		options = dict(mask=cropped_mask, **i2i_config)
