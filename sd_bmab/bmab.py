@@ -6,12 +6,13 @@ from modules import shared
 from modules import script_callbacks
 from modules import processing
 from modules import img2img
-from modules import images
-from modules.processing import StableDiffusionProcessingImg2Img
-from modules.processing import StableDiffusionProcessingTxt2Img, Processed
+from modules.processing import Processed
 
-from sd_bmab import dinosam, process, detailing, parameters, util, controlnet, constants
+from sd_bmab import parameters, util, constants
+from sd_bmab.base import context
 from sd_bmab.util import debug_print
+from sd_bmab import processors
+from sd_bmab import detectors
 
 
 bmab_version = 'v23.09.02.1'
@@ -47,24 +48,24 @@ class PreventControlNet:
 
 	def __enter__(self):
 		if self.p.scripts is not None and self.is_controlnet_used():
-			dummy = Processed(self.p, [], self.p.seed, "")
+			dummy = Processed(self.p, [], self.p.seed, '')
 			self.p.scripts.postprocess(copy(self.p), dummy)
 			self.p.all_prompts = self.all_prompts
 			self.p.all_negative_prompts = self.all_negative_prompts
 		processing.process_images_inner = PreventControlNet.process_images_inner
 		img2img.process_batch = PreventControlNet.process_batch
 		if 'control_net_allow_script_control' in shared.opts.data:
-			self.allow_script_control = shared.opts.data["control_net_allow_script_control"]
-			shared.opts.data["control_net_allow_script_control"] = True
-		self.multiple_tqdm = shared.opts.data.get("multiple_tqdm", True)
-		shared.opts.data["multiple_tqdm"] = False
+			self.allow_script_control = shared.opts.data['control_net_allow_script_control']
+			shared.opts.data['control_net_allow_script_control'] = True
+		self.multiple_tqdm = shared.opts.data.get('multiple_tqdm', True)
+		shared.opts.data['multiple_tqdm'] = False
 
 	def __exit__(self, *args, **kwargs):
 		processing.process_images_inner = self._process_images_inner
 		img2img.process_batch = self._process_batch
 		if 'control_net_allow_script_control' in shared.opts.data:
-			shared.opts.data["control_net_allow_script_control"] = self.allow_script_control
-		shared.opts.data["multiple_tqdm"] = self.multiple_tqdm
+			shared.opts.data['control_net_allow_script_control'] = self.allow_script_control
+		shared.opts.data['multiple_tqdm'] = self.multiple_tqdm
 		if self.p.scripts is not None and self.is_controlnet_used():
 			self.p.scripts.process(copy(self.p))
 			self.p.all_prompts = self.all_prompts
@@ -116,23 +117,10 @@ class BmabExtScript(scripts.Script):
 		if not a['enabled']:
 			return
 
-		if isinstance(p, StableDiffusionProcessingTxt2Img):
-			process.override_sample(self, p, a)
-
-		controlnet.process_controlnet(self, p, a)
-
-		if isinstance(p, StableDiffusionProcessingImg2Img):
-			process.process_dino_detect(p, self, a)
-
-	def process_batch(self, p, *args, **kwargs):
-		a = self.parse_args(args)
-		if not a['enabled']:
-			return
-
-		if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
-			a['max_area'] = p.hr_upscale_to_x * p.hr_upscale_to_y
-
-		process.process_img2img_process_all(self, p, a)
+		ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
+		processors.process_hiresfix(ctx)
+		processors.process_img2img(ctx)
+		processors.process_controlnet(ctx)
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
@@ -141,31 +129,15 @@ class BmabExtScript(scripts.Script):
 
 		if shared.state.interrupted or shared.state.skipped:
 			return
-
-		image = pp.image.copy()
-		if shared.opts.bmab_save_image_before_process:
-			images.save_image(pp.image, p.outpath_samples, "", p.all_seeds[self.index], p.all_prompts[self.index], shared.opts.samples_format, p=p, suffix="-before-bmab")
-		self.extra_image.append(pp.image)
-
-		with PreventControlNet(p), CheckpointChanger():
-			image = process.process_resize_by_person(image, self, p, a, caller='postprocess_image')
-			image = process.process_upscale_before_detailing(image, self, p, a)
-			image = detailing.process_person_detailing(image, self, p, a)
-			image = detailing.process_face_detailing(image, self, p, a)
-			image = detailing.process_hand_detailing(image, self, p, a)
-			image = process.process_upscale_after_detailing(image, self, p, a)
-			image = process.after_process(image, self, p, a)
-		pp.image = image
-
-		if shared.opts.bmab_save_image_after_process:
-			images.save_image(pp.image, p.outpath_samples, "", p.all_seeds[self.index], p.all_prompts[self.index], shared.opts.samples_format, p=p, suffix="-after-bmab")
-
+		ctx = context.Context.newContext(self, p, a, self.index)
+		pp.image = processors.process(ctx, pp.image)
 		self.index += 1
 
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
-		dinosam.release()
+
+		processors.release()
 
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
@@ -301,7 +273,8 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
 							with gr.Row():
 								with gr.Column(min_width=100):
-									elem += gr.Dropdown(label='Detection Model', choices=['GroundingDINO', 'face_yolov8n.pt'], type='value', value='GroundingDINO')
+									choices = detectors.list_face_detectors()
+									elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
 								with gr.Column():
 									gr.Markdown('')
 						with gr.Tab('Hand', elem_id='hand_tabs'):

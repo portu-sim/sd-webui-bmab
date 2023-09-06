@@ -2,6 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
+from pathlib import Path
 
 from PIL import Image
 import modules
@@ -12,6 +13,9 @@ from modules.sd_samplers import sample_to_image
 from modules.paths import models_path
 
 from ultralytics import YOLO
+
+
+LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 
 
 def debug_print(*args):
@@ -190,3 +194,34 @@ def erode_mask(mask, erosion):
 	kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (erosion, erosion))
 	arr = cv2.erode(arr, kernel, iterations=1)
 	return Image.fromarray(arr)
+
+
+def get_cn_args(p):
+	for script_object in p.scripts.alwayson_scripts:
+		filename = Path(script_object.filename).stem
+		if filename == 'controlnet':
+			return (script_object.args_from, script_object.args_to)
+	return None
+
+
+def b64_encoding(image):
+	from io import BytesIO
+	import base64
+
+	buffered = BytesIO()
+	image.save(buffered, format="PNG")
+	return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+
+def generate_noise(width, height):
+	img_1 = np.zeros([height, width, 3], dtype=np.uint8)
+	# Generate random Gaussian noise
+	mean = 0
+	stddev = 180
+	r, g, b = cv2.split(img_1)
+	cv2.randn(r, mean, stddev)
+	cv2.randn(g, mean, stddev)
+	cv2.randn(b, mean, stddev)
+	img = cv2.merge([r, g, b])
+	pil_image = Image.fromarray(img, mode='RGB')
+	return pil_image
