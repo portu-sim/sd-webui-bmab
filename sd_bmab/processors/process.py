@@ -102,6 +102,16 @@ def process_hiresfix(ctx):
 	if hasattr(ctx.sdprocessing, '__sample'):
 		return
 
+	all_processors = [
+		FaceDetailer(),
+		EdgeEnhancement(),
+		IntermidiateResize(),
+		NoiseAlpha()
+	]
+
+	if True not in [proc.preprocess(ctx, None) for proc in all_processors]:
+		return
+
 	ctx.sdprocessing.__sample = ctx.sdprocessing.sample
 
 	def resize(ctx: Context, resize_mode, img, width, height, upscaler_name=None):
