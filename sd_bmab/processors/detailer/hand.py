@@ -329,7 +329,7 @@ class HandDetailer(ProcessorBase):
 					options['width'] = w
 					options['height'] = h
 					debug_print(f'Auto Scale x{new_scale} ({cropped.width},{cropped.height}) -> ({w},{h})')
-					if new_scale < 1.2:
+					if new_scale < 1.05:
 						debug_print(f'Scale {new_scale} has no effect. skip!!!!!')
 						context.add_generation_param('BMAB_hand_SKIP', f'{new_scale} < 1.2')
 						return image

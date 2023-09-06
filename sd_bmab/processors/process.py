@@ -57,6 +57,7 @@ def process_intermediate(context ,image):
 
 	return processed
 
+
 def process_intermediate_step1(context, image):
 	all_processors = [
 		FaceDetailer(),
@@ -158,6 +159,7 @@ def process_controlnet(context):
 			continue
 		proc.process(context, None)
 		proc.postprocess(context, None)
+
 
 def release():
 	dino.release()
