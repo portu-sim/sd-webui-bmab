@@ -65,7 +65,7 @@ class UltralyticsFaceDetector(FaceDetector):
 			pred = model(image, conf=self.confidence, device='')
 			boxes = pred[0].boxes.xyxy.cpu().numpy()
 			boxes = boxes.tolist()
-			confs.append(float(pred[0].boxes.conf))
+			confs = [float(x) for x in pred[0].boxes.conf]
 		except:
 			pass
 		torch.load = load
