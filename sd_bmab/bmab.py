@@ -13,6 +13,7 @@ from sd_bmab.base import context
 from sd_bmab.util import debug_print
 from sd_bmab import processors
 from sd_bmab import detectors
+from sd_bmab import masking
 
 
 bmab_version = 'v23.09.07.0'
@@ -138,6 +139,7 @@ class BmabExtScript(scripts.Script):
 			processed.images.extend(self.extra_image)
 
 		processors.release()
+		masking.release()
 
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'

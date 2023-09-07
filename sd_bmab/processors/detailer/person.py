@@ -7,8 +7,8 @@ from PIL import ImageEnhance
 from modules import shared
 from modules import devices
 
-from sd_bmab import util
-from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride, sam
+from sd_bmab import util, masking
+from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 
 from sd_bmab.util import debug_print
 from sd_bmab.detectors.detector import get_detector
@@ -72,8 +72,8 @@ class PersonDetailer(ProcessorBase):
 			debug_print('render', float(logit))
 			box2 = util.fix_box_size(box)
 			x1, y1, x2, y2 = box2
-
-			mask = sam.sam_predict_box(image, box)
+			sam = masking.get_mask_generator()
+			mask = sam.predict(image, boxes)
 			mask = util.dilate_mask(mask, self.dilation)
 			cropped_mask = mask.crop(box=box).convert('L')
 			cropped = image.crop(box=box)

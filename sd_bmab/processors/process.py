@@ -2,7 +2,7 @@ from functools import partial
 from modules import images
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 
-from sd_bmab.base import dino, sam, Context
+from sd_bmab.base import dino, Context
 from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpscaler
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize, IntermidiateResize
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
@@ -166,4 +166,3 @@ def process_controlnet(context):
 
 def release():
 	dino.release()
-	sam.release()

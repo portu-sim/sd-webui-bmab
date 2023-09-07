@@ -3,7 +3,8 @@ from PIL import Image
 from modules import devices
 from modules.processing import StableDiffusionProcessingImg2Img
 
-from sd_bmab.base import sam, dino
+from sd_bmab import masking
+from sd_bmab.base import dino
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
 
@@ -20,7 +21,8 @@ class Img2imgMasking(ProcessorBase):
 
 	def sam(self, prompt, input_image):
 		boxes, logits, phrases = dino.dino_predict(input_image, prompt, 0.35, 0.25)
-		mask = sam.sam_predict(input_image, boxes)
+		sam = masking.get_mask_generator()
+		mask = sam.predict(input_image, boxes)
 		return mask
 
 	def process(self, context: Context, image: Image):

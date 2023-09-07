@@ -1,15 +1,13 @@
-import os
 import torch
 from PIL import Image
 from ultralytics import YOLO
 
 import modules
-from modules.paths import models_path
 
+from sd_bmab import util
 from sd_bmab.base.context import Context
 from sd_bmab.base.detectorbase import DetectorBase
 from sd_bmab.util import debug_print
-
 from sd_bmab.base.dino import dino_init, dino_predict
 
 
@@ -54,8 +52,7 @@ class UltralyticsHandDetector(HandDetector):
 		return f'Ultralytics({self.model})'
 
 	def predict(self, context: Context, image: Image):
-		bmab_model_path = os.path.join(models_path, "bmab")
-		yolo = f'{bmab_model_path}/{self.model}'
+		yolo = util.lazy_loader(self.model)
 		boxes = []
 		confs = []
 		load = torch.load

@@ -1,41 +1,9 @@
-import os
 import platform
 
 import launch
-import glob
 import torch
 
-from modules.paths import models_path
-
-from basicsr.utils.download_util import load_file_from_url
 from packaging.version import parse
-
-
-def install_models():
-    bmab_model_path = os.path.join(models_path, "bmab")
-
-    targets = {
-        ('sam_vit_b_01ec64.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth'),
-        # ('sam_vit_l_0b3195.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth'),
-        # ('sam_vit_h_4b8939.pth', 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth'),
-        ('groundingdino_swint_ogc.pth', 'https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth'),
-        ('GroundingDINO_SwinT_OGC.py', 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py'),
-        ('face_yolov8n.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt'),
-        ('face_yolov8n_v2.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n_v2.pt'),
-        ('face_yolov8m.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt'),
-        ('face_yolov8s.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8s.pt'),
-        ('hand_yolov8n.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt'),
-        ('hand_yolov8s.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8s.pt'),
-        ('person_yolov8m-seg.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg.pt'),
-        ('person_yolov8n-seg.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8n-seg.pt'),
-        ('person_yolov8s-seg.pt', 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8s-seg.pt'),
-    }
-
-    files = glob.glob(bmab_model_path)
-
-    for target in targets:
-        if target[0] not in files:
-            load_file_from_url(target[1], bmab_model_path)
 
 
 def install_pycocotools():
@@ -116,16 +84,19 @@ def install_segmentanything():
     launch.run_pip('install segment_anything')
 
 
+def install_segmentanything_hq():
+    launch.run_pip('install segment_anything_hq')
+
+
 def install_ultralytics():
     launch.run_pip('install ultralytics')
 
-
-install_models()
 
 required = {
     ('pycocotools', install_pycocotools),
     ('groundingdino', install_groundingdino),
     ('segment_anything', install_segmentanything),
+    ('segment_anything_hq', install_segmentanything_hq),
     ('ultralytics', install_ultralytics)
 }
 

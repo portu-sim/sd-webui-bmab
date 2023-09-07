@@ -1,16 +1,15 @@
-import os
 import numpy as np
 
 import torch
 
 from groundingdino.util.inference import load_model, predict
-from modules.paths import models_path
 from modules.devices import device, torch_gc
 
 from torchvision.ops import box_convert
 import groundingdino.datasets.transforms as T
 
-bmab_model_path = os.path.join(models_path, "bmab")
+from sd_bmab import util
+
 
 dino_model = None
 
@@ -18,8 +17,9 @@ dino_model = None
 def dino_init():
 	global dino_model
 	if not dino_model:
-		dino_model = load_model('%s/GroundingDINO_SwinT_OGC.py' % bmab_model_path,
-		                        '%s/groundingdino_swint_ogc.pth' % bmab_model_path)
+		swint_ogc = util.lazy_loader('GroundingDINO_SwinT_OGC.py')
+		swint_ogc_pth = util.lazy_loader('groundingdino_swint_ogc.pth')
+		dino_model = load_model(swint_ogc, swint_ogc_pth)
 	return dino_model
 
 
