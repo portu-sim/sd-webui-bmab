@@ -154,8 +154,8 @@ class BmabExtScript(scripts.Script):
 					with gr.Column():
 						elem += gr.Checkbox(label=f'Enabled {bmab_version}', value=False)
 				with gr.Row():
-					with gr.Tabs(elem_id='tabs'):
-						with gr.Tab('Basic', elem_id='basic_tabs'):
+					with gr.Tabs(elem_id='bmab_tabs'):
+						with gr.Tab('Basic', elem_id='bmab_basic_tabs'):
 							with gr.Row():
 								with gr.Column():
 									elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
@@ -166,7 +166,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
-						with gr.Tab('Edge', elem_id='edge_tabs'):
+						with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)
 							with gr.Row():
@@ -175,7 +175,7 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
 								gr.Markdown('')
-						with gr.Tab('Imaging', elem_id='imaging_tabs'):
+						with gr.Tab('Imaging', elem_id='bmab_imaging_tabs'):
 							with gr.Row():
 								elem += gr.Image(source='upload', type='pil')
 							with gr.Row():
@@ -189,7 +189,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Checkbox(label='Enable dino detect', value=False)
 							with gr.Row():
 								elem += gr.Textbox(placeholder='1girl', visible=True, value='',  label='Prompt')
-						with gr.Tab('Person', elem_id='person_tabs'):
+						with gr.Tab('Person', elem_id='bmab_person_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
 							with gr.Row():
@@ -210,7 +210,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
 									gr.Markdown('')
-						with gr.Tab('Face', elem_id='face_tabs'):
+						with gr.Tab('Face', elem_id='bmab_face_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable face detailing', value=False)
 							with gr.Row():
@@ -222,33 +222,33 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right'], type='value', value='Score')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
-							with gr.Tab('Face1', elem_id='face1_tabs'):
+							with gr.Tab('Face1', elem_id='bmab_face1_tabs'):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-							with gr.Tab('Face2', elem_id='face2_tabs'):
+							with gr.Tab('Face2', elem_id='bmab_face2_tabs'):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-							with gr.Tab('Face3', elem_id='face3_tabs'):
+							with gr.Tab('Face3', elem_id='bmab_face3_tabs'):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-							with gr.Tab('Face4', elem_id='face4_tabs'):
+							with gr.Tab('Face4', elem_id='bmab_face4_tabs'):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-							with gr.Tab('Face5', elem_id='face5_tabs'):
+							with gr.Tab('Face5', elem_id='bmab_face5_tabs'):
 								with gr.Row():
 									elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 								with gr.Row():
 									elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 							with gr.Row():
-								with gr.Tab('Parameters', elem_id='parameter_tabs'):
+								with gr.Tab('Parameters', elem_id='bmab_parameter_tabs'):
 									with gr.Row():
 										elem += gr.Checkbox(label='Overide Parameters', value=False)
 									with gr.Row():
@@ -277,7 +277,7 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
 								with gr.Column():
 									gr.Markdown('')
-						with gr.Tab('Hand', elem_id='hand_tabs'):
+						with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
 								elem += gr.Checkbox(label='Block over-scaled image', value=True)
@@ -308,9 +308,9 @@ class BmabExtScript(scripts.Script):
 									gr.Markdown('')
 							with gr.Row():
 								elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
-						with gr.Tab('Resize', elem_id='resize_tabs'):
+						with gr.Tab('Resize', elem_id='bmab_resize_tabs'):
 							with gr.Row():
-								with gr.Tab('Resize by person', elem_id='resize1_tab'):
+								with gr.Tab('Resize by person', elem_id='bmab_resize1_tab'):
 									with gr.Row():
 										elem += gr.Checkbox(label='Enable resize by person', value=False)
 										mode = [constants.resize_mode_default, 'Inpaint', 'ControlNet inpaint+lama']
@@ -326,7 +326,7 @@ class BmabExtScript(scripts.Script):
 										with gr.Column():
 											elem += gr.Slider(minimum=4, maximum=128, value=30, step=1, label='Mask Dilation')
 							with gr.Row():
-								with gr.Tab('Upscale', elem_id='resize2_tab'):
+								with gr.Tab('Upscale', elem_id='bmab_resize2_tab'):
 									with gr.Row():
 										with gr.Column(min_width=100):
 											elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
@@ -338,23 +338,23 @@ class BmabExtScript(scripts.Script):
 											upscalers = [x.name for x in shared.sd_upscalers]
 											elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
 											elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
-						with gr.Tab('ControlNet', elem_id='controlnet_tabs'):
+						with gr.Tab('ControlNet', elem_id='bmab_controlnet_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable ControlNet access (EXPERIMENTAL, TESTING)', value=False)
 							with gr.Row():
-								with gr.Tab('Noise', elem_id='cn_noise_tabs'):
+								with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
 									with gr.Row():
 										elem += gr.Checkbox(label='Enable noise (EXPERIMENTAL)', value=False)
 									with gr.Row():
 										with gr.Column():
-											elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='cn_noise', label='Noise strength')
+											elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
 										with gr.Column():
 											gr.Markdown('')
-						with gr.Tab('Config', elem_id='config_tab'):
+						with gr.Tab('Config', elem_id='bmab_config_tab'):
 							configs = parameters.Parameters().list_config()
 							config = '' if not configs else configs[0]
 							with gr.Row():
-								with gr.Tab('Configuration', elem_id='configuration_tabs'):
+								with gr.Tab('Configuration', elem_id='bmab_configuration_tabs'):
 									with gr.Row():
 										with gr.Column(min_width=100):
 											config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
@@ -371,7 +371,7 @@ class BmabExtScript(scripts.Script):
 										with gr.Column(min_width=100):
 											reset_btn = gr.Button('Reset', visible=True, interactive=True)
 							with gr.Row():
-								with gr.Tab('Preset', elem_id='configuration_tabs'):
+								with gr.Tab('Preset', elem_id='bmab_configuration_tabs'):
 									with gr.Row():
 										with gr.Column(min_width=100):
 											gr.Markdown('Preset Loader : preset override UI configuration.')
