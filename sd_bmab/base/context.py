@@ -37,8 +37,10 @@ class Context(object):
 		return self.sdprocessing.all_seeds[self.index], self.sdprocessing.all_subseeds[self.index]
 
 	def get_max_area(self):
-		if shared.opts.bmab_optimize_vram:
+		if shared.opts.bmab_optimize_vram == 'low vram':
 			return 512 * 768
+		elif shared.opts.bmab_optimize_vram == 'med vram':
+			return self.sdprocessing.width * self.sdprocessing.height
 		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:
 			return self.sdprocessing.hr_upscale_to_x * self.sdprocessing.hr_upscale_to_y
 		return self.sdprocessing.width * self.sdprocessing.height

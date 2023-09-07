@@ -7,7 +7,7 @@ from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpsca
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize, IntermidiateResize
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
-from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha
+from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha, Img2imgMasking, BlendImage
 from sd_bmab.processors.controlnet import LineartNoise
 
 
@@ -22,6 +22,7 @@ def process(context, image):
 		HandDetailer(),
 		AfterProcessUpscaler(),
 		FinalProcessorBasic(),
+		BlendImage(),
 		AfterProcessFileSaver()
 	]
 
@@ -36,6 +37,7 @@ def process(context, image):
 		processed = ret
 
 	return processed
+
 
 def process_intermediate(context ,image):
 	all_processors = [
@@ -80,7 +82,8 @@ def process_intermediate_step2(context, image):
 	all_processors = [
 		EdgeEnhancement(),
 		IntermidiateResize(),
-		NoiseAlpha()
+		Img2imgMasking(),
+		NoiseAlpha(),
 	]
 
 	processed = image.copy()
