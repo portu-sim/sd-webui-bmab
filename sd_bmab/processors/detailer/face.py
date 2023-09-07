@@ -54,7 +54,7 @@ class FaceDetailer(ProcessorBase):
 		boxes, logits = detector.predict(context, image)
 
 		org_size = image.size
-		debug_print('size', org_size)
+		debug_print('size', org_size, len(boxes), len(logits))
 
 		face_config = {
 			'denoising_strength': self.parameters['denoising_strength'],
