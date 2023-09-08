@@ -6,7 +6,6 @@ from modules import shared
 from modules import script_callbacks
 from modules import processing
 from modules import img2img
-from modules.processing import Processed
 
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
@@ -16,7 +15,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.09.08.0'
+bmab_version = 'v23.09.08.1'
 
 
 class PreventControlNet:
