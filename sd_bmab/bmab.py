@@ -30,6 +30,7 @@ class PreventControlNet:
 		self.p = p
 		self.all_prompts = copy(p.all_prompts)
 		self.all_negative_prompts = copy(p.all_negative_prompts)
+		self.old_unet_forward = None
 
 	def is_controlnet_used(self):
 		if not self.p.script_args:
@@ -53,6 +54,13 @@ class PreventControlNet:
 			self.p.scripts.postprocess(copy(self.p), dummy)
 			self.p.all_prompts = self.all_prompts
 			self.p.all_negative_prompts = self.all_negative_prompts
+
+		model = self.p.sd_model.model.diffusion_model
+		if hasattr(model, '_original_forward'):
+			print('hook by cn')
+			model._old_forward = self.p.sd_model.model.diffusion_model.forward
+			model.forward = getattr(model, '_original_forward')
+
 		processing.process_images_inner = PreventControlNet.process_images_inner
 		img2img.process_batch = PreventControlNet.process_batch
 		if 'control_net_allow_script_control' in shared.opts.data:
@@ -71,6 +79,11 @@ class PreventControlNet:
 			self.p.scripts.process(copy(self.p))
 			self.p.all_prompts = self.all_prompts
 			self.p.all_negative_prompts = self.all_negative_prompts
+			self.p.sd_model.model.diffusion_model.forward = self.old_unet_forward
+		model = self.p.sd_model.model.diffusion_model
+		if hasattr(model, '_original_forward') and hasattr(model, '_old_forward'):
+			print('hook by cn')
+			self.p.sd_model.model.diffusion_model.forward = model._old_forward
 
 
 class CheckpointChanger:
@@ -130,8 +143,10 @@ class BmabExtScript(scripts.Script):
 
 		if shared.state.interrupted or shared.state.skipped:
 			return
-		ctx = context.Context.newContext(self, p, a, self.index)
-		pp.image = processors.process(ctx, pp.image)
+
+		with PreventControlNet(p), CheckpointChanger():
+			ctx = context.Context.newContext(self, p, a, self.index)
+			pp.image = processors.process(ctx, pp.image)
 		self.index += 1
 
 	def postprocess(self, p, processed, *args):
