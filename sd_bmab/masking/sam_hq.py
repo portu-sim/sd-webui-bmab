@@ -35,7 +35,6 @@ class SamHqPredict(MaskBase):
 	@classmethod
 	def init(cls, model_type, filename, *args, **kwargs):
 		checkpoint_file = util.lazy_loader(filename)
-		print(model_type, checkpoint_file)
 		if not cls.model:
 			torch.load = unsafe_torch_load
 			cls.model = sam_model_registry[model_type](checkpoint=checkpoint_file)

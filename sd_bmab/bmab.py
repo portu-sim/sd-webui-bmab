@@ -29,7 +29,6 @@ class PreventControlNet:
 		self.p = p
 		self.all_prompts = copy(p.all_prompts)
 		self.all_negative_prompts = copy(p.all_negative_prompts)
-		self.old_unet_forward = None
 
 	def is_controlnet_used(self):
 		if not self.p.script_args:
@@ -50,7 +49,6 @@ class PreventControlNet:
 	def __enter__(self):
 		model = self.p.sd_model.model.diffusion_model
 		if hasattr(model, '_original_forward'):
-			print('hook by cn')
 			model._old_forward = self.p.sd_model.model.diffusion_model.forward
 			model.forward = getattr(model, '_original_forward')
 
@@ -70,7 +68,6 @@ class PreventControlNet:
 		shared.opts.data['multiple_tqdm'] = self.multiple_tqdm
 		model = self.p.sd_model.model.diffusion_model
 		if hasattr(model, '_original_forward') and hasattr(model, '_old_forward'):
-			print('hook by cn')
 			self.p.sd_model.model.diffusion_model.forward = model._old_forward
 
 
