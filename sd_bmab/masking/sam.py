@@ -20,6 +20,7 @@ class SamPredict(MaskBase):
 	def __init__(self) -> None:
 		super().__init__()
 
+	@property
 	def name(self):
 		return f'sam_{self.type}'
 

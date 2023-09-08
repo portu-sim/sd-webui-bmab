@@ -248,10 +248,10 @@ def lazy_loader(filename):
 		'person_yolov8m-seg.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8m-seg.pt',
 		'person_yolov8n-seg.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8n-seg.pt',
 		'person_yolov8s-seg.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/person_yolov8s-seg.pt',
-		'sam_hq_vit_b.pth': 'https://huggingface.co/lkeab/hq-sam/blob/main/sam_hq_vit_b.pth',
-		'sam_hq_vit_h.pth': 'https://huggingface.co/lkeab/hq-sam/blob/main/sam_hq_vit_h.pth',
-		'sam_hq_vit_l.pth': 'https://huggingface.co/lkeab/hq-sam/blob/main/sam_hq_vit_l.pth',
-		'sam_hq_vit_tiny.pth': 'https://huggingface.co/lkeab/hq-sam/blob/main/sam_hq_vit_tiny.pth',
+		'sam_hq_vit_b.pth': 'https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_b.pth',
+		'sam_hq_vit_h.pth': 'https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth',
+		'sam_hq_vit_l.pth': 'https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_l.pth',
+		'sam_hq_vit_tiny.pth': 'https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_tiny.pth',
 	}
 
 	if filename in targets and filename not in files:
