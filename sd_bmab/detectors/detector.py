@@ -8,6 +8,13 @@ from sd_bmab.detectors.hand import GroundingDinoHandDetector, UltralyticsHandDet
 
 
 def get_detector(context: Context, model: str, **kwargs):
+
+	# for backward compatibility for saved user
+	if str == 'GroundingDINO':
+		return GroundingDinoFaceDetector(**kwargs)
+	elif str == 'face_yolov8n.pt':
+		return UltralyticsFaceDetector8n(**kwargs)
+
 	all_detectors = [
 		GroundingDinoPersonDetector(**kwargs),
 		UltralyticsPersonDetector8m(**kwargs),
