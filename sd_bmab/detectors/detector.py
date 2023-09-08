@@ -26,7 +26,7 @@ def get_detector(context: Context, model: str, **kwargs):
 	targets = [x for x in all_detectors if model == x.target()]
 	if len(targets) == 1:
 		return targets[0]
-	raise Exception('Not found or multiple detector')
+	raise Exception(f'Not found or multiple detector {model}')
 
 
 def list_person_detectors():
