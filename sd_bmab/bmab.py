@@ -49,12 +49,6 @@ class PreventControlNet:
 		return False
 
 	def __enter__(self):
-		if self.p.scripts is not None and self.is_controlnet_used():
-			dummy = Processed(self.p, [], self.p.seed, '')
-			self.p.scripts.postprocess(copy(self.p), dummy)
-			self.p.all_prompts = self.all_prompts
-			self.p.all_negative_prompts = self.all_negative_prompts
-
 		model = self.p.sd_model.model.diffusion_model
 		if hasattr(model, '_original_forward'):
 			print('hook by cn')
@@ -75,11 +69,6 @@ class PreventControlNet:
 		if 'control_net_allow_script_control' in shared.opts.data:
 			shared.opts.data['control_net_allow_script_control'] = self.allow_script_control
 		shared.opts.data['multiple_tqdm'] = self.multiple_tqdm
-		if self.p.scripts is not None and self.is_controlnet_used():
-			self.p.scripts.process(copy(self.p))
-			self.p.all_prompts = self.all_prompts
-			self.p.all_negative_prompts = self.all_negative_prompts
-			self.p.sd_model.model.diffusion_model.forward = self.old_unet_forward
 		model = self.p.sd_model.model.diffusion_model
 		if hasattr(model, '_original_forward') and hasattr(model, '_old_forward'):
 			print('hook by cn')
