@@ -85,7 +85,7 @@ def install_segmentanything():
 
 
 def install_segmentanything_hq():
-    launch.run_pip('install segment_anything_hq')
+    launch.run_pip('install segment-anything-hq')
 
 
 def install_ultralytics():
