@@ -81,19 +81,23 @@ class FaceDetailer(ProcessorBase):
 		context.add_generation_param('BMAB_face_parameter', util.dict_to_str(face_config))
 
 		candidate = []
-		for box, logit in zip(boxes, logits):
-			x1, y1, x2, y2 = box
-			if self.order == 'Left':
+		if self.order == 'Left':
+			for box, logit in zip(boxes, logits):
+				x1, y1, x2, y2 = box
 				value = x1 + (x2 - x1) // 2
 				debug_print('detected(from left)', float(logit), value)
 				candidate.append((value, box, logit))
-				candidate = sorted(candidate, key=lambda c: c[0])
-			elif self.order == 'Right':
+			candidate = sorted(candidate, key=lambda c: c[0])
+		elif self.order == 'Right':
+			for box, logit in zip(boxes, logits):
+				x1, y1, x2, y2 = box
 				value = x1 + (x2 - x1) // 2
 				debug_print('detected(from right)', float(logit), value)
 				candidate.append((value, box, logit))
-				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-			elif self.order == 'Center':
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		elif self.order == 'Center':
+			for box, logit in zip(boxes, logits):
+				x1, y1, x2, y2 = box
 				cx = image.width / 2
 				cy = image.height / 2
 				ix = x1 + (x2 - x1) // 2
@@ -101,17 +105,20 @@ class FaceDetailer(ProcessorBase):
 				value = sqrt(abs(cx - ix) ** 2 + abs(cy - iy) ** 2)
 				debug_print('detected(from center)', float(logit), value)
 				candidate.append((value, box, logit))
-				candidate = sorted(candidate, key=lambda c: c[0])
-			elif self.order == 'Size':
+			candidate = sorted(candidate, key=lambda c: c[0])
+		elif self.order == 'Size':
+			for box, logit in zip(boxes, logits):
+				x1, y1, x2, y2 = box
 				value = (x2 - x1) * (y2 - y1)
 				debug_print('detected(size)', float(logit), value)
 				candidate.append((value, box, logit))
-				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
-			else:
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+		else:
+			for box, logit in zip(boxes, logits):
 				value = float(logit)
 				debug_print(f'detected({self.order})', float(logit), value)
 				candidate.append((value, box, logit))
-				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
 		shared.state.job_count += min(self.limit, len(candidate))
 
