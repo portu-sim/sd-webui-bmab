@@ -1,3 +1,5 @@
+from math import sqrt
+
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
@@ -38,7 +40,7 @@ class FaceDetailer(ProcessorBase):
 		self.override_parameter = self.detailing_opt.get('override_parameter', self.override_parameter)
 		self.dilation = self.detailing_opt.get('dilation', self.dilation)
 		self.box_threshold = self.detailing_opt.get('box_threshold', self.box_threshold)
-		self.order = self.detailing_opt.get('order_by', self.order)
+		self.order = self.detailing_opt.get('sort_by', self.order)
 		self.limit = self.detailing_opt.get('limit', self.limit)
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
 		self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
@@ -83,22 +85,31 @@ class FaceDetailer(ProcessorBase):
 			x1, y1, x2, y2 = box
 			if self.order == 'Left':
 				value = x1 + (x2 - x1) // 2
-				debug_print('detected', float(logit), value)
+				debug_print('detected(from left)', float(logit), value)
 				candidate.append((value, box, logit))
 				candidate = sorted(candidate, key=lambda c: c[0])
 			elif self.order == 'Right':
 				value = x1 + (x2 - x1) // 2
-				debug_print('detected', float(logit), value)
+				debug_print('detected(from right)', float(logit), value)
 				candidate.append((value, box, logit))
 				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
+			elif self.order == 'Center':
+				cx = image.width / 2
+				cy = image.height / 2
+				ix = x1 + (x2 - x1) // 2
+				iy = y1 + (y2 - y1) // 2
+				value = sqrt(abs(cx - ix) ** 2 + abs(cy - iy) ** 2)
+				debug_print('detected(from center)', float(logit), value)
+				candidate.append((value, box, logit))
+				candidate = sorted(candidate, key=lambda c: c[0])
 			elif self.order == 'Size':
 				value = (x2 - x1) * (y2 - y1)
-				debug_print('detected', float(logit), value)
+				debug_print('detected(size)', float(logit), value)
 				candidate.append((value, box, logit))
 				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 			else:
 				value = float(logit)
-				debug_print('detected', float(logit), value)
+				debug_print(f'detected({self.order})', float(logit), value)
 				candidate.append((value, box, logit))
 				candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
