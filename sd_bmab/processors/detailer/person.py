@@ -44,6 +44,13 @@ class PersonDetailer(ProcessorBase):
 			self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 		return context.args['person_detailing_enabled']
 
+	def get_cropped_mask(self, image, boxes, box):
+		sam = masking.get_mask_generator()
+		mask = sam.predict(image, boxes)
+		mask = util.dilate_mask(mask, self.dilation)
+		cropped_mask = mask.crop(box=box).convert('L')
+		return cropped_mask
+
 	def process(self, context: Context, image: Image):
 
 		context.add_generation_param('BMAB_person_option', util.dict_to_str(self.detailing_opt))
@@ -72,10 +79,7 @@ class PersonDetailer(ProcessorBase):
 			debug_print('render', float(logit))
 			box2 = util.fix_box_size(box)
 			x1, y1, x2, y2 = box2
-			sam = masking.get_mask_generator()
-			mask = sam.predict(image, boxes)
-			mask = util.dilate_mask(mask, self.dilation)
-			cropped_mask = mask.crop(box=box).convert('L')
+
 			cropped = image.crop(box=box)
 
 			scale = self.detailing_opt.get('scale', 4)
@@ -89,6 +93,7 @@ class PersonDetailer(ProcessorBase):
 			if scale > 1 and ratio >= self.area_ratio:
 				debug_print(f'Person is too big to process. {ratio} >= {self.area_ratio}.')
 				if self.background_color != 1:
+					cropped_mask = self.get_cropped_mask(image, boxes, box)
 					processed.append((cropped, (x1, y1), cropped_mask))
 					continue
 				context.add_generation_param(
@@ -109,6 +114,7 @@ class PersonDetailer(ProcessorBase):
 					auto_upscale = self.detailing_opt.get('auto_upscale', True)
 					if not auto_upscale:
 						if self.background_color != 1:
+							cropped_mask = self.get_cropped_mask(image, boxes, box)
 							processed.append((cropped, (x1, y1), cropped_mask))
 							continue
 						context.add_generation_param('BMAB_person_SKIP', f'It is too large to process.')
@@ -119,11 +125,13 @@ class PersonDetailer(ProcessorBase):
 					if scale < 1.2:
 						debug_print(f'Scale {scale} has no effect. skip!!!!!')
 						if self.background_color != 1:
+							cropped_mask = self.get_cropped_mask(image, boxes, box)
 							processed.append((cropped, (x1, y1), cropped_mask))
 							continue
 						context.add_generation_param('BMAB_person_SKIP', f'Scale {scale} has no effect. skip!!!!!')
 						return image
 
+			cropped_mask = self.get_cropped_mask(image, boxes, box)
 			options = dict(mask=cropped_mask, **i2i_config)
 			options['width'] = w
 			options['height'] = h
