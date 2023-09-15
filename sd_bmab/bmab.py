@@ -15,7 +15,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.09.08.1'
+bmab_version = 'v23.09.16.0'
 
 
 class PreventControlNet:
@@ -221,7 +221,7 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 							with gr.Row():
 								with gr.Column(min_width=100):
-									elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right'], type='value', value='Score')
+									elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right', 'Center'], type='value', value='Score')
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
 							with gr.Tab('Face1', elem_id='bmab_face1_tabs'):
