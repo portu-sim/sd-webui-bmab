@@ -14,8 +14,10 @@ from segment_anything import sam_model_registry
 from sd_bmab import util
 
 
+sam_model = None
+
+
 class SamPredict(MaskBase):
-	model = None
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -35,14 +37,13 @@ class SamPredict(MaskBase):
 	@classmethod
 	def init(cls, model_type, filename, *args, **kwargs):
 		checkpoint_file = util.lazy_loader(filename)
-		if not cls.model:
+		global sam_model
+		if sam_model is None:
 			torch.load = unsafe_torch_load
-			cls.model = sam_model_registry[model_type](checkpoint=checkpoint_file)
-			cls.model.to(device=device)
-			cls.model.eval()
+			sam_model = sam_model_registry[model_type](checkpoint=checkpoint_file)
+			sam_model.to(device=device)
 			torch.load = load
-
-		return cls.model
+		return sam_model
 
 	def load(self):
 		return SamPredict.init(self.type, self.file)
@@ -67,13 +68,14 @@ class SamPredict(MaskBase):
 
 			mask = Image.fromarray(masks[0])
 			result.paste(mask, mask=mask)
-
 		return result
 
 	@classmethod
 	def release(cls):
-		cls.model = None
-		torch_gc()
+		global sam_model
+		if sam_model is not None:
+			sam_model = None
+			torch_gc()
 
 
 class SamPredictVitB(SamPredict):
