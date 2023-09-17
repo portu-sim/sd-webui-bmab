@@ -6,6 +6,7 @@ from PIL import ImageFilter
 
 from modules import shared
 from modules import devices
+from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import constants, util
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
@@ -71,8 +72,12 @@ class FaceDetailer(ProcessorBase):
 				face_config['width'] = image.width
 				face_config['height'] = image.height
 			else:
-				face_config['width'] = context.sdprocessing.width
-				face_config['height'] = context.sdprocessing.height
+				if isinstance(context.sdprocessing, StableDiffusionProcessingImg2Img):
+					face_config['width'] = context.sdprocessing.init_images[0].width
+					face_config['height'] = context.sdprocessing.init_images[0].height
+				else:
+					face_config['width'] = context.sdprocessing.width
+					face_config['height'] = context.sdprocessing.height
 
 		if self.sampler != constants.sampler_default:
 			face_config['sampler_name'] = self.sampler
