@@ -33,7 +33,8 @@ class EdgeEnhancement(ProcessorBase):
 		canny = Image.fromarray(arcanny)
 		canny = ImageOps.invert(canny)
 
-		newdata = [(0, 0, 0) if mdata == 0 else ndata for mdata, ndata in zip(canny.getdata(), image.getdata())]
-		newbase = Image.new('RGB', image.size)
+		img = image.convert('RGB')
+		newdata = [(0, 0, 0) if mdata == 0 else ndata for mdata, ndata in zip(canny.getdata(), img.getdata())]
+		newbase = Image.new('RGB', img.size)
 		newbase.putdata(newdata)
-		return Image.blend(image, newbase, alpha=self.edge_strength).convert("RGB")
+		return Image.blend(img, newbase, alpha=self.edge_strength).convert("RGB")
