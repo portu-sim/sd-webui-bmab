@@ -54,6 +54,8 @@ class InpaintLamaResize(ProcessorBase):
 		final_ratio = 1
 		dino.dino_init()
 		boxes, logits, phrases = dino.dino_predict(img, 'person')
+		if shared.opts.bmab_optimize_vram != 'None':
+			dino.release()
 
 		largest = (0, None)
 		for box in boxes:
@@ -68,7 +70,6 @@ class InpaintLamaResize(ProcessorBase):
 		x1, y1, x2, y2 = largest[1]
 		ratio = (y2 - y1) / img.height
 		print('ratio', ratio)
-		dino.release()
 
 		if ratio > self.value:
 			image_ratio = ratio / self.value

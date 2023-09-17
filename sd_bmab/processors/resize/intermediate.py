@@ -1,4 +1,7 @@
 from PIL import Image
+
+from modules import shared
+
 from sd_bmab.base import dino
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
@@ -59,6 +62,8 @@ class IntermidiateResize(ProcessorBase):
 			image = image.resize(org_size, resample=util.LANCZOS)
 			context.add_generation_param('BMAB process_resize_by_person_ratio', '%.3s' % image_ratio)
 
+		if shared.opts.bmab_optimize_vram != 'None':
+			dino.release()
 		return image
 
 	def postprocess(self, context: Context, image: Image):

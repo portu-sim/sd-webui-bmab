@@ -37,6 +37,8 @@ class InpaintResize(ProcessorBase):
 		debug_print('prepare dino')
 		dino.dino_init()
 		boxes, logits, phrases = dino.dino_predict(image, 'person')
+		if shared.opts.bmab_optimize_vram != 'None':
+			dino.release()
 
 		org_size = image.size
 		debug_print('size', org_size)
