@@ -326,16 +326,16 @@ class BmabExtScript(scripts.Script):
 											elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
 						with gr.Tab('ControlNet', elem_id='bmab_controlnet_tabs'):
 							with gr.Row():
-								elem += gr.Checkbox(label='Enable ControlNet access (EXPERIMENTAL, TESTING)', value=False)
+								elem += gr.Checkbox(label='Enable ControlNet access', value=False)
 							with gr.Row():
 								with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
 									with gr.Row():
-										elem += gr.Checkbox(label='Enable noise (EXPERIMENTAL)', value=False)
+										elem += gr.Checkbox(label='Enable noise', value=False)
 									with gr.Row():
 										with gr.Column():
 											elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
-											elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
-											elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
+											elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
+											elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
 										with gr.Column():
 											gr.Markdown('')
 						with gr.Tab('Config', elem_id='bmab_config_tab'):

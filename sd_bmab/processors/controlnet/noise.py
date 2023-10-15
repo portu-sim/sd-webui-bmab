@@ -11,21 +11,29 @@ from sd_bmab.base.processorbase import ProcessorBase
 class LineartNoise(ProcessorBase):
 	def __init__(self) -> None:
 		super().__init__()
+		self.enabled = False
+		self.noise_enabled = False
+		self.noise_strength = 0.4
+		self.noise_begin = 0.1
+		self.noise_end = 0.9
 
 	def preprocess(self, context: Context, image: Image):
 		self.controlnet_opt = context.args.get('module_config', {}).get('controlnet', {})
 		self.enabled = self.controlnet_opt.get('enabled', False)
 		self.noise_enabled = self.controlnet_opt.get('noise', False)
+		self.noise_strength = self.controlnet_opt.get('noise_strength', 0.4)
+		self.noise_begin = self.controlnet_opt.get('noise_begin', 0.1)
+		self.noise_end = self.controlnet_opt.get('noise_end', 0.9)
 		return self.enabled
 
 	@staticmethod
-	def get_noise_args(image, weight):
+	def get_noise_args(image, weight, begin, end):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
 			'model': shared.opts.bmab_cn_lineart,
 			'weight': weight,
-			"guidance_start": 0.1,
-			"guidance_end": 0.9,
+			"guidance_start": begin,
+			"guidance_end": end,
 			'resize mode': 'Just Resize',
 			'allow preview': False,
 			'pixel perfect': False,
@@ -45,13 +53,14 @@ class LineartNoise(ProcessorBase):
 		cn_args = util.get_cn_args(context.sdprocessing)
 		debug_print('ControlNet', cn_args)
 
-		noise_strength = self.controlnet_opt.get('noise_strength', 0.4)
-		debug_print('noise enabled.', noise_strength)
+		debug_print('noise enabled.', self.noise_strength)
 		context.add_generation_param('BMAB controlnet mode', 'lineart')
-		context.add_generation_param('BMAB noise strength', noise_strength)
+		context.add_generation_param('BMAB noise strength', self.noise_strength)
+		context.add_generation_param('BMAB noise begin', self.noise_begin)
+		context.add_generation_param('BMAB noise end', self.noise_end)
 
 		img = util.generate_noise(context.sdprocessing.width, context.sdprocessing.height)
-		cn_op_arg = self.get_noise_args(img, noise_strength)
+		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end)
 		idx = cn_args[0] + context.controlnet_count
 		context.controlnet_count += 1
 		sc_args = list(context.sdprocessing.script_args)
