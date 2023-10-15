@@ -15,7 +15,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.09.18.0'
+bmab_version = 'v23.10.15.0'
 
 
 class PreventControlNet:
@@ -71,22 +71,6 @@ class PreventControlNet:
 			self.p.sd_model.model.diffusion_model.forward = model._old_forward
 
 
-class CheckpointChanger:
-
-	def __init__(self) -> None:
-		super().__init__()
-		self.modelname = None
-
-	def __enter__(self):
-		if shared.opts.bmab_use_specific_model:
-			self.modelname = shared.opts.data['sd_model_checkpoint']
-			util.change_model(shared.opts.bmab_model)
-
-	def __exit__(self, *args, **kwargs):
-		if self.modelname is not None:
-			util.change_model(self.modelname)
-
-
 class BmabExtScript(scripts.Script):
 
 	def __init__(self) -> None:
@@ -129,7 +113,7 @@ class BmabExtScript(scripts.Script):
 		if shared.state.interrupted or shared.state.skipped:
 			return
 
-		with PreventControlNet(p), CheckpointChanger():
+		with PreventControlNet(p):
 			ctx = context.Context.newContext(self, p, a, self.index)
 			pp.image = processors.process(ctx, pp.image)
 		self.index += 1
@@ -350,6 +334,8 @@ class BmabExtScript(scripts.Script):
 									with gr.Row():
 										with gr.Column():
 											elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
+											elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
+											elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
 										with gr.Column():
 											gr.Markdown('')
 						with gr.Tab('Config', elem_id='bmab_config_tab'):

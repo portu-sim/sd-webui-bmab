@@ -7,6 +7,7 @@ from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpsca
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize, IntermidiateResize
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
+from sd_bmab.processors.utils import ApplyModel, RollbackModel
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha, Img2imgMasking, BlendImage
 from sd_bmab.processors.controlnet import LineartNoise
 
@@ -17,9 +18,11 @@ def process(context, image):
 		InpaintResize(),
 		InpaintLamaResize(),
 		BeforeProcessUpscaler(),
+		ApplyModel(),
 		PersonDetailer(),
 		FaceDetailer(),
 		HandDetailer(),
+		RollbackModel(),
 		AfterProcessUpscaler(),
 		FinalProcessorBasic(),
 		BlendImage(),
@@ -29,12 +32,17 @@ def process(context, image):
 	processed = image.copy()
 
 	for proc in all_processors:
-		result = proc.preprocess(context, processed)
-		if result is None or not result:
-			continue
-		ret = proc.process(context, processed)
-		proc.postprocess(context, processed)
-		processed = ret
+		try:
+			result = proc.preprocess(context, processed)
+			if result is None or not result:
+				continue
+			ret = proc.process(context, processed)
+			proc.postprocess(context, processed)
+			processed = ret
+		except:
+			raise
+		finally:
+			RollbackModel().process(context, processed)
 
 	return processed
 

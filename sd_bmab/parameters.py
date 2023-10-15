@@ -93,6 +93,8 @@ class Parameters(object):
 			('module_config.controlnet.enabled', False),
 			('module_config.controlnet.noise', False),
 			('module_config.controlnet.noise_strength', 0.7),
+			('module_config.controlnet.noise_begin', 0.0),
+			('module_config.controlnet.noise_end', 1.0),
 			('config_file', ''),
 			('preset', 'None'),
 		]
