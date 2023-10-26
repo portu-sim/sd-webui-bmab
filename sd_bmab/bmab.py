@@ -6,6 +6,7 @@ from modules import shared
 from modules import script_callbacks
 from modules import processing
 from modules import img2img
+from modules import sd_models
 
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
@@ -15,7 +16,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.10.15.0'
+bmab_version = 'v23.10.27.0'
 
 
 class PreventControlNet:
@@ -152,6 +153,41 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
+						with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)
+							with gr.Row():
+								with gr.Column(min_width=100):
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									elem += gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+								with gr.Column(min_width=100):
+									gr.Markdown('')
+							with gr.Row():
+								elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
+							with gr.Row():
+								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+							with gr.Row():
+								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+								with gr.Column(min_width=100):
+									upscalers = [constants.fast_upscaler]
+									upscalers.extend([x.name for x in shared.sd_upscalers])
+									elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Refiner Sampling Steps', elem_id='bmab_refiner_steps')
+									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Refiner CFG Scale', elem_id='bmab_refiner_cfg_scale')
+									elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Refiner Denoising Strength', elem_id='bmab_refiner_denoising')
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=0, maximum=4, value=1, step=0.1, label='Refiner Scale', elem_id='bmab_refiner_scale')
+									elem += gr.Slider(minimum=64, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
+									elem += gr.Slider(minimum=64, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
 						with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)

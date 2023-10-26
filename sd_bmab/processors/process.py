@@ -10,11 +10,14 @@ from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSav
 from sd_bmab.processors.utils import ApplyModel, RollbackModel
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha, Img2imgMasking, BlendImage
 from sd_bmab.processors.controlnet import LineartNoise
+from sd_bmab.processors.refiner import Refiner, RefinerRollbackModel
 
 
 def process(context, image):
+	refiner = Refiner()
 	all_processors = [
 		BeforeProcessFileSaver(),
+		refiner,
 		InpaintResize(),
 		InpaintLamaResize(),
 		BeforeProcessUpscaler(),
@@ -23,6 +26,7 @@ def process(context, image):
 		FaceDetailer(),
 		HandDetailer(),
 		RollbackModel(),
+		RefinerRollbackModel(refiner),
 		AfterProcessUpscaler(),
 		FinalProcessorBasic(),
 		BlendImage(),
@@ -47,7 +51,7 @@ def process(context, image):
 	return processed
 
 
-def process_intermediate(context ,image):
+def process_intermediate(context, image):
 	all_processors = [
 		FaceDetailer(),
 		EdgeEnhancement(),
