@@ -11,6 +11,7 @@ class Context(object):
 		self.index = idx
 		self.hiresfix = hiresfix
 		self.controlnet_count = 0
+		self.refiner = None
 
 	@staticmethod
 	def newContext(s, p, a, idx, **kwargs):
@@ -47,6 +48,12 @@ class Context(object):
 
 	def add_generation_param(self, key, value):
 		self.sdprocessing.extra_generation_params[key] = value
+
+	def with_refiner(self):
+		return self.args.get('refiner_enabled', False)
+
+	def is_refiner_context(self):
+		return self.refiner is not None
 
 	def is_hires_fix(self):
 		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:

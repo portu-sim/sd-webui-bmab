@@ -10,6 +10,7 @@ from sd_bmab.util import debug_print
 from sd_bmab.base import process_img2img, Context, ProcessorBase
 from sd_bmab.processors.resize import IntermidiateResize
 from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
+from sd_bmab.processors.controlnet import LineartNoise
 
 
 def change_model(name):
@@ -81,6 +82,9 @@ class Refiner(ProcessorBase):
 		self.width = self.refiner_opt.get('width', None)
 		self.height = self.refiner_opt.get('height', None)
 
+		if self.enabled:
+			context.refiner = self
+
 		return self.enabled
 
 	def process(self, context: Context, image: Image):
@@ -90,22 +94,23 @@ class Refiner(ProcessorBase):
 			debug_print('base sd model', self.base_sd_model)
 			change_model(self.checkpoint)
 
-		if (self.width == 64 or self.height == 0) and self.scale != 1:
-			w = image.width
-			h = image.height
-			LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
-			if self.upscaler == constants.fast_upscaler:
-				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
-			else:
-				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
-		elif self.width != 0 and self.height != 0:
-			w = self.width
-			h = self.height
-			LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
-			if self.upscaler == constants.fast_upscaler:
-				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
-			else:
-				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
+		output_width = image.width
+		output_height = image.height
+
+		if not (self.width == 0 and self.height == 0 and self.scale == 1):
+			if (self.width == 0 or self.height == 0) and self.scale != 1:
+				output_width = int(image.width * self.scale)
+				output_height = int(image.height * self.scale)
+			elif self.width != 0 and self.height != 0:
+				output_width = self.width
+				output_height = self.height
+
+			if image.width != output_width or image.height != output_height:
+				LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
+				if self.upscaler == constants.fast_upscaler:
+					image = image.resize((output_width, output_height), resample=LANCZOS)
+				else:
+					image = images.resize_image(0, image, output_width, output_height, self.upscaler)
 
 		if not context.is_hires_fix():
 			image = process_intermediate_step2(context, image)
@@ -140,19 +145,31 @@ class Refiner(ProcessorBase):
 			n_iter=1,
 			steps=self.steps,
 			cfg_scale=self.cfg_scale,
-			width=image.width,
-			height=image.height,
+			width=output_width,
+			height=output_height,
 			restore_faces=False,
 			do_not_save_samples=True,
 			do_not_save_grid=True,
 		)
-		image = process_img2img(context.sdprocessing, image, options=options)
+		if LineartNoise.with_refiner(context):
+			image = process_img2img(context.sdprocessing, image, options=options, use_cn=True, callback=self.process_callback, callback_args=[self, context])
+		else:
+			image = process_img2img(context.sdprocessing, image, options=options)
 
 		if not self.keep_checkpoint and self.base_sd_model is not None:
 			debug_print('Rollback model')
 			change_model(self.base_sd_model)
 
 		return image
+
+	@staticmethod
+	def process_callback(self, context, img2img):
+		ctx = Context.newContext(self, img2img, context.args, 0)
+		ctx.refiner = self
+		ln = LineartNoise()
+		if ln.preprocess(ctx, None):
+			ln.process(ctx, None)
+			ln.postprocess(ctx, None)
 
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()

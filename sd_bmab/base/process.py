@@ -92,7 +92,7 @@ def build_img2img(p, img, options):
 	return i2i_param
 
 
-def process_img2img(p, img, options=None):
+def process_img2img(p, img, options=None, use_cn=False, callback=None, callback_args=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
 
@@ -101,7 +101,10 @@ def process_img2img(p, img, options=None):
 	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
-	img2img.scripts, img2img.script_args = apply_extensions(p)
+	img2img.scripts, img2img.script_args = apply_extensions(p, cn_enabled=use_cn)
+
+	if callback is not None:
+		callback(*callback_args, img2img)
 
 	processed = process_images(img2img)
 	img = processed.images[0]

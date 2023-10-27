@@ -11,19 +11,35 @@ from sd_bmab.base.processorbase import ProcessorBase
 class LineartNoise(ProcessorBase):
 	def __init__(self) -> None:
 		super().__init__()
+		self.controlnet_opt = {}
 		self.enabled = False
+		self.with_refiner = False
 		self.noise_enabled = False
 		self.noise_strength = 0.4
 		self.noise_begin = 0.1
 		self.noise_end = 0.9
 
+	@staticmethod
+	def with_refiner(context: Context):
+		controlnet_opt = context.args.get('module_config', {}).get('controlnet', {})
+		enabled = controlnet_opt.get('enabled', False)
+		with_refiner = controlnet_opt.get('with_refiner', False)
+		return enabled and with_refiner
+
 	def preprocess(self, context: Context, image: Image):
 		self.controlnet_opt = context.args.get('module_config', {}).get('controlnet', {})
 		self.enabled = self.controlnet_opt.get('enabled', False)
+		self.with_refiner = self.controlnet_opt.get('with_refiner', False)
 		self.noise_enabled = self.controlnet_opt.get('noise', False)
 		self.noise_strength = self.controlnet_opt.get('noise_strength', 0.4)
 		self.noise_begin = self.controlnet_opt.get('noise_begin', 0.1)
 		self.noise_end = self.controlnet_opt.get('noise_end', 0.9)
+
+		print('Noise', context.is_refiner_context(), context.with_refiner(), self.with_refiner)
+		if context.is_refiner_context():
+			return self.enabled and self.with_refiner
+		if context.with_refiner() and self.with_refiner:
+			return self.enabled
 		return self.enabled
 
 	@staticmethod

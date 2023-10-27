@@ -364,6 +364,8 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable ControlNet access', value=False)
 							with gr.Row():
+								elem += gr.Checkbox(label='Process with BMAB refiner', value=False)
+							with gr.Row():
 								with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
 									with gr.Row():
 										elem += gr.Checkbox(label='Enable noise', value=False)
