@@ -98,7 +98,6 @@ class Refiner(ProcessorBase):
 				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
 			else:
 				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
-			image = process_intermediate_step2(context, image)
 		elif self.width != 0 and self.height != 0:
 			w = self.width
 			h = self.height
@@ -107,7 +106,8 @@ class Refiner(ProcessorBase):
 				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
 			else:
 				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
-			image = process_intermediate_step2(context, image)
+
+		image = process_intermediate_step2(context, image)
 
 		if self.prompt == '':
 			self.prompt = context.get_prompt_by_index()
