@@ -16,7 +16,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.10.27.0'
+bmab_version = 'v23.10.27.1'
 
 
 class PreventControlNet:
@@ -186,8 +186,8 @@ class BmabExtScript(scripts.Script):
 							with gr.Row():
 								with gr.Column(min_width=100):
 									elem += gr.Slider(minimum=0, maximum=4, value=1, step=0.1, label='Refiner Scale', elem_id='bmab_refiner_scale')
-									elem += gr.Slider(minimum=64, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
-									elem += gr.Slider(minimum=64, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
+									elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
+									elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
 						with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)

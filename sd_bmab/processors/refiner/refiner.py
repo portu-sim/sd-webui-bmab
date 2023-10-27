@@ -90,9 +90,18 @@ class Refiner(ProcessorBase):
 			debug_print('base sd model', self.base_sd_model)
 			change_model(self.checkpoint)
 
-		if (self.width == 0 or self.height == 0) and self.scale != 1:
+		if (self.width == 64 or self.height == 0) and self.scale != 1:
 			w = image.width
 			h = image.height
+			LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
+			if self.upscaler == constants.fast_upscaler:
+				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
+			else:
+				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
+			image = process_intermediate_step2(context, image)
+		elif self.width != 0 and self.height != 0:
+			w = self.width
+			h = self.height
 			LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
 			if self.upscaler == constants.fast_upscaler:
 				image = image.resize((int(w * self.scale), int(h * self.scale)), resample=LANCZOS)
