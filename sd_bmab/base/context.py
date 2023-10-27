@@ -47,3 +47,8 @@ class Context(object):
 
 	def add_generation_param(self, key, value):
 		self.sdprocessing.extra_generation_params[key] = value
+
+	def is_hires_fix(self):
+		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:
+			return True
+		return False

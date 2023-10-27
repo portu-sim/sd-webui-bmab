@@ -107,7 +107,8 @@ class Refiner(ProcessorBase):
 			else:
 				image = images.resize_image(0, image, int(w * self.scale), int(h * self.scale), self.upscaler)
 
-		image = process_intermediate_step2(context, image)
+		if not context.is_hires_fix():
+			image = process_intermediate_step2(context, image)
 
 		if self.prompt == '':
 			self.prompt = context.get_prompt_by_index()
