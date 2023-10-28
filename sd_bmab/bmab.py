@@ -16,7 +16,7 @@ from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.10.27.1'
+bmab_version = 'v23.10.29.0'
 
 
 class PreventControlNet:
