@@ -118,6 +118,10 @@ class Refiner(ProcessorBase):
 		if self.prompt == '':
 			self.prompt = context.get_prompt_by_index()
 			debug_print('prompt', self.prompt)
+		elif self.prompt.find('#!org!#') >= 0:
+			current_prompt = context.get_prompt_by_index()
+			self.prompt = self.prompt.replace('#!org!#', current_prompt)
+			print('Prompt', self.prompt)
 		if self.negative_prompt == '':
 			self.negative_prompt = context.sdprocessing.negative_prompt
 		if self.checkpoint == constants.checkpoint_default:
