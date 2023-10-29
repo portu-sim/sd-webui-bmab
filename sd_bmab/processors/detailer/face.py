@@ -139,13 +139,13 @@ class FaceDetailer(ProcessorBase):
 			prompt = self.detailing_opt.get(f'prompt{idx}')
 			if prompt is not None:
 				if prompt.find('#!org!#') >= 0:
-					current_prompt = context.get_current_prompt()
+					current_prompt = context.get_prompt_by_index()
 					face_config['prompt'] = prompt.replace('#!org!#', current_prompt)
 					debug_print('prompt for face', face_config['prompt'])
 				elif prompt != '':
 					face_config['prompt'] = prompt
 				else:
-					face_config['prompt'] = context.get_current_prompt()
+					face_config['prompt'] = context.get_prompt_by_index()
 
 			ne_prompt = self.detailing_opt.get(f'negative_prompt{idx}')
 			if ne_prompt is not None and ne_prompt != '':

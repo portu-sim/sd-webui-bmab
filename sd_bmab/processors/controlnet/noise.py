@@ -39,8 +39,8 @@ class LineartNoise(ProcessorBase):
 		print('Noise', context.is_refiner_context(), context.with_refiner(), self.with_refiner)
 		if context.is_refiner_context():
 			return self.enabled and self.with_refiner
-		if context.with_refiner() and self.with_refiner:
-			return self.enabled
+		elif context.with_refiner() and self.with_refiner:
+			return False
 		return self.enabled
 
 	@staticmethod
