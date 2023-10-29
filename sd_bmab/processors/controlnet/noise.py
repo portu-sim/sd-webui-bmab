@@ -24,6 +24,7 @@ class LineartNoise(ProcessorBase):
 		controlnet_opt = context.args.get('module_config', {}).get('controlnet', {})
 		enabled = controlnet_opt.get('enabled', False)
 		with_refiner = controlnet_opt.get('with_refiner', False)
+		print('with refiner', enabled, with_refiner)
 		return enabled and with_refiner
 
 	def preprocess(self, context: Context, image: Image):

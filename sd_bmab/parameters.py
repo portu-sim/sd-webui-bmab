@@ -104,7 +104,7 @@ class Parameters(object):
 			('upscaler_name', 'None'),
 			('upscale_ratio', 1.5),
 			('module_config.controlnet.enabled', False),
-			('module_config.controlnet.widh_refiner', False),
+			('module_config.controlnet.with_refiner', False),
 			('module_config.controlnet.noise', False),
 			('module_config.controlnet.noise_strength', 0.4),
 			('module_config.controlnet.noise_begin', 0.0),
