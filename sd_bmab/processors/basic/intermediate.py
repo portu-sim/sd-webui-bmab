@@ -14,7 +14,7 @@ class NoiseAlpha(ProcessorBase):
 		return self.noise_alpha != 0
 
 	def process(self, context: Context, image: Image):
-		context.add_generation_param('BMAB noise alpha final', self.noise_alpha)
+		context.add_generation_param('BMAB noise alpha', self.noise_alpha)
 		img_noise = util.generate_noise(image.size[0], image.size[1])
 		return Image.blend(image, img_noise, alpha=self.noise_alpha)
 
