@@ -73,7 +73,106 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 * Noise alpha : 프로세스 전에 노이즈를 추가하여 디테일을 올릴 수 있습니다. (권장값:0.1)
 * Noise alpha at final stage : 최종 단계에서 노이즈를 추가하여 분위기를 다르게 전달할 수 있습니다.
 
-### Edge enhancemant
+## Refiner (EXPERIMENTAL)
+
+txt2img에서 만들어진 이미지를 한번 더 그리는 과정을 수행한다.   
+txt2img + hires.fix 가 된 상황에서도 유효하다.
+
+refiner는 이미지가 생성되고 detailing 하기전에 동작하며,   
+sd-webui의 hires.fix + refiner를 합친 동작과 비슷하다.
+
+
+
+<table>
+<tr>
+<td>txt2img(512x768)</td>
+<td>txt2img + hires.fix(800x1200)</td>
+<td>txt2img + hires.fix + refiner(1200x1800)</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/JCxXc9D/resize-00268-767037284.png"></td>
+<td><img src="https://i.ibb.co/zR3nWKt/resize-00269-767037284.png"></td>
+<td><img src="https://i.ibb.co/R21B0fr/resize-00270-767037284.png"></td>
+</tr>
+</table>
+
+(위 예제는 결과를 모두 resize하여 동일한 크기이다.)
+
+위 예제와 같이 3단계로 처리할 수도 있으나,   
+hires.fix 단계 없이 refiner로 resize하여 처리할 수도 있다.
+
+
+
+
+<p>
+<img src="https://i.ibb.co/GFjgJ5B/refiner.png">
+</p>
+
+#### Enable refiner
+
+refiner 사용 여부를 체크합니다.
+
+#### CheckPoint
+
+refiner를 이용하여 다시 그릴때 사용할 checkpoint를 지정합니다.
+
+#### Use this checkpoint for detailing
+
+위에서 지정한 checkpoint를 이용하여 detailing에 적용합니다.
+
+#### Prompt
+
+refiner가 이미지를 다시 그릴때 사용하는 prompt를 지정합니다.   
+비어있다면 main prompt와 동일하고,채워져 있다면 main prompt를 무시합니다.   
+만약 #!org!# 문자열이 있다면 main prompt를 대체합니다.
+
+#### Negative prompt
+
+refiner가 이미지를 다시 그릴때 사용하는 negative prompt를 지정합니다.
+
+#### Sampling method
+
+refiner가 사용할 sampler를 지정할 수 있습니다.   
+(Euler A 권장)
+
+#### Upscaler
+
+refiner가 이미지를 resize하는 경우 사용할 upscaler를 지정합니다.
+
+#### Refiner sampling steps
+
+refiner가 사용할 samping steps를 지정합니다.   
+(권장 20)
+
+#### Refiner CFG scale
+
+refiner가 사용할 CFG scale 값을 지정합니다.
+dynamic threshold는 지원하지 않습니다.
+
+#### Refiner denoising strength
+
+refiner가 사용할 denoising strength를 지정합니다.   
+(권장 0.4)
+
+#### Refiner scale
+
+refiner가 주어진 이미지를 scale 값으로 resize합니다.
+만약 refiner width, refiner height가 설정되어있다면 무시됩니다.
+
+#### Refiner width
+
+이미지 폭을 해당 값으로 강제로 설정합니다.
+
+#### Refiner height
+
+이미지 높이를 해당 값으로 강제로 설정합니다.
+
+
+
+
+
+
+## Edge enhancemant
 
 이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.
 
