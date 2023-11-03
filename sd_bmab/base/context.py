@@ -1,5 +1,5 @@
 from modules import shared
-from modules.processing import StableDiffusionProcessingTxt2Img
+from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 
 
 class Context(object):
@@ -66,3 +66,5 @@ class Context(object):
 		shared.state.sampling_step = 0
 		shared.state.current_image_sampling_step = 0
 
+	def is_img2img(self):
+		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)

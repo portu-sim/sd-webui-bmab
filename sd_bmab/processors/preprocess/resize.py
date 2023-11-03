@@ -9,25 +9,23 @@ from sd_bmab import constants, util
 from sd_bmab.util import debug_print
 
 
-class IntermidiateResize(ProcessorBase):
+class ResizeIntermidiate(ProcessorBase):
 	def __init__(self) -> None:
 		super().__init__()
 		self.enabled = False
 		self.resize_by_person_opt = None
-		self.mode = constants.resize_mode_default
 		self.value = 0
 
 	def preprocess(self, context: Context, image: Image):
-		self.enabled = context.args.get('resize_by_person_enabled', False)
-		self.resize_by_person_opt = context.args.get('module_config', {}).get('resize_by_person_opt', {})
-		self.mode = self.resize_by_person_opt.get('mode', self.mode)
+		self.enabled = context.args.get('resize_intermediate_enabled', False)
+		self.resize_by_person_opt = context.args.get('module_config', {}).get('resize_intermediate_opt', {})
 		self.value = self.resize_by_person_opt.get('scale', self.value)
 
 		if not self.enabled:
 			return False
-		if 0.79 > self.value >= 1.0:
+		if 0.5 > self.value >= 1.0:
 			return False
-		return self.enabled and self.mode == 'Intermediate'
+		return self.enabled
 
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB process_resize_by_person', self.value)

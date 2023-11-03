@@ -8,8 +8,6 @@ from modules import images
 from sd_bmab import constants
 from sd_bmab.util import debug_print
 from sd_bmab.base import process_img2img, Context, ProcessorBase
-from sd_bmab.processors.resize import IntermidiateResize
-from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
 from sd_bmab.processors.controlnet import LineartNoise
 
 
@@ -21,27 +19,6 @@ def change_model(name):
 		debug_print(f'Unknown model: {name}')
 		return
 	sd_models.reload_model_weights(shared.sd_model, info)
-
-
-def process_intermediate_step2(context, image):
-	all_processors = [
-		EdgeEnhancement(),
-		IntermidiateResize(),
-		Img2imgMasking(),
-		NoiseAlpha(),
-	]
-
-	processed = image.copy()
-
-	for proc in all_processors:
-		result = proc.preprocess(context, processed)
-		if result is None or not result:
-			continue
-		ret = proc.process(context, processed)
-		proc.postprocess(context, processed)
-		processed = ret
-
-	return processed
 
 
 class Refiner(ProcessorBase):
@@ -111,9 +88,6 @@ class Refiner(ProcessorBase):
 					image = image.resize((output_width, output_height), resample=LANCZOS)
 				else:
 					image = images.resize_image(0, image, output_width, output_height, self.upscaler)
-
-		if not context.is_hires_fix():
-			image = process_intermediate_step2(context, image)
 
 		if self.prompt == '':
 			self.prompt = context.get_prompt_by_index()

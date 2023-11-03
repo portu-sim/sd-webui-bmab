@@ -49,6 +49,9 @@ def install_groundingdino():
                 '3.10-2.0.1-11.8': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl',
                 '3.11-2.0.1-11.7': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu117-cp311-cp311-linux_x86_64.whl',
                 '3.11-2.0.1-11.8': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp311-cp311-linux_x86_64.whl',
+                '3.10-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp310-cp310-manylinux_2_34_x86_64.whl',
+                '3.11-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp311-cp311-manylinux_2_34_x86_64.whl',
+                '3.9-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp39-cp39-manylinux_2_34_x86_64.whl'
             }
         },
         'Windows': {
@@ -57,6 +60,9 @@ def install_groundingdino():
                 '3.10-2.0.1-11.8': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-win_amd64.whl',
                 '3.11-2.0.1-11.7': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu117-cp311-cp311-win_amd64.whl',
                 '3.11-2.0.1-11.8': '0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp311-cp311-win_amd64.whl',
+                '3.10-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp310-cp310-win_amd64.whl',
+                '3.11-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp311-cp311-win_amd64.whl',
+                '3.9-2.1.0-12.1': 'v23.9.27/groundingdino-23.9.27+torch2.1.0.cu121-cp39-cp39-win_amd64.whl'
             }
         }
     }

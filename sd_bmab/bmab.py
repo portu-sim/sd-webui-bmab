@@ -7,18 +7,19 @@ from modules import script_callbacks
 from modules import processing
 from modules import img2img
 from modules import sd_models
+from modules import ui_components
 
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
 from sd_bmab.util import debug_print
 
-
 from sd_bmab import processors
 from sd_bmab import detectors
 from sd_bmab import masking
+from sd_bmab.processors import interprocess
 
 
-bmab_version = 'v23.11.03.0'
+bmab_version = 'v23.11.04.0'
 
 
 class PreventControlNet:
@@ -104,8 +105,8 @@ class BmabExtScript(scripts.Script):
 			return
 
 		ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
-		processors.process_hiresfix(ctx)
-		processors.process_img2img(ctx)
+		interprocess.process_hiresfix(ctx)
+		interprocess.process_img2img(ctx)
 		processors.process_controlnet(ctx)
 
 	def postprocess_image(self, p, pp, *args):
@@ -138,16 +139,19 @@ class BmabExtScript(scripts.Script):
 				return self
 		elem = ListOv()
 		with gr.Group():
-			elem += gr.Checkbox(label=f'Enable BMAB {bmab_version}', value=False)
+			elem += gr.Checkbox(label=f'Enable BMAB', value=False)
 			with gr.Accordion(f'BMAB Preprocessor', open=False):
 				with gr.Row():
 					with gr.Tab('Pretraining', id='bmab_pretraining', elem_id='bmab_pretraining_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable pretraining detailer (EXPERIMENTAL)', value=False)
 						with gr.Column(min_width=100):
-							models = ['Select Model']
-							models.extend(util.list_pretraining_models())
-							elem += gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
+							with gr.Row():
+								models = ['Select Model']
+								models.extend(util.list_pretraining_models())
+								pretraining_models = gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
+								elem += pretraining_models
+								refresh_pretraining_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Row():
 							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Pretraining prompt')
 						with gr.Row():
@@ -164,16 +168,35 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Pretraining denoising Strength', elem_id='bmab_pretraining_denoising')
 								elem += gr.Slider(minimum=0, maximum=128, value=4, step=1, label='Pretraining dilation', elem_id='bmab_pretraining_dilation')
 								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Pretraining box threshold', elem_id='bmab_pretraining_box_threshold')
-
+					with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable edge enhancement', value=False)
+						with gr.Row():
+							elem += gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
+							elem += gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
+							gr.Markdown('')
+					with gr.Tab('Resize', elem_id='bmab_preprocess_resize_tab'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable resize by person (intermediate)', value=False)
+						with gr.Row():
+							gr.Markdown('<span style="color: gray">txt2img --<span style="color: green">resize</span>--> hires.fix --> BMAB Preprocess --> BMAB<br>txt2img --<span style="color: green">resize</span>--> BMAB Preprocess --> BMAB</span>')
+						with gr.Row():
+							with gr.Column():
+								elem += gr.Slider(minimum=0.50, maximum=0.95, value=0.85, step=0.01, label='Resize by person intermediate')
 					with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)
 						with gr.Row():
-							with gr.Column(min_width=100):
-								checkpoints = [constants.checkpoint_default]
-								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-								elem += gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
-							with gr.Column(min_width=100):
+							with gr.Column():
+								with gr.Row():
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									refiner_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+									elem += refiner_models
+									refresh_refiner_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+							with gr.Column():
 								gr.Markdown('')
 						with gr.Row():
 							elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
@@ -214,15 +237,6 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
-						with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
-							with gr.Row():
-								elem += gr.Checkbox(label='Enable edge enhancement', value=False)
-							with gr.Row():
-								elem += gr.Slider(minimum=1, maximum=255, value=50, step=1, label='Edge low threshold')
-								elem += gr.Slider(minimum=1, maximum=255, value=200, step=1, label='Edge high threshold')
-							with gr.Row():
-								elem += gr.Slider(minimum=0, maximum=1, value=0.5, step=0.05, label='Edge strength')
-								gr.Markdown('')
 						with gr.Tab('Imaging', elem_id='bmab_imaging_tabs'):
 							with gr.Row():
 								elem += gr.Image(source='upload', type='pil')
@@ -377,11 +391,11 @@ class BmabExtScript(scripts.Script):
 					with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable resize by person', value=False)
-							mode = [constants.resize_mode_default, 'Inpaint', 'ControlNet inpaint+lama']
+							mode = ['Inpaint', 'ControlNet inpaint+lama']
 							elem += gr.Dropdown(label='Mode', visible=True, value=mode[0], choices=mode)
 						with gr.Row():
 							with gr.Column():
-								elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
+								elem += gr.Slider(minimum=0.70, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
 							with gr.Column():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.6, step=0.01, label='Denoising Strength for Inpaint, ControlNet')
 						with gr.Row():
@@ -407,20 +421,15 @@ class BmabExtScript(scripts.Script):
 					config = '' if not configs else configs[0]
 					with gr.Tab('Configuration', elem_id='bmab_configuration_tabs'):
 						with gr.Row():
-							with gr.Column(min_width=100):
-								config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
-								elem += config_dd
-							with gr.Column(min_width=100):
+							with gr.Column(scale=2):
+								with gr.Row():
+									config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
+									elem += config_dd
+									load_btn = ui_components.ToolButton('⬇️', visible=True, interactive=True, tooltip='load configuration', elem_id='bmab_load_configuration')
+									save_btn = ui_components.ToolButton('⬆️', visible=True, interactive=True, tooltip='save configuration', elem_id='bmab_save_configuration')
+									reset_btn = ui_components.ToolButton('🔃', visible=True, interactive=True, tooltip='reset to default', elem_id='bmab_reset_configuration')
+							with gr.Column(scale=1):
 								gr.Markdown('')
-							with gr.Column(min_width=100):
-								gr.Markdown('')
-						with gr.Row():
-							with gr.Column(min_width=100):
-								load_btn = gr.Button('Load', visible=True, interactive=True)
-							with gr.Column(min_width=100):
-								save_btn = gr.Button('Save', visible=True, interactive=True)
-							with gr.Column(min_width=100):
-								reset_btn = gr.Button('Reset', visible=True, interactive=True)
 					with gr.Tab('Preset', elem_id='bmab_configuration_tabs'):
 						with gr.Row():
 							with gr.Column(min_width=100):
@@ -428,9 +437,11 @@ class BmabExtScript(scripts.Script):
 						with gr.Row():
 							presets = parameters.Parameters().list_preset()
 							with gr.Column(min_width=100):
-								preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
-								elem += preset_dd
-								refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
+								with gr.Row():
+									preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
+									elem += preset_dd
+									refresh_btn = ui_components.ToolButton('🔄', visible=True, interactive=True, tooltip='refresh preset', elem_id='bmab_preset_refresh')
+			gr.Markdown(f'<div style="text-align: right; vertical-align: bottom">{bmab_version}</div>')
 
 			def load_config(*args):
 				name = args[0]
@@ -460,10 +471,38 @@ class BmabExtScript(scripts.Script):
 					}
 				}
 
+			def hit_refiner_model(value, *args):
+				checkpoints = [constants.checkpoint_default]
+				checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+				if value not in checkpoints:
+					value = checkpoints[0]
+				return {
+					refiner_models: {
+						'choices': checkpoints,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
+			def hit_pretraining_model(value, *args):
+				models = ['Select Model']
+				models.extend(util.list_pretraining_models())
+				if value not in models:
+					value = models[0]
+				return {
+					pretraining_models: {
+						'choices': models,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
 			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 			reset_btn.click(reset_config, outputs=elem)
 			refresh_btn.click(refresh_preset, outputs=elem)
+			refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
+			refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
 
 		return elem
 
