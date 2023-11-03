@@ -17,6 +17,8 @@ class Parameters(object):
 			('module_config.pretraining_opt.steps', 20),
 			('module_config.pretraining_opt.cfg_scale', 7),
 			('module_config.pretraining_opt.denoising_strength', 0.75),
+			('module_config.pretraining_opt.dilation', 4),
+			('module_config.pretraining_opt.box_threshold', 0.35),
 			('refiner_enabled', False),
 			('module_config.refiner_opt.checkpoint', constants.checkpoint_default),
 			('module_config.refiner_opt.keep_checkpoint', True),

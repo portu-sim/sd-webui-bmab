@@ -159,9 +159,12 @@ class BmabExtScript(scripts.Script):
 								elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
 						with gr.Row():
 							with gr.Column(min_width=100):
-								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Pretraining Sampling Steps', elem_id='bmab_pretraining_steps')
-								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Pretraining CFG Scale', elem_id='bmab_pretraining_cfg_scale')
-								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Pretraining Denoising Strength', elem_id='bmab_pretraining_denoising')
+								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Pretraining sampling steps', elem_id='bmab_pretraining_steps')
+								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Pretraining CFG scale', elem_id='bmab_pretraining_cfg_scale')
+								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Pretraining denoising Strength', elem_id='bmab_pretraining_denoising')
+								elem += gr.Slider(minimum=0, maximum=128, value=4, step=1, label='Pretraining dilation', elem_id='bmab_pretraining_dilation')
+								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Pretraining box threshold', elem_id='bmab_pretraining_box_threshold')
+
 					with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)

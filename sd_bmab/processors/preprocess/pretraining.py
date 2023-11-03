@@ -6,15 +6,11 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
 
-from modules import shared
 from modules import devices
-from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import constants, util
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
-
 from sd_bmab.util import debug_print
-from sd_bmab.detectors.detector import get_detector
 
 
 class PretrainingDetailer(ProcessorBase):
@@ -63,7 +59,7 @@ class PretrainingDetailer(ProcessorBase):
 		self.steps = self.pretraining_opt.get('steps', self.steps)
 		self.cfg_scale = self.pretraining_opt.get('cfg_scale', self.cfg_scale)
 		self.denoising_strength = self.pretraining_opt.get('denoising_strength', self.denoising_strength)
-		self.confidence = self.pretraining_opt.get('confidence', 0.35)
+		self.confidence = self.pretraining_opt.get('box_threshold', 0.35)
 		self.dilation = self.pretraining_opt.get('dilation', self.dilation)
 
 		return self.enabled
