@@ -11,12 +11,14 @@ from modules import sd_models
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
 from sd_bmab.util import debug_print
+
+
 from sd_bmab import processors
 from sd_bmab import detectors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.10.29.0'
+bmab_version = 'v23.11.03.0'
 
 
 class PreventControlNet:
@@ -136,10 +138,66 @@ class BmabExtScript(scripts.Script):
 				return self
 		elem = ListOv()
 		with gr.Group():
-			with gr.Accordion(f'BMAB', open=False):
+			elem += gr.Checkbox(label=f'Enable BMAB {bmab_version}', value=False)
+			with gr.Accordion(f'BMAB Preprocessor', open=False):
 				with gr.Row():
-					with gr.Column():
-						elem += gr.Checkbox(label=f'Enabled {bmab_version}', value=False)
+					with gr.Tab('Pretraining', id='bmab_pretraining', elem_id='bmab_pretraining_tabs'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable pretraining detailer (EXPERIMENTAL)', value=False)
+						with gr.Column(min_width=100):
+							models = ['Select Model']
+							models.extend(util.list_pretraining_models())
+							elem += gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Pretraining prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Pretraining negative prompt')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								asamplers = [constants.sampler_default]
+								asamplers.extend([x.name for x in shared.list_samplers()])
+								elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+						with gr.Row():
+							with gr.Column(min_width=100):
+								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Pretraining Sampling Steps', elem_id='bmab_pretraining_steps')
+								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Pretraining CFG Scale', elem_id='bmab_pretraining_cfg_scale')
+								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Pretraining Denoising Strength', elem_id='bmab_pretraining_denoising')
+					with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)
+						with gr.Row():
+							with gr.Column(min_width=100):
+								checkpoints = [constants.checkpoint_default]
+								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+								elem += gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+							with gr.Column(min_width=100):
+								gr.Markdown('')
+						with gr.Row():
+							elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								asamplers = [constants.sampler_default]
+								asamplers.extend([x.name for x in shared.list_samplers()])
+								elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+							with gr.Column(min_width=100):
+								upscalers = [constants.fast_upscaler]
+								upscalers.extend([x.name for x in shared.sd_upscalers])
+								elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+						with gr.Row():
+							with gr.Column(min_width=100):
+								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Refiner Sampling Steps', elem_id='bmab_refiner_steps')
+								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Refiner CFG Scale', elem_id='bmab_refiner_cfg_scale')
+								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Refiner Denoising Strength', elem_id='bmab_refiner_denoising')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								elem += gr.Slider(minimum=0, maximum=4, value=1, step=0.1, label='Refiner Scale', elem_id='bmab_refiner_scale')
+								elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
+								elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
+			with gr.Accordion(f'BMAB', open=False):
 				with gr.Row():
 					with gr.Tabs(elem_id='bmab_tabs'):
 						with gr.Tab('Basic', elem_id='bmab_basic_tabs'):
@@ -153,41 +211,6 @@ class BmabExtScript(scripts.Script):
 									elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
 									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
-						with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
-							with gr.Row():
-								elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)
-							with gr.Row():
-								with gr.Column(min_width=100):
-									checkpoints = [constants.checkpoint_default]
-									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-									elem += gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
-								with gr.Column(min_width=100):
-									gr.Markdown('')
-							with gr.Row():
-								elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-							with gr.Row():
-								with gr.Column(min_width=100):
-									asamplers = [constants.sampler_default]
-									asamplers.extend([x.name for x in shared.list_samplers()])
-									elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
-								with gr.Column(min_width=100):
-									upscalers = [constants.fast_upscaler]
-									upscalers.extend([x.name for x in shared.sd_upscalers])
-									elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
-							with gr.Row():
-								with gr.Column(min_width=100):
-									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Refiner Sampling Steps', elem_id='bmab_refiner_steps')
-									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Refiner CFG Scale', elem_id='bmab_refiner_cfg_scale')
-									elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Refiner Denoising Strength', elem_id='bmab_refiner_denoising')
-							with gr.Row():
-								with gr.Column(min_width=100):
-									elem += gr.Slider(minimum=0, maximum=4, value=1, step=0.1, label='Refiner Scale', elem_id='bmab_refiner_scale')
-									elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
-									elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
 						with gr.Tab('Edge', elem_id='bmab_edge_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable edge enhancement', value=False)
@@ -330,36 +353,6 @@ class BmabExtScript(scripts.Script):
 									gr.Markdown('')
 							with gr.Row():
 								elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
-						with gr.Tab('Resize', elem_id='bmab_resize_tabs'):
-							with gr.Row():
-								with gr.Tab('Resize by person', elem_id='bmab_resize1_tab'):
-									with gr.Row():
-										elem += gr.Checkbox(label='Enable resize by person', value=False)
-										mode = [constants.resize_mode_default, 'Inpaint', 'ControlNet inpaint+lama']
-										elem += gr.Dropdown(label='Mode', visible=True, value=mode[0], choices=mode)
-									with gr.Row():
-										with gr.Column():
-											elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
-										with gr.Column():
-											elem += gr.Slider(minimum=0, maximum=1, value=0.6, step=0.01, label='Denoising Strength for Inpaint, ControlNet')
-									with gr.Row():
-										with gr.Column():
-											gr.Markdown('')
-										with gr.Column():
-											elem += gr.Slider(minimum=4, maximum=128, value=30, step=1, label='Mask Dilation')
-							with gr.Row():
-								with gr.Tab('Upscale', elem_id='bmab_resize2_tab'):
-									with gr.Row():
-										with gr.Column(min_width=100):
-											elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
-											elem += gr.Checkbox(label='Detailing after upscale', value=True)
-										with gr.Column(min_width=100):
-											gr.Markdown('')
-									with gr.Row():
-										with gr.Column(min_width=100):
-											upscalers = [x.name for x in shared.sd_upscalers]
-											elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
-											elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
 						with gr.Tab('ControlNet', elem_id='bmab_controlnet_tabs'):
 							with gr.Row():
 								elem += gr.Checkbox(label='Enable ControlNet access', value=False)
@@ -376,37 +369,65 @@ class BmabExtScript(scripts.Script):
 											elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
 										with gr.Column():
 											gr.Markdown('')
-						with gr.Tab('Config', elem_id='bmab_config_tab'):
-							configs = parameters.Parameters().list_config()
-							config = '' if not configs else configs[0]
-							with gr.Row():
-								with gr.Tab('Configuration', elem_id='bmab_configuration_tabs'):
-									with gr.Row():
-										with gr.Column(min_width=100):
-											config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
-											elem += config_dd
-										with gr.Column(min_width=100):
-											gr.Markdown('')
-										with gr.Column(min_width=100):
-											gr.Markdown('')
-									with gr.Row():
-										with gr.Column(min_width=100):
-											load_btn = gr.Button('Load', visible=True, interactive=True)
-										with gr.Column(min_width=100):
-											save_btn = gr.Button('Save', visible=True, interactive=True)
-										with gr.Column(min_width=100):
-											reset_btn = gr.Button('Reset', visible=True, interactive=True)
-							with gr.Row():
-								with gr.Tab('Preset', elem_id='bmab_configuration_tabs'):
-									with gr.Row():
-										with gr.Column(min_width=100):
-											gr.Markdown('Preset Loader : preset override UI configuration.')
-									with gr.Row():
-										presets = parameters.Parameters().list_preset()
-										with gr.Column(min_width=100):
-											preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
-											elem += preset_dd
-											refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
+			with gr.Accordion(f'BMAB Postprocessor', open=False):
+				with gr.Row():
+					with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable resize by person', value=False)
+							mode = [constants.resize_mode_default, 'Inpaint', 'ControlNet inpaint+lama']
+							elem += gr.Dropdown(label='Mode', visible=True, value=mode[0], choices=mode)
+						with gr.Row():
+							with gr.Column():
+								elem += gr.Slider(minimum=0.80, maximum=0.95, value=0.85, step=0.01, label='Resize by person')
+							with gr.Column():
+								elem += gr.Slider(minimum=0, maximum=1, value=0.6, step=0.01, label='Denoising Strength for Inpaint, ControlNet')
+						with gr.Row():
+							with gr.Column():
+								gr.Markdown('')
+							with gr.Column():
+								elem += gr.Slider(minimum=4, maximum=128, value=30, step=1, label='Mask Dilation')
+					with gr.Tab('Upscale', elem_id='bmab_postprocess_upscale_tab'):
+						with gr.Row():
+							with gr.Column(min_width=100):
+								elem += gr.Checkbox(label='Enable upscale at final stage', value=False)
+								elem += gr.Checkbox(label='Detailing after upscale', value=True)
+							with gr.Column(min_width=100):
+								gr.Markdown('')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								upscalers = [x.name for x in shared.sd_upscalers]
+								elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+								elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
+			with gr.Accordion(f'BMAB Config & Preset', open=False):
+				with gr.Row():
+					configs = parameters.Parameters().list_config()
+					config = '' if not configs else configs[0]
+					with gr.Tab('Configuration', elem_id='bmab_configuration_tabs'):
+						with gr.Row():
+							with gr.Column(min_width=100):
+								config_dd = gr.Dropdown(label='Configuration', visible=True, interactive=True, allow_custom_value=True, value=config, choices=configs)
+								elem += config_dd
+							with gr.Column(min_width=100):
+								gr.Markdown('')
+							with gr.Column(min_width=100):
+								gr.Markdown('')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								load_btn = gr.Button('Load', visible=True, interactive=True)
+							with gr.Column(min_width=100):
+								save_btn = gr.Button('Save', visible=True, interactive=True)
+							with gr.Column(min_width=100):
+								reset_btn = gr.Button('Reset', visible=True, interactive=True)
+					with gr.Tab('Preset', elem_id='bmab_configuration_tabs'):
+						with gr.Row():
+							with gr.Column(min_width=100):
+								gr.Markdown('Preset Loader : preset override UI configuration.')
+						with gr.Row():
+							presets = parameters.Parameters().list_preset()
+							with gr.Column(min_width=100):
+								preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
+								elem += preset_dd
+								refresh_btn = gr.Button('Refresh', visible=True, interactive=True)
 
 			def load_config(*args):
 				name = args[0]
@@ -465,5 +486,3 @@ def on_ui_settings():
 
 
 script_callbacks.on_ui_settings(on_ui_settings)
-
-

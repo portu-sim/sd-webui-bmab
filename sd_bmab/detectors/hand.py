@@ -62,7 +62,7 @@ class UltralyticsHandDetector(HandDetector):
 			pred = model(image, conf=self.confidence, device='')
 			boxes = pred[0].boxes.xyxy.cpu().numpy()
 			boxes = boxes.tolist()
-			confs.append(float(pred[0].boxes.conf))
+			confs = pred[0].boxes.conf.tolist()
 		except:
 			pass
 		torch.load = load

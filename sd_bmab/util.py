@@ -247,3 +247,14 @@ def lazy_loader(filename):
 	if filename in targets and filename not in files:
 		load_file_from_url(targets[filename], bmab_model_path)
 	return os.path.join(bmab_model_path, filename)
+
+
+def list_pretraining_models():
+	bmab_model_path = os.path.join(models_path, "bmab")
+	files = glob.glob(os.path.join(bmab_model_path, '*.pt'))
+	return [os.path.basename(f) for f in files]
+
+
+def load_pretraining_model(filename):
+	bmab_model_path = os.path.join(models_path, "bmab")
+	return os.path.join(bmab_model_path, filename)

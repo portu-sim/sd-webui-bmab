@@ -155,6 +155,8 @@ class Refiner(ProcessorBase):
 			do_not_save_samples=True,
 			do_not_save_grid=True,
 		)
+		context.add_job()
+
 		if LineartNoise.with_refiner(context):
 			image = process_img2img(context.sdprocessing, image, options=options, use_cn=True, callback=self.process_callback, callback_args=[self, context])
 		else:
@@ -180,17 +182,18 @@ class Refiner(ProcessorBase):
 
 
 class RefinerRollbackModel(ProcessorBase):
-	def __init__(self, refiner) -> None:
+	def __init__(self) -> None:
 		super().__init__()
-		self.refiner = refiner
 
 	def preprocess(self, context: Context, image: Image):
-		return self.refiner.keep_checkpoint
+		if context.refiner is None:
+			return False
+		return context.refiner.keep_checkpoint
 
 	def process(self, context: Context, image: Image):
 		debug_print('Rollback model')
-		if self.refiner.base_sd_model is not None:
-			change_model(self.refiner.base_sd_model)
+		if context.refiner.base_sd_model is not None:
+			change_model(context.refiner.base_sd_model)
 		return image
 
 	def postprocess(self, context: Context, image: Image):

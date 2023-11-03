@@ -1,6 +1,7 @@
 from modules import shared
 from modules.processing import StableDiffusionProcessingTxt2Img
 
+
 class Context(object):
 	def __init__(self, s, p, a, idx, hiresfix=False) -> None:
 		super().__init__()
@@ -59,3 +60,9 @@ class Context(object):
 		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:
 			return True
 		return False
+
+	def add_job(self):
+		shared.state.job_count += 1
+		shared.state.sampling_step = 0
+		shared.state.current_image_sampling_step = 0
+
