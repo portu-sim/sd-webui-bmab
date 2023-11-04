@@ -1,8 +1,6 @@
 from PIL import Image
 
-from modules import shared
 from modules import devices
-from modules import sd_models
 from modules import images
 
 from sd_bmab import constants
@@ -11,17 +9,7 @@ from sd_bmab.base import process_img2img, Context, ProcessorBase
 from sd_bmab.processors.controlnet import LineartNoise
 
 
-def change_model(name):
-	if name is None:
-		return
-	info = sd_models.get_closet_checkpoint_match(name)
-	if info is None:
-		debug_print(f'Unknown model: {name}')
-		return
-	sd_models.reload_model_weights(shared.sd_model, info)
-
-
-class Refiner(ProcessorBase):
+class RefinerPreprocessor(ProcessorBase):
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -39,8 +27,6 @@ class Refiner(ProcessorBase):
 		self.scale = 1
 		self.width = 0
 		self.height = 0
-
-		self.base_sd_model = None
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['refiner_enabled']
@@ -67,9 +53,7 @@ class Refiner(ProcessorBase):
 	def process(self, context: Context, image: Image):
 
 		if self.checkpoint != constants.checkpoint_default:
-			self.base_sd_model = shared.opts.data['sd_model_checkpoint']
-			debug_print('base sd model', self.base_sd_model)
-			change_model(self.checkpoint)
+			context.save_and_apply_checkpoint(self.checkpoint, None)
 
 		output_width = image.width
 		output_height = image.height
@@ -136,9 +120,9 @@ class Refiner(ProcessorBase):
 		else:
 			image = process_img2img(context.sdprocessing, image, options=options)
 
-		if not self.keep_checkpoint and self.base_sd_model is not None:
+		if not self.keep_checkpoint:
 			debug_print('Rollback model')
-			change_model(self.base_sd_model)
+			context.restore_checkpoint()
 
 		return image
 
@@ -153,22 +137,3 @@ class Refiner(ProcessorBase):
 
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()
-
-
-class RefinerRollbackModel(ProcessorBase):
-	def __init__(self) -> None:
-		super().__init__()
-
-	def preprocess(self, context: Context, image: Image):
-		if context.refiner is None:
-			return False
-		return context.refiner.keep_checkpoint
-
-	def process(self, context: Context, image: Image):
-		debug_print('Rollback model')
-		if context.refiner.base_sd_model is not None:
-			change_model(context.refiner.base_sd_model)
-		return image
-
-	def postprocess(self, context: Context, image: Image):
-		pass

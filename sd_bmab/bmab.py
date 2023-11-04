@@ -7,6 +7,7 @@ from modules import script_callbacks
 from modules import processing
 from modules import img2img
 from modules import sd_models
+from modules import sd_vae
 from modules import ui_components
 
 from sd_bmab import parameters, util, constants
@@ -19,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.processors import interprocess
 
 
-bmab_version = 'v23.11.04.0'
+bmab_version = 'v23.11.05.0'
 
 
 class PreventControlNet:
@@ -142,6 +143,63 @@ class BmabExtScript(scripts.Script):
 			elem += gr.Checkbox(label=f'Enable BMAB', value=False)
 			with gr.Accordion(f'BMAB Preprocessor', open=False):
 				with gr.Row():
+					with gr.Tab('Checkpoint', id='bmab_checkpoint', elem_id='bmab_checkpoint_tabs'):
+						with gr.Row():
+							with gr.Column():
+								with gr.Row():
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+									elem += checkpoint_models
+									refresh_checkpoint_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+							with gr.Column():
+								with gr.Row():
+									vaes = [constants.vae_default]
+									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+									checkpoint_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+									elem += checkpoint_vaes
+									refresh_checkpoint_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
+						with gr.Row():
+							elem += gr.Checkbox(label='Save image before processing', value=False)
+						with gr.Row():
+							with gr.Column():
+								with gr.Row():
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									resample_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+									elem += resample_models
+									refresh_resample_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+							with gr.Column():
+								with gr.Row():
+									vaes = [constants.vae_default]
+									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+									resample_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+									elem += resample_vaes
+									refresh_resample_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Resample prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Resample negative prompt')
+						with gr.Row():
+							with gr.Column(min_width=100):
+								asamplers = [constants.sampler_default]
+								asamplers.extend([x.name for x in shared.list_samplers()])
+								elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+							with gr.Column(min_width=100):
+								upscalers = [constants.fast_upscaler]
+								upscalers.extend([x.name for x in shared.sd_upscalers])
+								elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
+						with gr.Row():
+							with gr.Column(min_width=100):
+								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Resample Sampling Steps', elem_id='bmab_resample_steps')
+								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='Resample CFG Scale', elem_id='bmab_resample_cfg_scale')
+								elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Resample Denoising Strength', elem_id='bmab_resample_denoising')
+								elem += gr.Slider(minimum=0.0, maximum=2, value=0.5, step=0.05, label='Resample strength', elem_id='bmab_resample_cn_strength')
+								elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, label='Resample begin', elem_id='bmab_resample_cn_begin')
+								elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, label='Resample end', elem_id='bmab_resample_cn_end')
 					with gr.Tab('Pretraining', id='bmab_pretraining', elem_id='bmab_pretraining_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable pretraining detailer (EXPERIMENTAL)', value=False)
@@ -497,12 +555,68 @@ class BmabExtScript(scripts.Script):
 					}
 				}
 
+			def hit_resample_model(value, *args):
+				checkpoints = [constants.checkpoint_default]
+				checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+				if value not in checkpoints:
+					value = checkpoints[0]
+				return {
+					refresh_resample_models: {
+						'choices': checkpoints,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
+			def hit_resample_vae(value, *args):
+				vaes = [constants.vae_default]
+				vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+				if value not in vaes:
+					value = vaes[0]
+				return {
+					refresh_resample_vaes: {
+						'choices': vaes,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
+			def hit_checkpoint_model(value, *args):
+				checkpoints = [constants.checkpoint_default]
+				checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+				if value not in checkpoints:
+					value = checkpoints[0]
+				return {
+					refresh_checkpoint_models: {
+						'choices': checkpoints,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
+			def hit_checkpoint_vae(value, *args):
+				vaes = [constants.vae_default]
+				vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+				if value not in vaes:
+					value = vaes[0]
+				return {
+					refresh_checkpoint_vaes: {
+						'choices': vaes,
+						'value': value,
+						'__type__': 'update'
+					}
+				}
+
 			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 			reset_btn.click(reset_config, outputs=elem)
 			refresh_btn.click(refresh_preset, outputs=elem)
 			refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
 			refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
+			refresh_resample_models.click(hit_resample_model, inputs=[refresh_resample_models], outputs=[refresh_resample_models])
+			refresh_resample_vaes.click(hit_resample_vae, inputs=[refresh_resample_vaes], outputs=[refresh_resample_vaes])
+			refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[refresh_checkpoint_models], outputs=[refresh_checkpoint_models])
+			refresh_checkpoint_vaes.click(hit_checkpoint_vae, inputs=[refresh_checkpoint_vaes], outputs=[refresh_checkpoint_vaes])
 
 		return elem
 
@@ -525,6 +639,7 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_cn_openpose', shared.OptionInfo(default='control_v11p_sd15_openpose_fp16 [73c2b67d]', label='ControlNet openpose model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_lineart', shared.OptionInfo(default='control_v11p_sd15_lineart [43d4be0d]', label='ControlNet lineart model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_inpaint', shared.OptionInfo(default='control_v11p_sd15_inpaint_fp16 [be8bc0ed]', label='ControlNet inpaint model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_cn_tile_resample', shared.OptionInfo(default='control_v11u_sd15_tile_fp16 [39a89b25]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 
 
 script_callbacks.on_ui_settings(on_ui_settings)

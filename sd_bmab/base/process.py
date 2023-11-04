@@ -10,6 +10,7 @@ from modules.processing import process_images
 from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
+from sd_bmab import util
 from sd_bmab.util import debug_print
 
 
@@ -115,7 +116,7 @@ def process_img2img(p, img, options=None, use_cn=False, callback=None, callback_
 	return img
 
 
-def process_txt2img(s, p, a, options: dict):
+def process_txt2img(p, options=None, controlnet=None):
 	t2i_param = dict(
 		denoising_strength=0.4,
 		sd_model=p.sd_model,
@@ -142,20 +143,32 @@ def process_txt2img(s, p, a, options: dict):
 		do_not_save_samples=True,
 		do_not_save_grid=True,
 		override_settings={},
+		enable_hr=p.enable_hr,
+		hr_scale=p.hr_scale,
+		hr_resize_x=p.hr_resize_x,
+		hr_resize_y=p.hr_resize_y,
 	)
 	if options is not None:
 		t2i_param.update(options)
 
 	txt2img = StableDiffusionProcessingTxt2Img(**t2i_param)
-	txt2img.scripts = None
-	txt2img.script_args = None
+	txt2img.cached_c = [None, None]
+	txt2img.cached_uc = [None, None]
+
+	if controlnet is None:
+		txt2img.scripts, txt2img.script_args = apply_extensions(p, False)
+	else:
+		txt2img.scripts, txt2img.script_args = apply_extensions(p, True)
+		cn_args = util.get_cn_args(txt2img)
+		idx = cn_args[0]
+		sc_args = list(txt2img.script_args)
+		sc_args[idx] = controlnet
+		txt2img.script_args = sc_args
 
 	processed = process_images(txt2img)
-	debug_print('seeds', txt2img.seed)
-	debug_print('all seeds', txt2img.all_seeds)
 	img = processed.images[0]
 	devices.torch_gc()
-	return img, txt2img.all_seeds[0]
+	return img
 
 
 def masked_image(img, xyxy):

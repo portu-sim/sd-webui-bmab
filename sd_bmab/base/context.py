@@ -1,5 +1,10 @@
 from modules import shared
+from modules import sd_models
+from modules import sd_vae
+
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
+from sd_bmab.util import debug_print
+from sd_bmab import constants
 
 
 class Context(object):
@@ -13,6 +18,8 @@ class Context(object):
 		self.hiresfix = hiresfix
 		self.controlnet_count = 0
 		self.refiner = None
+		self.base_sd_model = None
+		self.base_vae = None
 
 	@staticmethod
 	def newContext(s, p, a, idx, **kwargs):
@@ -50,6 +57,9 @@ class Context(object):
 	def add_generation_param(self, key, value):
 		self.sdprocessing.extra_generation_params[key] = value
 
+	def add_extra_image(self, image):
+		self.script.extra_image.append(image)
+
 	def with_refiner(self):
 		return self.args.get('refiner_enabled', False)
 
@@ -68,3 +78,28 @@ class Context(object):
 
 	def is_img2img(self):
 		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)
+
+	def change_checkpoint(self, name, vae):
+		if name is None:
+			name = self.base_sd_model
+		if vae is not None and vae != constants.vae_default:
+			if self.base_vae is not None and vae != self.base_vae:
+				sd_vae.load_vae(vae)
+		if name is not None and name != constants.checkpoint_default:
+			info = sd_models.get_closet_checkpoint_match(name)
+			if info is None:
+				debug_print(f'Unknown model: {name}')
+			else:
+				sd_models.reload_model_weights(shared.sd_model, info)
+
+	def save_and_apply_checkpoint(self, checkpoint, vae):
+		if checkpoint is not None and self.base_sd_model is None:
+			self.base_sd_model = shared.opts.data['sd_model_checkpoint']
+		if vae is not None and self.base_vae is None:
+			self.base_vae = sd_vae.get_loaded_vae_name()
+		self.change_checkpoint(checkpoint, vae)
+
+	def restore_checkpoint(self):
+		self.change_checkpoint(self.base_sd_model, self.base_vae)
+		self.base_sd_model = None
+		self.base_vae = None

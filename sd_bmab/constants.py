@@ -1,4 +1,5 @@
 sampler_default = 'Use same sampler'
 resize_mode_default = 'Intermediate'
 checkpoint_default = 'Use same checkpoint'
+vae_default = 'Use same vae'
 fast_upscaler = 'BMAB fast'
