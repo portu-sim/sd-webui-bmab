@@ -63,15 +63,247 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 <img src="https://i.ibb.co/ZWMWVFB/00409-3188840002.png" width="40%">
 </p>
 
+<br>
+<br>
+<br>
 
-## 기본 기능
+# Preprocess
 
-* Contrast : 대비값 조절 (1이면 변경 없음)
-* Brightness : 밝기값 조절 (1이면 변경 없음)
-* Sharpeness : 날카롭게 처리하는 값 조절 (1이면 변경 없음)
-* Color Temperature : 색온도 조절, 6500K이 0 (0이면 변경 없음)
-* Noise alpha : 프로세스 전에 노이즈를 추가하여 디테일을 올릴 수 있습니다. (권장값:0.1)
-* Noise alpha at final stage : 최종 단계에서 노이즈를 추가하여 분위기를 다르게 전달할 수 있습니다.
+## Checkpoint
+
+BMAB에서 사용할 Checkpoint와 VAE를 지정합니다.   
+특정 기능들은 자체 Checkpoint와 VAE를 설정할 수 있습니다.   
+한 번 변경된 Checkpoint는 그 이후 프로세스들이 계속 사용합니다.
+
+<img src="https://i.ibb.co/cFyCHjT/checkpoint.png">
+
+
+
+## Resample (EXPERIMENTAL)
+
+Self resampling 기능입니다. txt2img -> hres.fix를 통해 생성된 이미지를 다시 txt2img -> hires.fix 과정을 수행하면서   
+ControlNet Tile Resample을 수행합니다. 아래와 같은 경우 사용할 수 있습니다.
+
+* 두 모델간에 결과물 차이가 큰 경우
+* 두 모델간에 인물 비율이 차이나는 경우
+* 두 모델간 버전이 다른 경우 (SDXL, SD15)
+
+<table>
+<tr>
+<td>txt2img->hires.fix</td>
+<td>Resample + BMAB Basic</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/VxPfgN0/00153-3939130001-before-resample.png"></td>
+<td><img src="https://i.ibb.co/XZ9gHHN/00154-3939130001.png"></td>
+</tr>
+</table>
+
+<img src="https://i.ibb.co/5hWtbmZ/e822842f656d73757ee65713317f7ba9d947472d3fe94fc3ceffc72aee31064d.jpg">
+[padapari instragram](https://www.instagram.com/_padapari_/)
+
+<br>
+<br>
+<br>
+<br>
+
+
+<img src="https://i.ibb.co/9hD81hd/resample.png">
+
+#### Enable self resample (EXPERIMENTAL)
+
+이 기능을 켜고 끌 수 있습니다.
+
+#### Save image before processing
+
+최초 txt2img -> hires.fix를 통해 생성된 이미지가 후 처리를 위해 BMAB로 입력되면,   
+해당 이미지를 프로세싱하기 전에 저장합니다. 이미지 postfix로 "-before-resample"이 붙습니다.
+
+#### Checkpoint
+
+SD Checkpoint를 지정할 수 있습니다. 지정하지 않는다면 앞에서 설정된 Checkpoint를 사용합니다.   
+프로세스가 완료되어도 원래 것으로 돌려놓지 않습니다.
+
+#### SD VAE
+
+SD VAE를 지정할 수 있습니다. 지정하지 않는다면 앞에서 설정된 VAE를 사용합니다.   
+프로세스가 완료되어도 원래 것으로 돌려놓지 않습니다.
+
+#### Resample prompt
+
+resampling 과정에서 사용할 prompt입니다. 비어있는 경우 main prompt와 동일하며,   
+"#!org!#" 를 입력하면 main prompt를 대체합니다. "#!org!#" 이후에 추가로 prompt를 적을 수 있습니다.
+ex) #!org!#, soft light, some more keyword
+
+#### Resample negative prompt
+
+resampling 과정에서 사용할 prompt입니다. 비어있는 경우 main negative prompt와 동일합니다.
+
+#### Sampling method
+
+프로세스에 사용할 sampling method를 지정합니다. 지정하지 않는다면 이전 프로세스와 같은 sampler를 지정합니다.
+
+#### Upsacler
+
+hires.fix를 사용하는 경우에 지정하는 upscaler입니다.
+
+#### Resample sampling steps
+
+resample process 사용할 samping steps를 지정합니다.   
+(권장 20)
+
+#### Resample CFG scale
+
+resample process 사용할 CFG scale 값을 지정합니다.
+dynamic threshold는 지원하지 않습니다.
+
+#### Resample denoising strength
+
+resample process가 사용할 denoising strength를 지정합니다.   
+(권장 0.4)
+
+#### Resample strength
+
+0에 가까운 값은 입력 이미지와 멀어지고, 1에 가까울 수록 원본 이미지와 유사합니다.
+
+#### Resample begin
+
+sampling 단계에 적용 시작점.
+
+#### Resample end
+
+sampling 단계 적용 종료 시점.
+
+
+
+
+
+
+
+
+## Pretraining (EXPERIMENTAL)
+
+Pretraining detailer입니다. ultralytics로 pretraining 모델을 적용하여 detection을 수행하고   
+이를 기반으로 prompt, negative prompt를 적용하여 부분적으로 이미지를 더 자세하게 그릴 수 있습니다.
+
+<img src="https://i.ibb.co/Qkx6rQK/pretraining.png"/>
+
+#### Enable pretraining detailer (EXPERIMENTAL)
+
+이 기능을 켜고 끌 수 있습니다.
+
+#### Pretraining model
+
+ultralytics 로 학습된 detection model (*.pt)를 지정할 수 있습니다.   
+stable-diffusion-webui/models/BMAB에 해당 파일이 있어야 목록에 나타납니다.
+
+
+#### Pretraining prompt
+
+pretraining detailer process 과정에서 사용할 prompt입니다. 비어있는 경우 main prompt와 동일하며,   
+"#!org!#" 를 입력하면 main prompt를 대체합니다. "#!org!#" 이후에 추가로 prompt를 적을 수 있습니다.
+ex) #!org!#, soft light, some more keyword
+
+#### Pretraining negative prompt
+
+pretraining detailer process 과정에서 사용할 prompt입니다. 비어있는 경우 main negative prompt와 동일합니다.
+
+#### Sampling method
+
+프로세스에 사용할 sampling method를 지정합니다. 지정하지 않는다면 이전 프로세스와 같은 sampler를 지정합니다.
+
+
+#### Pretraining sampling steps
+
+resample process 사용할 samping steps를 지정합니다.   
+(권장 20)
+
+#### Pretraining CFG scale
+
+resample process 사용할 CFG scale 값을 지정합니다.
+dynamic threshold는 지원하지 않습니다.
+
+#### Pretraining denoising strength
+
+resample process가 사용할 denoising strength를 지정합니다.   
+(권장 0.4)
+
+#### Pretraining dilation
+
+detection 된 사각형의 범위를 주어진 값 만큼 크기를 크게 합니다.
+
+#### Pretraining box threshold
+
+Detector의 검출 값을 결정합니다. 기본값 0.35보다 작으면 face가 아닐 것으로 제외합니다.   
+ultralytics predict의 confidence 값입니다.
+
+
+
+## Edge enhancemant
+
+이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.
+
+<img src="https://i.ibb.co/4sjB1Lr/edge.png">
+
+권장설정
+
+* Edge low threshold : 50
+* Edge high threshold : 200
+* Edge strength : 0.5
+
+<p>
+<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="40%">
+<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="40%">
+</p>
+
+Enabled : CHECK!!   
+
+Contrast : 1.2   
+Brightness : 0.9   
+Sharpeness : 1.5   
+
+Enable edge enhancement : CHECK!!   
+Edge low threshold : 50   
+Edge high threshold : 200   
+Edge strength : 0.5   
+
+
+
+
+## Resize
+
+txt2img -> hires.fix 의 중간 과정에서 동작합니다..   
+만약 img2img에서 사용한다면, 프로세스 시작 전에 동작합니다.
+
+그림 속 인물중 가장 신장이 큰 사람의 길이와 그림 높이의 비율이 설정값을 넘어가면 비율을 설정값로 맞추는 기능입니다.   
+설정값이 0.90이고 인물의 전체 길이: 그림 높이의 비율이 0.95라고 한다면   
+배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
+배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
+
+txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경합니다.   
+이 과정은 변경된 이미지가 hires.fix 과정에서 매끄럽게 변하게 하기 위한 것입니다.   
+**<span style="color: red">denoising strength는 0.6~0.7 정도를 사용하셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**
+
+#### Resize by person intermediate
+
+인물의 크기 비율을 나타냅니다. 이 값을 초과하면 이 크기가 되도록 배경을 확장시킵니다.
+
+
+
+<table>
+<tr>
+<td>Original</td>
+<td>Resize 0.7</td>
+<td>Resize 0.5</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/XttbBz0/00133-3615254454.png"></td>
+<td><img src="https://i.ibb.co/RS4tbZs/00135-3615254454.png"></td>
+<td><img src="https://i.ibb.co/mHHqBKk/00134-3615254454.png"></td>
+</tr>
+</table>
+
+
 
 ## Refiner (EXPERIMENTAL)
 
@@ -167,38 +399,21 @@ refiner가 주어진 이미지를 scale 값으로 resize합니다.
 
 이미지 높이를 해당 값으로 강제로 설정합니다.
 
+<br>
+<br>
+<br>
 
+# BMAB
 
+## 기본 기능
 
+* Contrast : 대비값 조절 (1이면 변경 없음)
+* Brightness : 밝기값 조절 (1이면 변경 없음)
+* Sharpeness : 날카롭게 처리하는 값 조절 (1이면 변경 없음)
+* Color Temperature : 색온도 조절, 6500K이 0 (0이면 변경 없음)
+* Noise alpha : 프로세스 전에 노이즈를 추가하여 디테일을 올릴 수 있습니다. (권장값:0.1)
+* Noise alpha at final stage : 최종 단계에서 노이즈를 추가하여 분위기를 다르게 전달할 수 있습니다.
 
-
-## Edge enhancemant
-
-이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.
-
-<img src="https://i.ibb.co/4sjB1Lr/edge.png">
-
-권장설정
-
-* Edge low threshold : 50
-* Edge high threshold : 200
-* Edge strength : 0.5
-
-<p>
-<img src="https://i.ibb.co/Wsw2Wrh/00598-1745587019.png" width="40%">
-<img src="https://i.ibb.co/z4nCW9Z/00600-1745587019.png" width="40%">
-</p>
-
-Enabled : CHECK!!   
-
-Contrast : 1.2   
-Brightness : 0.9   
-Sharpeness : 1.5   
-
-Enable edge enhancement : CHECK!!   
-Edge low threshold : 50   
-Edge high threshold : 200   
-Edge strength : 0.5   
 
 ## Imaging
 

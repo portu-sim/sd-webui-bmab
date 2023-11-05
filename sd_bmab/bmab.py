@@ -159,6 +159,8 @@ class BmabExtScript(scripts.Script):
 									checkpoint_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
 									elem += checkpoint_vaes
 									refresh_checkpoint_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+						with gr.Row():
+							gr.Markdown(constants.checkpoint_description)
 					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
