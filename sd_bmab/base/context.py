@@ -71,8 +71,8 @@ class Context(object):
 			return True
 		return False
 
-	def add_job(self):
-		shared.state.job_count += 1
+	def add_job(self, count=1):
+		shared.state.job_count += count
 		shared.state.sampling_step = 0
 		shared.state.current_image_sampling_step = 0
 

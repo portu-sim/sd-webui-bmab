@@ -125,7 +125,7 @@ class FaceDetailer(ProcessorBase):
 				candidate.append((value, box, logit))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
-		shared.state.job_count += min(self.limit, len(candidate))
+		context.add_job(min(self.limit, len(candidate)))
 
 		for idx, (size, box, logit) in enumerate(candidate):
 			if self.limit != 0 and idx >= self.limit:

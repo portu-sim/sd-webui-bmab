@@ -64,7 +64,7 @@ class PersonDetailer(ProcessorBase):
 		i2i_config = self.parameters
 		debug_print(f'Max element {self.max_element}')
 
-		shared.state.job_count += min(self.limit, len(boxes))
+		context.add_job(min(self.limit, len(boxes)))
 
 		processed = []
 		for idx, (box, logit) in enumerate(zip(boxes, logits)):

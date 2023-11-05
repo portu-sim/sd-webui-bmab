@@ -224,7 +224,7 @@ class HandDetailer(ProcessorBase):
 					dr.rectangle(b, fill=255)
 			options = dict(mask=mask)
 			options.update(self.hand_detailing)
-			shared.state.job_count += 1
+			context.add_job()
 			with VAEMethodOverride():
 				image = process_img2img(context.sdprocessing, image, options=options)
 		elif self.detailing_method == 'each hand' or self.detailing_method == 'inpaint each hand':
