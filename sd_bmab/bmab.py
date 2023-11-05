@@ -1,3 +1,5 @@
+import random
+
 import gradio as gr
 from copy import copy
 
@@ -9,6 +11,7 @@ from modules import img2img
 from modules import sd_models
 from modules import sd_vae
 from modules import ui_components
+from modules import extras
 
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
@@ -501,6 +504,11 @@ class BmabExtScript(scripts.Script):
 									preset_dd = gr.Dropdown(label='Preset', visible=True, interactive=True, allow_custom_value=True, value=presets[0], choices=presets)
 									elem += preset_dd
 									refresh_btn = ui_components.ToolButton('🔄', visible=True, interactive=True, tooltip='refresh preset', elem_id='bmab_preset_refresh')
+					with gr.Tab('Toy', elem_id='bmab_toy_tabs'):
+						with gr.Row():
+							merge_result = gr.Markdown('Result here')
+						with gr.Row():
+							random_checkpoint = gr.Button('Merge Random Checkpoint', visible=True, interactive=True, elem_id='bmab_merge_random_checkpoint')
 			gr.Markdown(f'<div style="text-align: right; vertical-align: bottom">{bmab_version}</div>')
 
 			def load_config(*args):
@@ -609,6 +617,39 @@ class BmabExtScript(scripts.Script):
 					}
 				}
 
+			def merge_random_checkpoint(*args):
+				def find_random(k, f):
+					for v in k:
+						if v.startswith(f):
+							return v
+
+				result = ''
+				checkpoints = [str(x) for x in sd_models.checkpoints_list.keys()]
+				target = random.choices(checkpoints, k=3)
+				multiplier = random.randrange(10, 90, 1) / 100
+				index = random.randrange(100, 900, 1)
+				output = f'bmab_random_{index}'
+				extras.run_modelmerger(None, target[0], target[1], target[2], 'Weighted sum', multiplier, False, output, 'safetensors', 0, None, '', True, True, True, '{}')
+				result += f'{output}.safetensors generated<br>'
+				for x in range(1, random.randrange(0, 5, 1)):
+					checkpoints = [str(x) for x in sd_models.checkpoints_list.keys()]
+					br = find_random(checkpoints, f'{output}.safetensors')
+					if br is None:
+						return
+					index = random.randrange(100, 900, 1)
+					output = f'bmab_random_{index}'
+					target = random.choices(checkpoints, k=2)
+					multiplier = random.randrange(10, 90, 1) / 100
+					extras.run_modelmerger(None, br, target[0], target[1], 'Weighted sum', multiplier, False, output, 'safetensors', 0, None, '', True, True, True, '{}')
+					result += f'{output}.safetensors generated<br>'
+				print('done')
+				return {
+					merge_result: {
+						'value': result,
+						'__type__': 'update'
+					}
+				}
+
 			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 			reset_btn.click(reset_config, outputs=elem)
@@ -619,6 +660,7 @@ class BmabExtScript(scripts.Script):
 			refresh_resample_vaes.click(hit_resample_vae, inputs=[refresh_resample_vaes], outputs=[refresh_resample_vaes])
 			refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[refresh_checkpoint_models], outputs=[refresh_checkpoint_models])
 			refresh_checkpoint_vaes.click(hit_checkpoint_vae, inputs=[refresh_checkpoint_vaes], outputs=[refresh_checkpoint_vaes])
+			random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
 
 		return elem
 
