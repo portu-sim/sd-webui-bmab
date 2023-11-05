@@ -282,7 +282,8 @@ txt2img -> hires.fix 의 중간 과정에서 동작합니다..
 
 txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경합니다.   
 이 과정은 변경된 이미지가 hires.fix 과정에서 매끄럽게 변하게 하기 위한 것입니다.   
-**<span style="color: red">denoising strength는 0.6~0.7 정도를 사용하셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**
+**<span style="color: red">denoising strength는 0.6~0.7 정도를 사용하셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**   
+**<span style="color: red">Upscaler가 Latent 계열인 경우 동작하지 않습니다. (R-ESRGAN, 4x-UltraSharp 추천)</span>**
 
 #### Resize by person intermediate
 
