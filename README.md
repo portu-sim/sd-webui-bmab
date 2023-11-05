@@ -591,13 +591,6 @@ Limit이 1이라면 최대 1개만 수행한다는 뜻입니다.
 Detector의 검출 값을 결정합니다. 기본값 0.35보다 작으면 face가 아닐 것으로 제외합니다.   
 YOLO를 사용하는 경우 confidence를 대체합니다.
 
-#### Face lighting (EXPERIMENTAL) -- 삭제됨
-
-~~얼굴에 대한 보정 설정을 enable 하는 경우에 얼굴에 대한 밝기를 조정합니다.~~   
-~~너무 큰 수치를 주면 정확한 디테일링이 되지 않을 수 있습니다.~~   
-~~모자를 착용하고 있는 경우 얼굴이 정확하게 인식이 안 될 수 있습니다.~~
-
-
 **좋은 결과를 얻기 위한 조언**
 
 * Prompt에 얼굴 관련된 lora, textual inversion등 관련 내용을 뺍니다. sunglass 등은 무관합니다.
@@ -684,6 +677,36 @@ each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 입�
 현재는 제공하지 않지만 향후 고급 사용자를 위한 옵션을 제공할 예정입니다.
 
 
+
+## Control Net (EXPERIMENTAL, NOW TESTING)
+
+ControlNet을 이용한 노이즈 추가기능이 테스트 중입니다.
+
+아래는 모두 같은 seed입니다.
+<table>
+<tr>
+<td>기본이미지</td>
+<td>0.4</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/ypRrwmN/00007-51151519.jpg"></td>
+<td><img src="https://i.ibb.co/j54HfHF/00009-51151519.jpg"></td>
+<td><img src="https://i.ibb.co/MsgCZS3/00008-51151519.jpg"></td>
+</tr>
+</table>
+
+
+
+
+
+
+<br>
+<br>
+<br>
+
+# PostProcessing
+
 ## Resize
 
 ### Resize by person
@@ -693,13 +716,7 @@ each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 입�
 배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
 배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
 
-이 기능은 3가지 방법을 제공하는데 다음과 같습니다.
-
-#### Intermediate
-
-txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경합니다.   
-이 과정은 변경된 이미지가 hires.fix 과정에서 매끄럽게 변하게 하기 위한 것입니다.   
-**<span style="color: red">denoising strength는 0.6 이상 주셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**
+이 기능은 2가지 방법을 제공하는데 다음과 같습니다.
 
 #### Inpaint
 
@@ -727,8 +744,12 @@ Inpaint와 같은 방법인데 BMAB에서 ControlNet을 불러서 Inpaint+lama�
 </tr>
 </table>
 
+## Upscaler
 
-### Enable upscale at final stage
+최종적으로 이미지가 완성되고 난 이후에 이미지를 upscaler를 이용하여 크게 만듭니다.
+
+
+#### Enable upscale at final stage
 
 이미지 생성이 완료되고 난 이후에 Upscale을 수행합니다.   
 960x540으로 생성하고 hires.fix를 x2로 하면 1920x1080 이미지가 나오는데   
@@ -741,26 +762,4 @@ Inpaint와 같은 방법인데 BMAB에서 ControlNet을 불러서 Inpaint+lama�
 #### Upscale Ratio
 
 이미지를 얼마나 upscale할지 결정합니다.
-
-
-## Control Net (EXPERIMENTAL, NOW TESTING)
-
-ControlNet을 이용한 노이즈 추가기능이 테스트 중입니다.
-
-아래는 모두 같은 seed입니다.
-<table>
-<tr>
-<td>기본이미지</td>
-<td>0.4</td>
-<td>0.7</td>
-</tr>
-<tr>
-<td><img src="https://i.ibb.co/ypRrwmN/00007-51151519.jpg"></td>
-<td><img src="https://i.ibb.co/j54HfHF/00009-51151519.jpg"></td>
-<td><img src="https://i.ibb.co/MsgCZS3/00008-51151519.jpg"></td>
-</tr>
-</table>
-
-
-
 
