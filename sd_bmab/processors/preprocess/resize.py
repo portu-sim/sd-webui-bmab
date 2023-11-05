@@ -5,8 +5,9 @@ from modules import shared
 from sd_bmab.base import dino
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
-from sd_bmab import constants, util
+from sd_bmab import util
 from sd_bmab.util import debug_print
+from sd_bmab.detectors import UltralyticsPersonDetector8n
 
 
 class ResizeIntermidiate(ProcessorBase):
@@ -29,9 +30,12 @@ class ResizeIntermidiate(ProcessorBase):
 
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB process_resize_by_person', self.value)
-		debug_print('prepare dino')
-		dino.dino_init()
-		boxes, logits, phrases = dino.dino_predict(image, 'person')
+		debug_print('prepare detector')
+		detector = UltralyticsPersonDetector8n()
+		boxes, logits = detector.predict(context, image)
+
+		debug_print('boxes', len(boxes))
+		debug_print('logits', len(logits))
 
 		org_size = image.size
 		debug_print('size', org_size)

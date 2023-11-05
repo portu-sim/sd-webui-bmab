@@ -7,6 +7,8 @@ from modules.processing import process_images, StableDiffusionProcessingImg2Img
 
 from sd_bmab import util
 from sd_bmab.base import apply_extensions, build_img2img, Context, ProcessorBase, dino
+from sd_bmab.util import debug_print
+from sd_bmab.detectors import UltralyticsPersonDetector8n
 
 
 class InpaintLamaResize(ProcessorBase):
@@ -52,10 +54,9 @@ class InpaintLamaResize(ProcessorBase):
 		p.extra_generation_params['BMAB process_resize_by_person'] = self.value
 
 		final_ratio = 1
-		dino.dino_init()
-		boxes, logits, phrases = dino.dino_predict(img, 'person')
-		if shared.opts.bmab_optimize_vram != 'None':
-			dino.release()
+		debug_print('prepare detector')
+		detector = UltralyticsPersonDetector8n()
+		boxes, logits = detector.predict(context, img)
 
 		largest = (0, None)
 		for box in boxes:

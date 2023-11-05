@@ -72,16 +72,16 @@ class UltralyticsPersonDetector(PersonDetector):
 class UltralyticsPersonDetector8n(UltralyticsPersonDetector):
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
-		self.model = 'person_yolov8n.pt'
+		self.model = 'person_yolov8n-seg.pt'
 
 
 class UltralyticsPersonDetector8m(UltralyticsPersonDetector):
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
-		self.model = 'person_yolov8m.pt'
+		self.model = 'person_yolov8m-seg.pt'
 
 
 class UltralyticsPersonDetector8s(UltralyticsPersonDetector):
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
-		self.model = 'person_yolov8s.pt'
+		self.model = 'person_yolov8s-seg.pt'

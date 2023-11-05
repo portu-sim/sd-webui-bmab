@@ -1,16 +1,14 @@
 from PIL import Image
 from PIL import ImageDraw
-from PIL import ImageFilter
 
-from modules import shared
 from modules import devices
 from modules.processing import process_images, StableDiffusionProcessingImg2Img
 
-from sd_bmab import constants, util
-from sd_bmab.base import apply_extensions, build_img2img, Context, ProcessorBase, VAEMethodOverride, dino
+from sd_bmab import util
+from sd_bmab.base import apply_extensions, build_img2img, Context, ProcessorBase
 
 from sd_bmab.util import debug_print
-from sd_bmab.detectors.detector import get_detector
+from sd_bmab.detectors import UltralyticsPersonDetector8n
 
 
 class InpaintResize(ProcessorBase):
@@ -33,12 +31,9 @@ class InpaintResize(ProcessorBase):
 		return enabled and self.mode == 'Inpaint'
 
 	def process(self, context: Context, image: Image):
-
-		debug_print('prepare dino')
-		dino.dino_init()
-		boxes, logits, phrases = dino.dino_predict(image, 'person')
-		if shared.opts.bmab_optimize_vram != 'None':
-			dino.release()
+		debug_print('prepare detector')
+		detector = UltralyticsPersonDetector8n()
+		boxes, logits = detector.predict(context, image)
 
 		org_size = image.size
 		debug_print('size', org_size)
