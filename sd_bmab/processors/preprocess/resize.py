@@ -47,7 +47,7 @@ class ResizeIntermidiate(ProcessorBase):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
 			'mask': util.b64_encoding(mask),
-			'module': 'inpaint_only+lama',
+			'module': 'inpaint_only',
 			'model': shared.opts.bmab_cn_inpaint,
 			'weight': 1,
 			"guidance_start": 0,
