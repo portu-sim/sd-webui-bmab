@@ -12,6 +12,7 @@ from sd_bmab.processors.preprocess import ResizeIntermidiate
 def process_intermediate_step1(context, image):
 	all_processors = [
 		FaceDetailer(),
+		ResizeIntermidiate(step=1),
 	]
 
 	processed = image.copy()
@@ -66,6 +67,7 @@ def process_hiresfix(ctx):
 	all_processors = [
 		FaceDetailer(),
 		EdgeEnhancement(),
+		ResizeIntermidiate(step=1),
 		ResizeIntermidiate(),
 		NoiseAlpha()
 	]

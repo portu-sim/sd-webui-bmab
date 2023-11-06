@@ -11,7 +11,7 @@ from sd_bmab.base import process_img2img, process_img2img_with_controlnet
 
 
 class ResizeIntermidiate(ProcessorBase):
-	def __init__(self) -> None:
+	def __init__(self, step=2) -> None:
 		super().__init__()
 		self.enabled = False
 		self.resize_by_person_opt = None
@@ -20,6 +20,8 @@ class ResizeIntermidiate(ProcessorBase):
 		self.alignment = 'bottom'
 		self.value = 0
 		self.denoising_strength = 0.75
+		self.step = step
+		debug_print('Step', self.step)
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args.get('resize_intermediate_enabled', False)
@@ -30,8 +32,13 @@ class ResizeIntermidiate(ProcessorBase):
 		self.alignment = self.resize_by_person_opt.get('alignment', self.alignment)
 		self.value = self.resize_by_person_opt.get('scale', self.value)
 		self.denoising_strength = self.resize_by_person_opt.get('denoising_strength', self.denoising_strength)
+		debug_print('Step', self.step, self.method)
 
 		if not self.enabled:
+			return False
+		if self.step == 1 and self.method == 'stretching':
+			return False
+		if self.step == 2 and self.method != 'stretching':
 			return False
 		if 0.5 > self.value >= 1.0:
 			return False
@@ -128,10 +135,11 @@ class ResizeIntermidiate(ProcessorBase):
 			)
 			context.add_job()
 			image = process_img2img(context.sdprocessing, stretching_image, options=options)
-			context.add_extra_image(image.copy())
 		elif self.method == 'inpaint+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
 			opt = dict(denoising_strength=self.denoising_strength)
+			debug_print('Stretching image size', stretching_image.size)
+			debug_print('Mask image size', mask.size)
 			cnarg = self.get_inpaint_lama_args(stretching_image, mask)
 			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		return image
