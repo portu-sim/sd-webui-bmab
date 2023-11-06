@@ -242,15 +242,25 @@ class BmabExtScript(scripts.Script):
 							gr.Markdown('')
 					with gr.Tab('Resize', elem_id='bmab_preprocess_resize_tab'):
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable resize by person (intermediate)', value=False)
+							elem += gr.Checkbox(label='Enable resize (intermediate)', value=False)
 						with gr.Row():
-							gr.Markdown('<span style="color: gray">txt2img --<span style="color: green">resize</span>--> hires.fix --> BMAB Preprocess --> BMAB<br>txt2img --<span style="color: green">resize</span>--> BMAB Preprocess --> BMAB</span>')
+							elem += gr.Checkbox(label='Resized by person', value=True)
+						with gr.Row():
+							gr.HTML(constants.resize_description)
 						with gr.Row():
 							with gr.Column():
-								elem += gr.Slider(minimum=0.50, maximum=0.95, value=0.85, step=0.01, label='Resize by person intermediate')
+								methods = ['stretching', 'inpaint', 'inpaint+lama']
+								elem += gr.Dropdown(label='Method', visible=True, value=methods[0], choices=methods)
+							with gr.Column():
+								align = [x for x in util.alignment.keys()]
+								elem += gr.Dropdown(label='Alignment', visible=True, value=align[4], choices=align)
+						with gr.Row():
+							elem += gr.Slider(minimum=0.50, maximum=0.95, value=0.85, step=0.01, label='Resize by person intermediate')
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1, value=0.75, step=0.01, label='Denoising Strength for inpaint and inpaint+lama', elem_id='bmab_resize_intermediate_denoising')
 					with gr.Tab('Refiner', id='bmab_refiner', elem_id='bmab_refiner_tabs'):
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable refiner (EXPERIMENTAL)', value=False)
+							elem += gr.Checkbox(label='Enable refiner', value=False)
 						with gr.Row():
 							with gr.Column():
 								with gr.Row():

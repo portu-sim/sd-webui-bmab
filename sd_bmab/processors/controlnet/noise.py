@@ -61,6 +61,10 @@ class LineartNoise(ProcessorBase):
 		}
 		return cn_args
 
+	def get_controlnet_args(self, context):
+		img = util.generate_noise(context.sdprocessing.width, context.sdprocessing.height)
+		return self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end)
+
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB_controlnet_option', util.dict_to_str(self.controlnet_opt))
 

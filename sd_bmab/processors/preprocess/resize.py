@@ -2,12 +2,12 @@ from PIL import Image
 
 from modules import shared
 
-from sd_bmab.base import dino
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
 from sd_bmab import util
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
+from sd_bmab.base import process_img2img, process_img2img_with_controlnet
 
 
 class ResizeIntermidiate(ProcessorBase):
@@ -15,12 +15,21 @@ class ResizeIntermidiate(ProcessorBase):
 		super().__init__()
 		self.enabled = False
 		self.resize_by_person_opt = None
+		self.resize_by_person = True
+		self.method = 'stretching'
+		self.alignment = 'bottom'
 		self.value = 0
+		self.denoising_strength = 0.75
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args.get('resize_intermediate_enabled', False)
 		self.resize_by_person_opt = context.args.get('module_config', {}).get('resize_intermediate_opt', {})
+
+		self.resize_by_person = self.resize_by_person_opt.get('resize_by_person', self.resize_by_person)
+		self.method = self.resize_by_person_opt.get('method', self.method)
+		self.alignment = self.resize_by_person_opt.get('alignment', self.alignment)
 		self.value = self.resize_by_person_opt.get('scale', self.value)
+		self.denoising_strength = self.resize_by_person_opt.get('denoising_strength', self.denoising_strength)
 
 		if not self.enabled:
 			return False
@@ -28,44 +37,103 @@ class ResizeIntermidiate(ProcessorBase):
 			return False
 		return self.enabled
 
+	@staticmethod
+	def get_inpaint_lama_args(image, mask):
+		cn_args = {
+			'input_image': util.b64_encoding(image),
+			'mask': util.b64_encoding(mask),
+			'module': 'inpaint_only+lama',
+			'model': shared.opts.bmab_cn_inpaint,
+			'weight': 1,
+			"guidance_start": 0,
+			"guidance_end": 1,
+			'resize mode': 'Resize and Fill',
+			'allow preview': False,
+			'pixel perfect': False,
+			'control mode': 'ControlNet is more important',
+			'processor_res': 512,
+			'threshold_a': 64,
+			'threshold_b': 64,
+		}
+		return cn_args
+
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB process_resize_by_person', self.value)
-		debug_print('prepare detector')
-		detector = UltralyticsPersonDetector8n()
-		boxes, logits = detector.predict(context, image)
-
-		debug_print('boxes', len(boxes))
-		debug_print('logits', len(logits))
-
 		org_size = image.size
-		debug_print('size', org_size)
 
-		largest = (0, None)
-		for box in boxes:
-			x1, y1, x2, y2 = box
-			size = (x2 - x1) * (y2 - y1)
-			if size > largest[0]:
-				largest = (size, box)
+		if self.resize_by_person:
+			debug_print('prepare detector')
+			detector = UltralyticsPersonDetector8n()
+			boxes, logits = detector.predict(context, image)
 
-		if largest[0] == 0:
-			return image
+			debug_print('boxes', len(boxes))
+			debug_print('logits', len(logits))
+			debug_print('alignment', self.alignment)
 
-		x1, y1, x2, y2 = largest[1]
-		ratio = (y2 - y1) / image.height
-		debug_print('ratio', ratio)
-		debug_print('org_size', org_size)
+			debug_print('size', org_size)
 
-		if ratio > self.value:
-			image_ratio = ratio / self.value
-			if image_ratio < 1.0:
+			largest = (0, None)
+			for box in boxes:
+				x1, y1, x2, y2 = box
+				size = (x2 - x1) * (y2 - y1)
+				if size > largest[0]:
+					largest = (size, box)
+
+			if largest[0] == 0:
 				return image
-			debug_print('image resize ratio', image_ratio)
-			image = util.resize_image(2, image, int(image.width * image_ratio), int(image.height * image_ratio))
-			image = image.resize(org_size, resample=util.LANCZOS)
-			context.add_generation_param('BMAB process_resize_by_person_ratio', '%.3s' % image_ratio)
 
-		if shared.opts.bmab_optimize_vram != 'None':
-			dino.release()
+			x1, y1, x2, y2 = largest[1]
+			ratio = (y2 - y1) / image.height
+			debug_print('ratio', ratio)
+			debug_print('org_size', org_size)
+			if ratio > self.value:
+				image_ratio = ratio / self.value
+				if image_ratio < 1.0:
+					return image
+			else:
+				return image
+		else:
+			image_ratio = 1 / self.value
+
+		context.add_generation_param('BMAB process_resize_by_person_ratio', '%.3s' % image_ratio)
+
+		debug_print('image resize ratio', image_ratio)
+		stretching_image = util.resize_image_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+
+		if self.method == 'stretching':
+			# image = util.resize_image(2, image, int(image.width * image_ratio), int(image.height * image_ratio))
+			debug_print('Stretching')
+			return stretching_image
+		elif self.method == 'inpaint':
+			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+			seed, subseed = context.get_seeds()
+			options = dict(
+				seed=seed, subseed=subseed,
+				denoising_strength=self.denoising_strength,
+				resize_mode=0,
+				mask=mask,
+				mask_blur=4,
+				inpainting_fill=1,
+				inpaint_full_res=True,
+				inpaint_full_res_padding=32,
+				inpainting_mask_invert=0,
+				initial_noise_multiplier=1.0,
+				prompt=context.get_prompt_by_index(),
+				negative_prompt=context.get_negative_prompt_by_index(),
+				batch_size=1,
+				n_iter=1,
+				restore_faces=False,
+				do_not_save_samples=True,
+				do_not_save_grid=True,
+			)
+			context.add_job()
+			image = process_img2img(context.sdprocessing, stretching_image, options=options)
+			context.add_extra_image(image.copy())
+		elif self.method == 'inpaint+lama':
+			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+			opt = dict(denoising_strength=self.denoising_strength)
+			cnarg = self.get_inpaint_lama_args(stretching_image, mask)
+			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		return image
 
 	def postprocess(self, context: Context, image: Image):

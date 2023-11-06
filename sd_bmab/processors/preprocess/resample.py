@@ -112,15 +112,6 @@ class ResamplePreprocessor(ProcessorBase):
 		result = process_txt2img(context.sdprocessing, options=options, controlnet=cn_op_arg)
 		return result
 
-	@staticmethod
-	def process_callback(self, context, img2img):
-		ctx = Context.newContext(self, img2img, context.args, 0)
-		ctx.resample = self
-		ln = LineartNoise()
-		if ln.preprocess(ctx, None):
-			ln.process(ctx, None)
-			ln.postprocess(ctx, None)
-
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()
 

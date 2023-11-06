@@ -54,7 +54,7 @@ class Context(object):
 			return self.sdprocessing.hr_upscale_to_x * self.sdprocessing.hr_upscale_to_y
 		return self.sdprocessing.width * self.sdprocessing.height
 
-	def add_generation_param(self, key, value):
+	def add_generation_param(self, key: object, value: object) -> object:
 		self.sdprocessing.extra_generation_params[key] = value
 
 	def add_extra_image(self, image):

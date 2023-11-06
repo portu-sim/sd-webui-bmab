@@ -5,7 +5,7 @@ from modules import images
 
 from sd_bmab import constants
 from sd_bmab.util import debug_print
-from sd_bmab.base import process_img2img, Context, ProcessorBase
+from sd_bmab.base import process_img2img, Context, ProcessorBase, process_img2img_with_controlnet
 from sd_bmab.processors.controlnet import LineartNoise
 
 
@@ -116,7 +116,12 @@ class RefinerPreprocessor(ProcessorBase):
 		context.add_job()
 
 		if LineartNoise.with_refiner(context):
-			image = process_img2img(context.sdprocessing, image, options=options, use_cn=True, callback=self.process_callback, callback_args=[self, context])
+			ln = LineartNoise()
+			if ln.preprocess(context, None):
+				controlnet = ln.get_controlnet_args(context)
+				image = process_img2img_with_controlnet(context, image, options, controlnet)
+			else:
+				image = process_img2img(context.sdprocessing, image, options=options)
 		else:
 			image = process_img2img(context.sdprocessing, image, options=options)
 

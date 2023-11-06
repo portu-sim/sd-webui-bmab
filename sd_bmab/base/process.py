@@ -11,6 +11,7 @@ from modules.processing import StableDiffusionProcessingImg2Img
 from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import util
+from sd_bmab.base.context import Context
 from sd_bmab.util import debug_print
 
 
@@ -93,7 +94,7 @@ def build_img2img(p, img, options):
 	return i2i_param
 
 
-def process_img2img(p, img, options=None, use_cn=False, callback=None, callback_args=None):
+def process_img2img(p, img, options=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
 
@@ -102,10 +103,7 @@ def process_img2img(p, img, options=None, use_cn=False, callback=None, callback_
 	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
-	img2img.scripts, img2img.script_args = apply_extensions(p, cn_enabled=use_cn)
-
-	if callback is not None:
-		callback(*callback_args, img2img)
+	img2img.scripts, img2img.script_args = apply_extensions(p)
 
 	processed = process_images(img2img)
 	img = processed.images[0]
@@ -114,6 +112,28 @@ def process_img2img(p, img, options=None, use_cn=False, callback=None, callback_
 
 	devices.torch_gc()
 	return img
+
+
+def process_img2img_with_controlnet(context: Context, image, options, controlnet):
+	i2i_param = build_img2img(context.sdprocessing, image, options)
+
+	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img.cached_c = [None, None]
+	img2img.cached_uc = [None, None]
+	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing, cn_enabled=True)
+
+	cn_args = util.get_cn_args(img2img)
+	idx = cn_args[0]
+	sc_args = list(img2img.script_args)
+	sc_args[idx] = controlnet
+	img2img.script_args = sc_args
+
+	processed = process_images(img2img)
+	image = processed.images[0]
+	img2img.close()
+	devices.torch_gc()
+
+	return image
 
 
 def process_txt2img(p, options=None, controlnet=None):

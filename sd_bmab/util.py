@@ -7,6 +7,9 @@ import glob
 from basicsr.utils.download_util import load_file_from_url
 
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFilter
+
 import modules
 from modules import shared
 from modules import devices
@@ -79,6 +82,86 @@ def resize_image(resize_mode, im, width, height, upscaler_name=None):
 		return res
 
 	return images.resize_image(resize_mode, im, width, height, upscaler_name)
+
+
+alignment = {
+	'top': lambda dx, dy: (dx/2, dx/2, 0, dy),
+	'top-right': lambda dx, dy: (dx, 0, 0, dy),
+	'right': lambda dx, dy: (dx, 0, dy/2, dy/2),
+	'bottom-right': lambda dx, dy: (dx, 0, dy, 0),
+	'bottom': lambda dx, dy: (dx/2, dx/2, dy, 0),
+	'bottom-left': lambda dx, dy: (0, dx, dy, 0),
+	'left': lambda dx, dy: (0, dx, dy/2, dy/2),
+	'top-left': lambda dx, dy: (0, dx, 0, dy),
+	'center': lambda dx, dy: (dx/2, dx/2, dy/2, dy/2),
+}
+
+
+def resize_image_with_alignment(image, al, width, height):
+	if al not in alignment:
+		return image
+	return resize_margin(image, *alignment[al](width - image.width, height - image.height))
+
+
+def get_mask_with_alignment(image, al, width, height):
+	return draw_mask(image, *alignment[al](width - image.width, height - image.height))
+
+
+def resize_margin(image, left, right, top, bottom):
+	left = int(left)
+	right = int(right)
+	top = int(top)
+	bottom = int(bottom)
+	input_image = image.copy()
+
+	if left != 0:
+		res = Image.new("RGB", (image.width + left, image.height))
+		res.paste(image, (left, 0))
+		res.paste(image.resize((left, image.height), box=(0, 0, 0, image.height)), box=(0, 0))
+		image = res
+	if right != 0:
+		res = Image.new("RGB", (image.width + right, image.height))
+		res.paste(image, (0, 0))
+		res.paste(image.resize((right, image.height), box=(image.width, 0, image.width, image.height)), box=(image.width, 0))
+		image = res
+	if top != 0:
+		res = Image.new("RGB", (image.width, image.height + top))
+		res.paste(image, (0, top))
+		res.paste(image.resize((image.width, top), box=(0, 0, image.width, 0)), box=(0, 0))
+		image = res
+	if bottom != 0:
+		res = Image.new("RGB", (image.width, image.height + bottom))
+		res.paste(image, (0, 0))
+		res.paste(image.resize((image.width, bottom), box=(0, image.height, image.width, image.height)), box=(0, image.height))
+		image = res
+
+	img = image.filter(ImageFilter.GaussianBlur(10))
+	region_size = 10
+	width, height = img.size
+	for y in range(0, height, region_size):
+		for x in range(0, width, region_size):
+			region = img.crop((x, y, x + region_size, y + region_size))
+			average_color = region.resize((1, 1)).getpixel((0, 0))
+			img.paste(average_color, (x, y, x + region_size, y + region_size))
+	img.paste(input_image, box=(left, top))
+	image = img.resize(input_image.size, resample=LANCZOS)
+	return image
+
+
+def draw_mask(image, left, right, top, bottom):
+	left = int(left)
+	right = int(right)
+	top = int(top)
+	bottom = int(bottom)
+
+	width = image.width + left + right
+	height = image.height + top + bottom
+
+	mask = Image.new('L', (width, height), 255)
+	dr = ImageDraw.Draw(mask, 'L')
+	dr.rectangle((left, top, left + image.width, top + image.height), fill=0)
+	mask = mask.resize(image.size, resample=LANCZOS)
+	return mask
 
 
 def box_dilation(box, dil):

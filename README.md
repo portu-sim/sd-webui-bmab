@@ -306,7 +306,7 @@ txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경
 
 
 
-## Refiner (EXPERIMENTAL)
+## Refiner
 
 txt2img에서 만들어진 이미지를 한번 더 그리는 과정을 수행한다.   
 txt2img + hires.fix 가 된 상황에서도 유효하다.

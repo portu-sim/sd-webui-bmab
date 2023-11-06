@@ -11,7 +11,7 @@ from sd_bmab import util, masking
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 
 from sd_bmab.util import debug_print
-from sd_bmab.detectors.detector import get_detector
+from sd_bmab.detectors import UltralyticsPersonDetector8n
 
 
 class PersonDetailer(ProcessorBase):
@@ -54,8 +54,8 @@ class PersonDetailer(ProcessorBase):
 	def process(self, context: Context, image: Image):
 
 		context.add_generation_param('BMAB_person_option', util.dict_to_str(self.detailing_opt))
-
-		detector = get_detector(context, self.detection_model, box_threshold=0.35)
+		debug_print('prepare detector')
+		detector = UltralyticsPersonDetector8n()
 		boxes, logits = detector.predict(context, image)
 
 		org_size = image.size
