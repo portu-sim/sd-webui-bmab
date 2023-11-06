@@ -23,7 +23,7 @@ from sd_bmab import masking
 from sd_bmab.processors import interprocess
 
 
-bmab_version = 'v23.11.05.1'
+bmab_version = 'v23.11.06.0'
 
 
 class PreventControlNet:
