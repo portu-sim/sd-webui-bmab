@@ -21,7 +21,6 @@ class ResizeIntermidiate(ProcessorBase):
 		self.value = 0
 		self.denoising_strength = 0.75
 		self.step = step
-		debug_print('Step', self.step)
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args.get('resize_intermediate_enabled', False)
@@ -32,7 +31,6 @@ class ResizeIntermidiate(ProcessorBase):
 		self.alignment = self.resize_by_person_opt.get('alignment', self.alignment)
 		self.value = self.resize_by_person_opt.get('scale', self.value)
 		self.denoising_strength = self.resize_by_person_opt.get('denoising_strength', self.denoising_strength)
-		debug_print('Step', self.step, self.method)
 
 		if not self.enabled:
 			return False
