@@ -97,7 +97,7 @@ class InpaintLamaResize(ProcessorBase):
 		if ratio == 1:
 			return False
 
-		p.extra_generation_params['BMAB controlnet mode'] = 'inpaint'
+		p.extra_generation_params['BMAB controlnet mode'] = 'inpaint+lama'
 		p.extra_generation_params['BMAB resize by person ratio'] = '%.3s' % ratio
 
 		resized_width = int(dw / ratio)

@@ -249,7 +249,7 @@ class BmabExtScript(scripts.Script):
 							gr.HTML(constants.resize_description)
 						with gr.Row():
 							with gr.Column():
-								methods = ['stretching', 'inpaint', 'inpaint+lama']
+								methods = ['stretching', 'inpaint', 'inpaint+lama', 'inpaint_only']
 								elem += gr.Dropdown(label='Method', visible=True, value=methods[0], choices=methods)
 							with gr.Column():
 								align = [x for x in util.alignment.keys()]

@@ -43,11 +43,11 @@ class ResizeIntermidiate(ProcessorBase):
 		return self.enabled
 
 	@staticmethod
-	def get_inpaint_lama_args(image, mask):
+	def get_inpaint_lama_args(image, mask, module):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
 			'mask': util.b64_encoding(mask),
-			'module': 'inpaint_only',
+			'module': module,
 			'model': shared.opts.bmab_cn_inpaint,
 			'weight': 1,
 			"guidance_start": 0,
@@ -138,7 +138,14 @@ class ResizeIntermidiate(ProcessorBase):
 			opt = dict(denoising_strength=self.denoising_strength)
 			debug_print('Stretching image size', stretching_image.size)
 			debug_print('Mask image size', mask.size)
-			cnarg = self.get_inpaint_lama_args(stretching_image, mask)
+			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only+lama')
+			image = process_img2img_with_controlnet(context, image, opt, cnarg)
+		elif self.method == 'inpaint_only':
+			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+			opt = dict(denoising_strength=self.denoising_strength)
+			debug_print('Stretching image size', stretching_image.size)
+			debug_print('Mask image size', mask.size)
+			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only')
 			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		return image
 

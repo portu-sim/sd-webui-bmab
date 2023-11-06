@@ -22,7 +22,8 @@ txt2img --<span style="color: green">resize</span>--> BMAB Preprocess --> BMAB<b
 Methods<br>   
 stretching : Fast process. Please denoising strength should be over <span style="color: red">0.6</span>. (Only CPU).<br>
 inpaint : Slow process but High quality. Repaint stretching image. (Use GPU).<br>
-inpaint+lama : Very slow process but Very high quality. Repaint stretching image using ControlNet Inpaint+Lama (Use GPU with FIRE!!).<br>
+inpaint+lama : Very slow process but Very high quality. Repaint stretching image using ControlNet inpaint_only+lama (Use GPU with FIRE!!).<br>
+inpaint_only : Very slow process but Very high quality. Repaint stretching image using ControlNet inpaint_only (Use GPU with FIRE!!).<br>
 <br>
 </span>
 '''
