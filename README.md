@@ -241,7 +241,9 @@ ultralytics predict의 confidence 값입니다.
 
 ## Edge enhancemant
 
-이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.
+이미지 경계를 강화해 선명도를 증가시키거나 디테일을 증가시키는 기능입니다.   
+
+**<span style="color: red">Upscaler가 Latent 계열인 경우 동작하지 않습니다. (R-ESRGAN, 4x-UltraSharp 추천)</span>**
 
 <img src="https://i.ibb.co/4sjB1Lr/edge.png">
 
@@ -278,7 +280,7 @@ txt2img -> hires.fix 의 중간 과정에서 동작합니다..
 그림 속 인물중 가장 신장이 큰 사람의 길이와 그림 높이의 비율이 설정값을 넘어가면 비율을 설정값로 맞추는 기능입니다.   
 설정값이 0.90이고 인물의 전체 길이: 그림 높이의 비율이 0.95라고 한다면   
 배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
-배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
+배경은 Alignment에서 지정한 방식에 따라 늘어납니다.
 
 txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경합니다.   
 이 과정은 변경된 이미지가 hires.fix 과정에서 매끄럽게 변하게 하기 위한 것입니다.   
@@ -338,6 +340,22 @@ Resize 하는 방식을 지정할 수 있습니다.
 <td><img src="https://i.ibb.co/x7T91QH/00080-2037889107.png"></td>
 </tr>
 </table>
+
+
+Resize sample
+
+<img src="https://i.ibb.co/G07KG6M/resize-00008-4017585008.png">
+
+
+
+
+
+
+
+
+
+
+
 
 ## Refiner
 
@@ -712,9 +730,26 @@ each hand, each hand inpaint시에 손 관련 네거티브 프롬프트를 입�
 
 
 
-## Control Net (EXPERIMENTAL, NOW TESTING)
+## ControlNet
 
-ControlNet을 이용한 노이즈 추가기능이 테스트 중입니다.
+ControlNet을 이용하여 이미지에 노이즈를 추가하는 방법으로 디테일을 올리는 기능입니다.   
+ControlNet의 Lineart 모델에 가우시안 노이즈 이미지를 입력으로 사용하여,   
+결과물에 다양하고 복잡한 디테일을 추가합니다.
+
+#### Noise Strength 
+
+노이즈 강도를 지정합니다. (0.4 권장)
+
+#### Begin
+
+Sampling 단계 시작점
+
+#### End
+
+Sampling 단계 끝점
+
+보통의 경우 0.4, 0, 0.4를 권장합니다. 혹은 이미지가 과도하게 그려질 경우 0.2, 0, 0.4 정도로 추천합니다.
+과도하게 이미지가 그려진 경우 refiner를 사용하면 이미지를 어느 정도 안정시킬 수 있습니다.
 
 아래는 모두 같은 seed입니다.
 <table>
@@ -750,6 +785,7 @@ ControlNet을 이용한 노이즈 추가기능이 테스트 중입니다.
 배경을 늘려서 인물의 비율이 0.90이 되도록 합니다.   
 배경은 왼쪽, 오른쪽, 위쪽으로 늘어납니다.
 
+
 이 기능은 2가지 방법을 제공하는데 다음과 같습니다.
 
 #### Inpaint
@@ -777,6 +813,10 @@ Inpaint와 같은 방법인데 BMAB에서 ControlNet을 불러서 Inpaint+lama�
 <td><img src="https://i.ibb.co/HdcMpTH/00026-2131442446.jpg"></td>
 </tr>
 </table>
+
+이 두가지 방법은 생성된 이미지를 축소하기만 할뿐 훼손하지 않습니다.   
+이것이 Resize intermediate와 다른점입니다.
+
 
 ## Upscaler
 

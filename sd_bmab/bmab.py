@@ -560,7 +560,7 @@ class BmabExtScript(scripts.Script):
 							merge_result = gr.Markdown('Result here')
 						with gr.Row():
 							random_checkpoint = gr.Button('Merge Random Checkpoint', visible=True, interactive=True, elem_id='bmab_merge_random_checkpoint')
-			with gr.Accordion(f'BMAB Testroom', open=False, visible=shared.opts.bmab_for_developer):
+			with gr.Accordion(f'BMAB Testroom', open=False, visible=shared.opts.data.get('bmab_for_developer', False)):
 				with gr.Row():
 					self.gallery = gr.Gallery(label='Images', value=[], elem_id='bmab_testroom_gallery')
 					result_image = gr.Image(elem_id='bmab_result_image')
