@@ -202,7 +202,7 @@ class BmabExtScript(scripts.Script):
 						with gr.Row():
 							gr.Markdown(constants.checkpoint_description)
 						with gr.Row():
-							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier fore hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
+							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
 						with gr.Row():
 							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
 					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
