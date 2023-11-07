@@ -100,7 +100,7 @@ ControlNet Tile Resample을 수행합니다. 아래와 같은 경우 사용할 �
 </table>
 
 <img src="https://i.ibb.co/5hWtbmZ/e822842f656d73757ee65713317f7ba9d947472d3fe94fc3ceffc72aee31064d.jpg">
-[padapari instragram](https://www.instagram.com/_padapari_/)
+BMAB resample image by [padapari](https://www.instagram.com/_padapari_/)
 
 <br>
 <br>
@@ -285,6 +285,22 @@ txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경
 **<span style="color: red">denoising strength는 0.6~0.7 정도를 사용하셔야 주변부 이미지 왜곡이 발생하지 않습니다.</span>**   
 **<span style="color: red">Upscaler가 Latent 계열인 경우 동작하지 않습니다. (R-ESRGAN, 4x-UltraSharp 추천)</span>**
 
+#### Method
+
+Resize 하는 방식을 지정할 수 있습니다.
+
+* Stretching : 단순히 이미지를 외곽부분을 늘려서 배경을 확장합니다.
+* inpaint : Stretching된 이미지를 mask를 사용하여 늘린 부분만 img2img inpainting을 수행합니다.
+* inpaint+lama : Controlnet의 inpaint+lama 모델을 사용하여 확장된 영역을 다시 그립니다.
+* inpaint_only : Controlnet의 inpaint_only를 사용하여 확장된 영역을 다시 그립니다.
+
+
+#### Alignment
+
+이미지를 확장하고 원래 이미지를 어느 방향으로 정렬할 것인지를 결정합니다.
+
+<img src="https://i.ibb.co/g62KhZQ/align.png">
+
 #### Resize by person intermediate
 
 인물의 크기 비율을 나타냅니다. 이 값을 초과하면 이 크기가 되도록 배경을 확장시킵니다.
@@ -304,7 +320,24 @@ txt2img 수행하는 단계에서 hires.fix 하기 직전에 이미지를 변경
 </tr>
 </table>
 
-
+<table>
+<tr>
+<td>Original</td>
+<td>Alignment center</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/hmSG5SK/00074-2037889107.png"></td>
+<td><img src="https://i.ibb.co/7kPycZ5/00075-2037889107.png"></td>
+</tr>
+<tr>
+<td>Alignment bottom</td>
+<td>Alignment bottom-left</td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/2gPCbr4/00076-2037889107.png"></td>
+<td><img src="https://i.ibb.co/x7T91QH/00080-2037889107.png"></td>
+</tr>
+</table>
 
 ## Refiner
 
@@ -329,11 +362,11 @@ sd-webui의 hires.fix + refiner를 합친 동작과 비슷하다.
 </tr>
 </table>
 
+
 (위 예제는 결과를 모두 resize하여 동일한 크기이다.)
 
 위 예제와 같이 3단계로 처리할 수도 있으나,   
 hires.fix 단계 없이 refiner로 resize하여 처리할 수도 있다.
-
 
 
 
