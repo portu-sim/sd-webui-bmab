@@ -16,7 +16,7 @@ from sd_bmab.detectors.detector import get_detector
 
 
 class FaceDetailer(ProcessorBase):
-	def __init__(self) -> None:
+	def __init__(self, step=2) -> None:
 		super().__init__()
 
 		self.enabled = False
@@ -32,6 +32,7 @@ class FaceDetailer(ProcessorBase):
 		self.best_quality = False
 		self.detection_model = 'GroundingDINO(face)'
 		self.max_element = shared.opts.bmab_max_detailing_element
+		self.step = step
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['face_detailing_enabled']
@@ -47,7 +48,7 @@ class FaceDetailer(ProcessorBase):
 		self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
 		self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 
-		if context.hiresfix:
+		if self.step == 1 and context.is_hires_fix():
 			return self.enabled and self.hiresfix_enabled
 		return context.args['face_detailing_enabled']
 

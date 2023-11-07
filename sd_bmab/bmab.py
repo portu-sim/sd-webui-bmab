@@ -12,6 +12,7 @@ from modules import sd_models
 from modules import sd_vae
 from modules import ui_components
 from modules import extras
+from modules import images
 
 from sd_bmab import parameters, util, constants
 from sd_bmab.base import context
@@ -21,9 +22,13 @@ from sd_bmab import processors
 from sd_bmab import detectors
 from sd_bmab import masking
 from sd_bmab.processors import interprocess
+from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 
 
-bmab_version = 'v23.11.07.0'
+bmab_version = 'v23.11.08.0'
+
+
+override_sd_webui()
 
 
 class PreventControlNet:
@@ -79,13 +84,23 @@ class PreventControlNet:
 			self.p.sd_model.model.diffusion_model.forward = model._old_forward
 
 
+class TestRoomInfo(object):
+	def __init__(self) -> None:
+		super().__init__()
+		self.process = None
+		self.gallery_index = 0
+		self.selected_file = None
+
+
 class BmabExtScript(scripts.Script):
+	testroom = TestRoomInfo()
 
 	def __init__(self) -> None:
 		super().__init__()
 		self.extra_image = []
 		self.config = {}
 		self.index = 0
+		self.final_images = []
 
 	def title(self):
 		return 'BMAB Extension'
@@ -103,19 +118,27 @@ class BmabExtScript(scripts.Script):
 
 	def before_process(self, p, *args):
 		self.extra_image = []
+		self.final_images = []
 		self.index = 0
+		self.testroom.process = p
 		a = self.parse_args(args)
 		if not a['enabled']:
 			return
 
 		ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
-		interprocess.process_hiresfix(ctx)
-		interprocess.process_img2img(ctx)
+		if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
+			p.bscript = self
+			p.bscript_args = args
+			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
+			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
+		else:
+			interprocess.process_img2img(ctx)
 		processors.process_controlnet(ctx)
 
 	def postprocess_image(self, p, pp, *args):
 		a = self.parse_args(args)
 		if not a['enabled']:
+			self.final_images.append(pp.image)
 			return
 
 		if shared.state.interrupted or shared.state.skipped:
@@ -124,6 +147,7 @@ class BmabExtScript(scripts.Script):
 		with PreventControlNet(p):
 			ctx = context.Context.newContext(self, p, a, self.index)
 			pp.image = processors.process(ctx, pp.image)
+			self.final_images.append(pp.image)
 		self.index += 1
 
 	def postprocess(self, p, processed, *args):
@@ -133,8 +157,21 @@ class BmabExtScript(scripts.Script):
 		processors.release()
 		masking.release()
 
+		self.gallery.update(value=self.final_images)
+
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
+
+	def resize_image(self, p, args, resize_mode, idx, image, width, height, upscaler_name):
+		a = self.parse_args(args)
+		if not a['enabled']:
+			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
+
+		ctx = context.Context.newContext(self, p, a, idx)
+		image = processors.interprocess.process_intermediate_step1(ctx, image)
+		image = images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
+		image = processors.interprocess.process_intermediate_step2(ctx, image)
+		return image
 
 	def _create_ui(self, is_img2img):
 		class ListOv(list):
@@ -146,7 +183,7 @@ class BmabExtScript(scripts.Script):
 			elem += gr.Checkbox(label=f'Enable BMAB', value=False)
 			with gr.Accordion(f'BMAB Preprocessor', open=False):
 				with gr.Row():
-					with gr.Tab('Checkpoint', id='bmab_checkpoint', elem_id='bmab_checkpoint_tabs'):
+					with gr.Tab('Context', id='bmab_context', elem_id='bmab_context_tabs'):
 						with gr.Row():
 							with gr.Column():
 								with gr.Row():
@@ -164,6 +201,10 @@ class BmabExtScript(scripts.Script):
 									refresh_checkpoint_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Row():
 							gr.Markdown(constants.checkpoint_description)
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier fore hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
 					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
@@ -519,6 +560,14 @@ class BmabExtScript(scripts.Script):
 							merge_result = gr.Markdown('Result here')
 						with gr.Row():
 							random_checkpoint = gr.Button('Merge Random Checkpoint', visible=True, interactive=True, elem_id='bmab_merge_random_checkpoint')
+			with gr.Accordion(f'BMAB Testroom', open=False, visible=shared.opts.bmab_for_developer):
+				with gr.Row():
+					self.gallery = gr.Gallery(label='Images', value=[], elem_id='bmab_testroom_gallery')
+					result_image = gr.Image(elem_id='bmab_result_image')
+				with gr.Row():
+					btn_fetch_images = ui_components.ToolButton('🔄', visible=True, interactive=True, tooltip='fetch images', elem_id='bmab_fetch_images')
+					btn_process_pipeline = ui_components.ToolButton('▶️', visible=True, interactive=True, tooltip='fetch images', elem_id='bmab_fetch_images')
+
 			gr.Markdown(f'<div style="text-align: right; vertical-align: bottom">{bmab_version}</div>')
 
 			def load_config(*args):
@@ -660,6 +709,43 @@ class BmabExtScript(scripts.Script):
 					}
 				}
 
+			def fetch_images(*args):
+				return {
+					self.gallery: {
+						'value': self.final_images,
+						'__type__': 'update'
+					}
+				}
+
+			def process_pipeline(*args):
+				from PIL import Image
+				a = self.parse_args(args)
+
+				if self.testroom.selected_file is None:
+					preview = self.final_images[0]
+				else:
+					print(self.testroom.gallery_index, self.testroom.selected_file)
+					preview = Image.open(self.testroom.selected_file)
+				p = self.testroom.process
+				with PreventControlNet(p):
+					ctx = context.Context.newContext(self, p, a, self.testroom.gallery_index)
+					preview = processors.process(ctx, preview)
+					images.save_image(
+						preview, p.outpath_samples, '',
+						p.all_seeds[self.testroom.gallery_index], p.all_prompts[self.testroom.gallery_index],
+						shared.opts.samples_format, p=p, suffix="-testroom")
+
+				return {
+					result_image: {
+						'value': preview,
+						'__type__': 'update'
+					}
+				}
+
+			def image_selected(data: gr.SelectData, *args):
+				self.testroom.gallery_index = data.index
+				self.testroom.selected_file = args[0][data.index]['name']
+
 			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 			reset_btn.click(reset_config, outputs=elem)
@@ -671,6 +757,9 @@ class BmabExtScript(scripts.Script):
 			refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[refresh_checkpoint_models], outputs=[refresh_checkpoint_models])
 			refresh_checkpoint_vaes.click(hit_checkpoint_vae, inputs=[refresh_checkpoint_vaes], outputs=[refresh_checkpoint_vaes])
 			random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
+			btn_fetch_images.click(fetch_images, outputs=[self.gallery])
+			btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
+			self.gallery.select(image_selected, inputs=[self.gallery])
 
 		return elem
 
@@ -682,6 +771,7 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_save_image_before_process', shared.OptionInfo(False, 'Save image that before processing', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_save_image_after_process', shared.OptionInfo(False, 'Save image that after processing (some bugs)', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_for_developer', shared.OptionInfo(False, 'Show developer hidden function.', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_max_detailing_element', shared.OptionInfo(
 		default=0, label='Max Detailing Element', component=gr.Slider, component_args={'minimum': 0, 'maximum': 10, 'step': 1}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_detail_full', shared.OptionInfo(True, 'Allways use FULL, VAE type for encode when detail anything. (v1.6.0)', section=('bmab', 'BMAB')))

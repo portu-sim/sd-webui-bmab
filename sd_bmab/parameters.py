@@ -11,6 +11,8 @@ class Parameters(object):
 			('enabled', False),
 			('preprocess_checkpoint', constants.checkpoint_default),
 			('preprocess_vae', constants.vae_default),
+			('txt2img_noise_multiplier', 1),
+			('txt2img_extra_noise_multiplier', 0),
 			('resample_enabled', False),
 			('module_config.resample_opt.save_image', False),
 			('module_config.resample_opt.checkpoint', constants.checkpoint_default),

@@ -11,7 +11,7 @@ from sd_bmab.processors.preprocess import ResizeIntermidiate
 
 def process_intermediate_step1(context, image):
 	all_processors = [
-		FaceDetailer(),
+		FaceDetailer(step=1),
 		ResizeIntermidiate(step=1),
 	]
 

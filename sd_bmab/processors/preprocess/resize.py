@@ -139,6 +139,7 @@ class ResizeIntermidiate(ProcessorBase):
 			debug_print('Stretching image size', stretching_image.size)
 			debug_print('Mask image size', mask.size)
 			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only+lama')
+			context.add_job()
 			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		elif self.method == 'inpaint_only':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
@@ -146,6 +147,7 @@ class ResizeIntermidiate(ProcessorBase):
 			debug_print('Stretching image size', stretching_image.size)
 			debug_print('Mask image size', mask.size)
 			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only')
+			context.add_job()
 			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		return image
 

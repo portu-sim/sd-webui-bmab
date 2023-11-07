@@ -8,14 +8,13 @@ from sd_bmab import constants
 
 
 class Context(object):
-	def __init__(self, s, p, a, idx, hiresfix=False) -> None:
+	def __init__(self, s, p, a, idx, **kwargs) -> None:
 		super().__init__()
 
 		self.script = s
 		self.sdprocessing = p
 		self.args = a
 		self.index = idx
-		self.hiresfix = hiresfix
 		self.controlnet_count = 0
 		self.refiner = None
 		self.base_sd_model = None
@@ -100,6 +99,7 @@ class Context(object):
 		self.change_checkpoint(checkpoint, vae)
 
 	def restore_checkpoint(self):
-		self.change_checkpoint(self.base_sd_model, self.base_vae)
-		self.base_sd_model = None
-		self.base_vae = None
+		if self.base_sd_model is not None or self.base_vae is not None:
+			self.change_checkpoint(self.base_sd_model, self.base_vae)
+			self.base_sd_model = None
+			self.base_vae = None
