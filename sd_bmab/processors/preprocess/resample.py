@@ -8,7 +8,6 @@ from sd_bmab import util
 from sd_bmab import constants
 from sd_bmab.util import debug_print
 from sd_bmab.base import process_txt2img, Context, ProcessorBase
-from sd_bmab.processors.controlnet import LineartNoise
 
 
 class ResamplePreprocessor(ProcessorBase):
@@ -57,6 +56,7 @@ class ResamplePreprocessor(ProcessorBase):
 	def get_resample_args(image, weight, begin, end):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
+			'module': 'tile_resample',
 			'model': shared.opts.bmab_cn_tile_resample,
 			'weight': weight,
 			"guidance_start": begin,
@@ -65,14 +65,12 @@ class ResamplePreprocessor(ProcessorBase):
 			'allow preview': False,
 			'pixel perfect': False,
 			'control mode': 'ControlNet is more important',
-			'processor_res': 512,
 			'threshold_a': 64,
 			'threshold_b': 64,
 		}
 		return cn_args
 
 	def process(self, context: Context, image: Image):
-
 		if self.checkpoint != constants.checkpoint_default or self.vae != constants.vae_default:
 			context.save_and_apply_checkpoint(self.checkpoint, self.vae)
 

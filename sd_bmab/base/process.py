@@ -12,6 +12,7 @@ from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import util
 from sd_bmab.base.context import Context
+from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
 from sd_bmab.util import debug_print
 
 
@@ -100,7 +101,7 @@ def process_img2img(p, img, options=None):
 
 	i2i_param = build_img2img(p, img, options)
 
-	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(p)
@@ -117,7 +118,7 @@ def process_img2img(p, img, options=None):
 def process_img2img_with_controlnet(context: Context, image, options, controlnet):
 	i2i_param = build_img2img(context.sdprocessing, image, options)
 
-	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing, cn_enabled=True)
@@ -139,7 +140,6 @@ def process_img2img_with_controlnet(context: Context, image, options, controlnet
 def process_txt2img(p, options=None, controlnet=None):
 	t2i_param = dict(
 		denoising_strength=0.4,
-		sd_model=p.sd_model,
 		outpath_samples=p.outpath_samples,
 		outpath_grids=p.outpath_grids,
 		prompt=p.prompt,
@@ -162,16 +162,18 @@ def process_txt2img(p, options=None, controlnet=None):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings={},
+		override_settings=p.override_settings,
 		enable_hr=p.enable_hr,
 		hr_scale=p.hr_scale,
 		hr_resize_x=p.hr_resize_x,
 		hr_resize_y=p.hr_resize_y,
 	)
+	print('hi_scale', p.width, p.height, p.hr_scale, p.hr_resize_x, p.hr_resize_y, p.enable_hr)
+
 	if options is not None:
 		t2i_param.update(options)
 
-	txt2img = StableDiffusionProcessingTxt2Img(**t2i_param)
+	txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
 	txt2img.cached_c = [None, None]
 	txt2img.cached_uc = [None, None]
 
