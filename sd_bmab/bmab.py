@@ -25,7 +25,7 @@ from sd_bmab.processors import interprocess
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 
 
-bmab_version = 'v23.11.08.0'
+bmab_version = 'v23.11.08.1'
 
 
 override_sd_webui()
