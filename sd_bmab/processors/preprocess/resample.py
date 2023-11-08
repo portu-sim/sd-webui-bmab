@@ -65,8 +65,9 @@ class ResamplePreprocessor(ProcessorBase):
 			'allow preview': False,
 			'pixel perfect': False,
 			'control mode': 'ControlNet is more important',
-			'threshold_a': 64,
-			'threshold_b': 64,
+			'processor_res': -1,
+			'threshold_a': 1,
+			'threshold_b': 1,
 		}
 		return cn_args
 
