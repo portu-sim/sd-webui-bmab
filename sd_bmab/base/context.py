@@ -2,7 +2,7 @@ from modules import shared
 from modules import sd_models
 from modules import sd_vae
 
-from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
+from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
 from sd_bmab.util import debug_print
 from sd_bmab import constants
 
@@ -49,7 +49,7 @@ class Context(object):
 			return 512 * 768
 		elif shared.opts.bmab_optimize_vram == 'med vram':
 			return self.sdprocessing.width * self.sdprocessing.height
-		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:
+		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2ImgOv) and self.sdprocessing.enable_hr:
 			return self.sdprocessing.hr_upscale_to_x * self.sdprocessing.hr_upscale_to_y
 		return self.sdprocessing.width * self.sdprocessing.height
 
@@ -66,7 +66,7 @@ class Context(object):
 		return self.refiner is not None
 
 	def is_hires_fix(self):
-		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2Img) and self.sdprocessing.enable_hr:
+		if isinstance(self.sdprocessing, StableDiffusionProcessingTxt2ImgOv) and self.sdprocessing.enable_hr:
 			return True
 		return False
 
@@ -76,7 +76,10 @@ class Context(object):
 		shared.state.current_image_sampling_step = 0
 
 	def is_img2img(self):
-		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)
+		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2ImgOv)
+
+	def is_txtimg(self):
+		return isinstance(self.sdprocessing, StableDiffusionProcessingTxt2ImgOv)
 
 	def change_checkpoint(self, name, vae):
 		if name is None:

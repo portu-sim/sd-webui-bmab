@@ -7,7 +7,7 @@ from modules import images
 from sd_bmab import util
 from sd_bmab import constants
 from sd_bmab.util import debug_print
-from sd_bmab.base import process_txt2img, Context, ProcessorBase
+from sd_bmab.base import process_txt2img, process_img2img_with_controlnet, Context, ProcessorBase
 
 
 class ResamplePreprocessor(ProcessorBase):
@@ -17,6 +17,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.resample_opt = {}
 		self.enabled = False
 		self.save_image = False
+		self.method = 'txt2img-1pass'
 		self.checkpoint = None
 		self.vae = None
 		self.prompt = None
@@ -37,6 +38,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.resample_opt = context.args.get('module_config', {}).get('resample_opt', {})
 
 		self.save_image = self.resample_opt.get('save_image', self.save_image)
+		self.method = self.resample_opt.get('method', self.method)
 		self.checkpoint = self.resample_opt.get('checkpoint', self.checkpoint)
 		self.vae = self.resample_opt.get('vae', self.vae)
 		self.prompt = self.resample_opt.get('prompt', self.prompt)
@@ -99,6 +101,7 @@ class ResamplePreprocessor(ProcessorBase):
 			steps=self.steps,
 			cfg_scale=self.cfg_scale,
 		)
+
 		context.add_job()
 		if self.save_image:
 			saved = image.copy()
@@ -108,8 +111,30 @@ class ResamplePreprocessor(ProcessorBase):
 				shared.opts.samples_format, p=context.sdprocessing, suffix='-before-resample')
 			context.add_extra_image(saved)
 		cn_op_arg = self.get_resample_args(image, self.strength, self.begin, self.end)
-		result = process_txt2img(context.sdprocessing, options=options, controlnet=cn_op_arg)
-		return result
+
+		if self.method == 'txt2img-1pass':
+			if context.is_hires_fix():
+				if context.sdprocessing.hr_resize_x != 0 or context.sdprocessing.hr_resize_y != 0:
+					options['width'] = context.sdprocessing.hr_resize_x
+					options['height'] = context.sdprocessing.hr_resize_y
+				else:
+					options['width'] = int(context.sdprocessing.width * context.sdprocessing.hr_scale)
+					options['height'] = int(context.sdprocessing.height * context.sdprocessing.hr_scale)
+			image = process_txt2img(context.sdprocessing, options=options, controlnet=cn_op_arg)
+		elif self.method == 'txt2img-2pass':
+			if context.is_txtimg() and context.is_hires_fix():
+				options.update(dict(
+					enable_hr=context.sdprocessing.enable_hr,
+					hr_scale=context.sdprocessing.hr_scale,
+					hr_resize_x=context.sdprocessing.hr_resize_x,
+					hr_resize_y=context.sdprocessing.hr_resize_y,
+				))
+			image = process_txt2img(context.sdprocessing, options=options, controlnet=cn_op_arg)
+		elif self.method == 'img2img-1pass':
+			del cn_op_arg['input_image']
+			image = process_img2img_with_controlnet(context, image, options=options, controlnet=cn_op_arg)
+
+		return image
 
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()

@@ -7,13 +7,10 @@ from pathlib import Path
 from modules import shared
 from modules import devices
 from modules.processing import process_images
-from modules.processing import StableDiffusionProcessingImg2Img
-from modules.processing import StableDiffusionProcessingTxt2Img
 
 from sd_bmab import util
 from sd_bmab.base.context import Context
 from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
-from sd_bmab.util import debug_print
 
 
 def apply_extensions(p, cn_enabled=False):
@@ -163,12 +160,7 @@ def process_txt2img(p, options=None, controlnet=None):
 		do_not_save_samples=True,
 		do_not_save_grid=True,
 		override_settings=p.override_settings,
-		enable_hr=p.enable_hr,
-		hr_scale=p.hr_scale,
-		hr_resize_x=p.hr_resize_x,
-		hr_resize_y=p.hr_resize_y,
 	)
-	print('hi_scale', p.width, p.height, p.hr_scale, p.hr_resize_x, p.hr_resize_y, p.enable_hr)
 
 	if options is not None:
 		t2i_param.update(options)

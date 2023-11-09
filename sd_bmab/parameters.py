@@ -15,6 +15,7 @@ class Parameters(object):
 			('txt2img_extra_noise_multiplier', 0),
 			('resample_enabled', False),
 			('module_config.resample_opt.save_image', False),
+			('module_config.resample_opt.method', 'txt2img-1pass'),
 			('module_config.resample_opt.checkpoint', constants.checkpoint_default),
 			('module_config.resample_opt.vae', constants.vae_default),
 			('module_config.resample_opt.prompt', ''),

@@ -25,7 +25,7 @@ from sd_bmab.processors import interprocess
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 
 
-bmab_version = 'v23.11.08.1'
+bmab_version = 'v23.11.10.0'
 
 
 override_sd_webui()
@@ -207,9 +207,16 @@ class BmabExtScript(scripts.Script):
 							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
 					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
+							with gr.Column():
+								elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
+							with gr.Column():
+								elem += gr.Checkbox(label='Save image before processing', value=False)
 						with gr.Row():
-							elem += gr.Checkbox(label='Save image before processing', value=False)
+							with gr.Column(min_width=100):
+								methods = ['txt2img-1pass', 'txt2img-2pass', 'img2img-1pass']
+								elem += gr.Dropdown(label='Resample method', visible=True, value=methods[0], choices=methods)
+							with gr.Column():
+								gr.Markdown('')
 						with gr.Row():
 							with gr.Column():
 								with gr.Row():

@@ -48,9 +48,9 @@ class FaceDetailer(ProcessorBase):
 		self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
 		self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 
-		if self.step == 1 and context.is_hires_fix():
-			return self.enabled and self.hiresfix_enabled
-		return context.args['face_detailing_enabled']
+		if self.enabled and self.step == 1:
+			return context.is_hires_fix() and self.hiresfix_enabled
+		return self.enabled
 
 	def process(self, context: Context, image: Image):
 
