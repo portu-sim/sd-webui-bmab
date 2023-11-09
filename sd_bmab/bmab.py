@@ -212,12 +212,6 @@ class BmabExtScript(scripts.Script):
 							with gr.Column():
 								elem += gr.Checkbox(label='Save image before processing', value=False)
 						with gr.Row():
-							with gr.Column(min_width=100):
-								methods = ['txt2img-1pass', 'txt2img-2pass', 'img2img-1pass']
-								elem += gr.Dropdown(label='Resample method', visible=True, value=methods[0], choices=methods)
-							with gr.Column():
-								gr.Markdown('')
-						with gr.Row():
 							with gr.Column():
 								with gr.Row():
 									checkpoints = [constants.checkpoint_default]
@@ -232,6 +226,12 @@ class BmabExtScript(scripts.Script):
 									resample_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
 									elem += resample_vaes
 									refresh_resample_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+						with gr.Row():
+							with gr.Column(min_width=100):
+								methods = ['txt2img-1pass', 'txt2img-2pass', 'img2img-1pass']
+								elem += gr.Dropdown(label='Resample method', visible=True, value=methods[0], choices=methods)
+							with gr.Column():
+								gr.Markdown('')
 						with gr.Row():
 							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Resample prompt')
 						with gr.Row():
