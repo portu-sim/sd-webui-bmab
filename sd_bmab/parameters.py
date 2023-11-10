@@ -3,6 +3,12 @@ import json
 from sd_bmab import constants
 
 
+def parse_args(args):
+	config = Parameters().load_preset(args)
+	ar = Parameters().get_dict(args, config)
+	return config, ar
+
+
 class Parameters(object):
 	def __init__(self) -> None:
 		super().__init__()
@@ -297,4 +303,3 @@ class Parameters(object):
 		configs = [x for x in os.listdir(preset_dir) if x.endswith('.json')]
 		presets.extend([x[:-5] for x in configs])
 		return presets
-

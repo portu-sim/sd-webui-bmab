@@ -27,6 +27,7 @@ def reload_filters():
 def get_filter(name):
 	if name == 'None':
 		return nonefilter
+	print('Filter', name)
 	path = os.path.dirname(sd_bmab.__file__)
 	path = os.path.normpath(os.path.join(path, '../filter'))
 	filter_path = f'{path}/{name}.py'
