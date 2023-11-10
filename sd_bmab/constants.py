@@ -3,6 +3,7 @@ resize_mode_default = 'Intermediate'
 checkpoint_default = 'Use same checkpoint'
 vae_default = 'Use same vae'
 fast_upscaler = 'BMAB fast'
+filter_default = 'None'
 
 checkpoint_description = '''
 <span style="color: gray">

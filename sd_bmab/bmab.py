@@ -15,7 +15,7 @@ from modules import extras
 from modules import images
 
 from sd_bmab import parameters, util, constants
-from sd_bmab.base import context
+from sd_bmab.base import context, filter
 from sd_bmab.util import debug_print
 
 from sd_bmab import processors
@@ -25,10 +25,11 @@ from sd_bmab.processors import interprocess
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 
 
-bmab_version = 'v23.11.10.0'
+bmab_version = 'v23.11.10.1'
 
 
 override_sd_webui()
+filter.reload_filters()
 
 
 class PreventControlNet:
@@ -128,7 +129,7 @@ class BmabExtScript(scripts.Script):
 		ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
 		if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
 			p.bscript = self
-			p.bscript_args = args
+			p.bscript_args = a
 			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
 			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
 		else:
@@ -162,8 +163,7 @@ class BmabExtScript(scripts.Script):
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
 
-	def resize_image(self, p, args, resize_mode, idx, image, width, height, upscaler_name):
-		a = self.parse_args(args)
+	def resize_image(self, p, a, resize_mode, idx, image, width, height, upscaler_name):
 		if not a['enabled']:
 			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
 
@@ -205,6 +205,15 @@ class BmabExtScript(scripts.Script):
 							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
 						with gr.Row():
 							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
+						with gr.Row():
+							with gr.Column():
+								with gr.Row():
+									dd_hiresfix_filter1 = gr.Dropdown(label='Hires.fix filter before upscale', visible=True, value=filter.filters[0], choices=filter.filters)
+									elem += dd_hiresfix_filter1
+							with gr.Column():
+								with gr.Row():
+									dd_hiresfix_filter2 = gr.Dropdown(label='Hires.fix filter after upscale', visible=True, value=filter.filters[0], choices=filter.filters)
+									elem += dd_hiresfix_filter2
 					with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
 						with gr.Row():
 							with gr.Column():
@@ -231,7 +240,8 @@ class BmabExtScript(scripts.Script):
 								methods = ['txt2img-1pass', 'txt2img-2pass', 'img2img-1pass']
 								elem += gr.Dropdown(label='Resample method', visible=True, value=methods[0], choices=methods)
 							with gr.Column():
-								gr.Markdown('')
+								dd_resample_filter = gr.Dropdown(label='Resample filter', visible=True, value=filter.filters[0], choices=filter.filters)
+								elem += dd_resample_filter
 						with gr.Row():
 							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Resample prompt')
 						with gr.Row():
@@ -302,6 +312,12 @@ class BmabExtScript(scripts.Script):
 							with gr.Column():
 								align = [x for x in util.alignment.keys()]
 								elem += gr.Dropdown(label='Alignment', visible=True, value=align[4], choices=align)
+						with gr.Row():
+							with gr.Column():
+								dd_resize_filter = gr.Dropdown(label='Resize filter', visible=True, value=filter.filters[0], choices=filter.filters)
+								elem += dd_resize_filter
+							with gr.Column():
+								gr.Markdown('')
 						with gr.Row():
 							elem += gr.Slider(minimum=0.50, maximum=0.95, value=0.85, step=0.01, label='Resize by person intermediate')
 						with gr.Row():
@@ -551,6 +567,15 @@ class BmabExtScript(scripts.Script):
 									reset_btn = ui_components.ToolButton('🔃', visible=True, interactive=True, tooltip='reset to default', elem_id='bmab_reset_configuration')
 							with gr.Column(scale=1):
 								gr.Markdown('')
+						with gr.Row():
+							with gr.Column(scale=1):
+								btn_reload_filter = gr.Button('reload filter', visible=True, interactive=True, elem_id='bmab_reload_filter')
+							with gr.Column(scale=1):
+								gr.Markdown('')
+							with gr.Column(scale=1):
+								gr.Markdown('')
+							with gr.Column(scale=1):
+								gr.Markdown('')
 					with gr.Tab('Preset', elem_id='bmab_configuration_tabs'):
 						with gr.Row():
 							with gr.Column(min_width=100):
@@ -753,6 +778,31 @@ class BmabExtScript(scripts.Script):
 				self.testroom.gallery_index = data.index
 				self.testroom.selected_file = args[0][data.index]['name']
 
+			def reload_filter(f1, f2, f3, f4, *args):
+				filter.reload_filters()
+				return {
+					dd_hiresfix_filter1: {
+						'choices': filter.filters,
+						'value': f1,
+						'__type__': 'update'
+					},
+					dd_hiresfix_filter2: {
+						'choices': filter.filters,
+						'value': f2,
+						'__type__': 'update'
+					},
+					dd_resample_filter: {
+						'choices': filter.filters,
+						'value': f3,
+						'__type__': 'update'
+					},
+					dd_resize_filter: {
+						'choices': filter.filters,
+						'value': f4,
+						'__type__': 'update'
+					},
+				}
+
 			load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 			save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 			reset_btn.click(reset_config, outputs=elem)
@@ -767,6 +817,7 @@ class BmabExtScript(scripts.Script):
 			btn_fetch_images.click(fetch_images, outputs=[self.gallery])
 			btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
 			self.gallery.select(image_selected, inputs=[self.gallery])
+			btn_reload_filter.click(reload_filter, inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter], outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter])
 
 		return elem
 
