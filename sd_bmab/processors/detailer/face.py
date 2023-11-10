@@ -33,6 +33,8 @@ class FaceDetailer(ProcessorBase):
 		self.detection_model = 'GroundingDINO(face)'
 		self.max_element = shared.opts.bmab_max_detailing_element
 		self.step = step
+		self.skip_large_face = False
+		self.large_face_pixels = 0.26
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['face_detailing_enabled']
@@ -47,6 +49,8 @@ class FaceDetailer(ProcessorBase):
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
 		self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
 		self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
+		self.skip_large_face = self.detailing_opt.get('skip_large_face', self.skip_large_face)
+		self.large_face_pixels = self.detailing_opt.get('large_face_pixels', self.large_face_pixels)
 
 		if self.enabled and self.step == 1:
 			return context.is_hires_fix() and self.hiresfix_enabled
@@ -126,8 +130,6 @@ class FaceDetailer(ProcessorBase):
 				candidate.append((value, box, logit))
 			candidate = sorted(candidate, key=lambda c: c[0], reverse=True)
 
-		context.add_job(min(self.limit, len(candidate)))
-
 		for idx, (size, box, logit) in enumerate(candidate):
 			if self.limit != 0 and idx >= self.limit:
 				debug_print(f'Over limit {self.limit}')
@@ -136,6 +138,16 @@ class FaceDetailer(ProcessorBase):
 			if self.max_element != 0 and idx >= self.max_element:
 				debug_print(f'Over limit MAX Element {self.max_element}')
 				break
+
+			if self.skip_large_face:
+				x1, y1, x2, y2 = box
+				mega_pixels = ((x2 - x1) * (y2 - y1)) / 1000000
+				debug_print('skip large face', mega_pixels, self.large_face_pixels)
+				if mega_pixels > self.large_face_pixels:
+					debug_print(f'Skip face detailing {mega_pixels}')
+					break
+
+			context.add_job(1)
 
 			prompt = self.detailing_opt.get(f'prompt{idx}')
 			if prompt is not None:

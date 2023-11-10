@@ -319,16 +319,14 @@ def create_ui(is_img2img):
 								inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
 								elem += inpaint_area
 								elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+								choices = detectors.list_face_detectors()
+								elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
 							with gr.Column():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
-						with gr.Row():
-							with gr.Column(min_width=100):
-								choices = detectors.list_face_detectors()
-								elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
-							with gr.Column():
-								gr.Markdown('')
+								elem += gr.Checkbox(label='Enable skip face detailing by area', value=False)
+								elem += gr.Slider(minimum=0.0, maximum=3.0, value=0.26, step=0.01, label='Face area (MegaPixel)')
 					with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
