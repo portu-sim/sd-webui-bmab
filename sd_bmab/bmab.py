@@ -15,11 +15,13 @@ from sd_bmab import pipeline
 from sd_bmab import internalpipeline
 from sd_bmab import masking
 from sd_bmab import ui
+from sd_bmab import util
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 
 
 override_sd_webui()
 filter.reload_filters()
+util.check_models()
 
 
 class PreventControlNet:

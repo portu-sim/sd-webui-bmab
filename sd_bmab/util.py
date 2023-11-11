@@ -16,6 +16,7 @@ from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
 from modules.paths import models_path
+from modules import hashes
 
 from ultralytics import YOLO
 
@@ -334,6 +335,25 @@ def lazy_loader(filename):
 	return os.path.join(bmab_model_path, filename)
 
 
+def check_models():
+	models_hashes = {
+		'bmab_face_nm_yolov8n.pt': 'a1dc1f1e73',
+		'bmab_face_sm_yolov8n.pt': 'a9ebee6fd9'
+	}
+
+	bmab_model_path = os.path.join(models_path, 'bmab')
+	for model_file, local_hash in models_hashes.items():
+		model_path = os.path.join(bmab_model_path, model_file)
+		if not os.path.exists(model_path):
+			continue
+		_hash = calculate_hash(model_path)
+		print('hash', model_file, _hash, local_hash)
+		if _hash != local_hash:
+			print('different hash load', model_file)
+			os.remove(model_path)
+			lazy_loader(model_file)
+
+
 def list_pretraining_models():
 	bmab_model_path = os.path.join(models_path, "bmab")
 	files = glob.glob(os.path.join(bmab_model_path, '*.pt'))
@@ -343,3 +363,9 @@ def list_pretraining_models():
 def load_pretraining_model(filename):
 	bmab_model_path = os.path.join(models_path, "bmab")
 	return os.path.join(bmab_model_path, filename)
+
+
+def calculate_hash(filename):
+	sha256 = hashes.sha256(filename, filename)
+	return sha256[:10]
+
