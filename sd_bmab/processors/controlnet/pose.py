@@ -1,8 +1,6 @@
-
 from PIL import Image
 
 from modules import shared
-from modules import images
 
 from sd_bmab import util
 from sd_bmab.util import debug_print

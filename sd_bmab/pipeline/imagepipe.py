@@ -7,7 +7,8 @@ from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChange
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha, BlendImage
 from sd_bmab.processors.controlnet import LineartNoise
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
-from sd_bmab.processors.preprocess import Preprocess, ResamplePreprocessor
+from sd_bmab.processors.preprocess import ResamplePreprocessor
+from sd_bmab.internalpipeline import Preprocess
 
 
 def process(context, image):

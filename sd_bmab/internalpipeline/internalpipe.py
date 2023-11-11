@@ -7,10 +7,12 @@ from sd_bmab.processors.detailer import FaceDetailer
 
 from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
 from sd_bmab.processors.preprocess import ResizeIntermidiate
+from sd_bmab.processors.preprocess import ResamplePreprocessor
 
 
 def process_intermediate_step1(context, image):
 	all_processors = [
+		ResamplePreprocessor(step=1),
 		FaceDetailer(step=1),
 		ResizeIntermidiate(step=1),
 	]
