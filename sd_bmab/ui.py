@@ -18,7 +18,7 @@ from sd_bmab import processors
 from sd_bmab import masking
 
 
-bmab_version = 'v23.11.11.0'
+bmab_version = 'v23.11.11.1'
 
 final_images = []
 last_process = None
