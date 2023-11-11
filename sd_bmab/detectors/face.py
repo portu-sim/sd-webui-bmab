@@ -91,3 +91,21 @@ class UltralyticsFaceDetector8s(UltralyticsFaceDetector):
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self.model = 'face_yolov8s.pt'
+
+
+class BmabFaceSmall(UltralyticsFaceDetector):
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		self.model = 'bmab_face_sm_yolov8n.pt'
+
+	def target(self):
+		return 'BMAB Face(Small)'
+
+
+class BmabFaceNormal(UltralyticsFaceDetector):
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		self.model = 'bmab_face_nm_yolov8n.pt'
+
+	def target(self):
+		return 'BMAB Face(Normal)'

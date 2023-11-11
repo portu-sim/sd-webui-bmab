@@ -328,7 +328,7 @@ def create_ui(is_img2img):
 								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
 								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
-								elem += gr.Checkbox(label='Enable skip face detailing by area', value=False)
+								elem += gr.Checkbox(label='Skip face detailing by area', value=False)
 								elem += gr.Slider(minimum=0.0, maximum=3.0, value=0.26, step=0.01, label='Face area (MegaPixel)')
 					with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
 						with gr.Row():

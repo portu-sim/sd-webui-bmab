@@ -4,6 +4,7 @@ from sd_bmab.detectors.person import GroundingDinoPersonDetector, UltralyticsPer
 from sd_bmab.detectors.person import UltralyticsPersonDetector8n, UltralyticsPersonDetector8s
 from sd_bmab.detectors.face import GroundingDinoFaceDetector, UltralyticsFaceDetector8n, UltralyticsFaceDetector8s
 from sd_bmab.detectors.face import UltralyticsFaceDetector8nv2, UltralyticsFaceDetector8m
+from sd_bmab.detectors.face import BmabFaceSmall, BmabFaceNormal
 from sd_bmab.detectors.hand import GroundingDinoHandDetector, UltralyticsHandDetector8n, UltralyticsHandDetector8s
 
 
@@ -17,6 +18,8 @@ def get_detector(context: Context, model: str, **kwargs):
 		return UltralyticsFaceDetector8n(**kwargs)
 
 	all_detectors = [
+		BmabFaceNormal(**kwargs),
+		BmabFaceSmall(**kwargs),
 		GroundingDinoPersonDetector(**kwargs),
 		UltralyticsPersonDetector8m(**kwargs),
 		UltralyticsPersonDetector8n(**kwargs),
@@ -51,6 +54,8 @@ def list_person_detectors():
 def list_face_detectors():
 	kwargs = {}
 	face_detectors = [
+		BmabFaceNormal(**kwargs),
+		BmabFaceSmall(**kwargs),
 		GroundingDinoFaceDetector(**kwargs),
 		UltralyticsFaceDetector8n(**kwargs),
 		UltralyticsFaceDetector8nv2(**kwargs),
