@@ -119,6 +119,7 @@ class ResizeIntermidiate(ProcessorBase):
 			return image
 		elif self.method == 'inpaint':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+			debug_print('mask size', mask.size)
 			seed, subseed = context.get_seeds()
 			options = dict(
 				seed=seed, subseed=subseed,

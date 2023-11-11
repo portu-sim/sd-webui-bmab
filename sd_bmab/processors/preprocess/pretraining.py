@@ -14,11 +14,12 @@ from sd_bmab.util import debug_print
 
 
 class PretrainingDetailer(ProcessorBase):
-	def __init__(self) -> None:
+	def __init__(self, step=2) -> None:
 		super().__init__()
+		self.pretraining_opt = {}
 
 		self.enabled = False
-		self.pretraining_opt = {}
+		self.hiresfix_enabled = False
 		self.pretraining_model = None
 		self.prompt = ''
 		self.negative_prompt = ''
@@ -27,8 +28,9 @@ class PretrainingDetailer(ProcessorBase):
 		self.cfg_scale = 7
 		self.denoising_strength = 0.75
 		self.confidence = 0.35
-
 		self.dilation = 4
+
+		self.preprocess_step = step
 
 	def predict(self, context: Context, image: Image, ptmodel, confidence):
 		yolo = util.load_pretraining_model(ptmodel)
@@ -52,6 +54,7 @@ class PretrainingDetailer(ProcessorBase):
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['pretraining_enabled']
 		self.pretraining_opt = context.args.get('module_config', {}).get('pretraining_opt', {})
+		self.hiresfix_enabled = self.pretraining_opt.get('hiresfix_enabled', self.hiresfix_enabled)
 		self.pretraining_model = self.pretraining_opt.get('pretraining_model', self.pretraining_model)
 		self.prompt = self.pretraining_opt.get('prompt', self.prompt)
 		self.negative_prompt = self.pretraining_opt.get('negative_prompt', self.negative_prompt)
@@ -62,6 +65,10 @@ class PretrainingDetailer(ProcessorBase):
 		self.confidence = self.pretraining_opt.get('box_threshold', 0.35)
 		self.dilation = self.pretraining_opt.get('dilation', self.dilation)
 
+		if self.enabled and self.preprocess_step == 1:
+			return context.is_hires_fix() and self.hiresfix_enabled
+		if self.enabled and self.preprocess_step == 2 and self.hiresfix_enabled:
+			return False
 		return self.enabled
 
 	def process(self, context: Context, image: Image):

@@ -122,6 +122,8 @@ def create_ui(is_img2img):
 				with gr.Tab('Pretraining', id='bmab_pretraining', elem_id='bmab_pretraining_tabs'):
 					with gr.Row():
 						elem += gr.Checkbox(label='Enable pretraining detailer (EXPERIMENTAL)', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable pretraining before hires.fix', value=False)
 					with gr.Column(min_width=100):
 						with gr.Row():
 							models = ['Select Model']
