@@ -3,6 +3,8 @@ from PIL import Image
 from ultralytics import YOLO
 
 import modules
+from modules import images
+from modules import shared
 
 from sd_bmab import util
 from sd_bmab.base.context import Context
@@ -101,6 +103,20 @@ class BmabFaceSmall(UltralyticsFaceDetector):
 	def target(self):
 		return 'BMAB Face(Small)'
 
+	def predict(self, context: Context, image: Image):
+		if shared.opts.bmab_debug_logging:
+			boxes, logits = super().predict(context, image)
+			if len(boxes) == 0:
+				images.save_image(
+					image, context.sdprocessing.outpath_samples, '',
+					context.sdprocessing.all_seeds[context.index], context.sdprocessing.all_prompts[context.index],
+					shared.opts.samples_format, p=context.sdprocessing, suffix="-debugging")
+				det = UltralyticsFaceDetector8n()
+				return det.predict(context, image)
+			return boxes, logits
+		else:
+			return super().predict(context, image)
+
 
 class BmabFaceNormal(UltralyticsFaceDetector):
 	def __init__(self, **kwargs) -> None:
@@ -109,3 +125,22 @@ class BmabFaceNormal(UltralyticsFaceDetector):
 
 	def target(self):
 		return 'BMAB Face(Normal)'
+
+	def predict(self, context: Context, image: Image):
+		if shared.opts.bmab_debug_logging:
+			boxes, logits = super().predict(context, image)
+			if len(boxes) == 0:
+				images.save_image(
+					image, context.sdprocessing.outpath_samples, '',
+					context.sdprocessing.all_seeds[context.index], context.sdprocessing.all_prompts[context.index],
+					shared.opts.samples_format, p=context.sdprocessing, suffix="-debugging")
+				det = UltralyticsFaceDetector8n()
+				return det.predict(context, image)
+			return boxes, logits
+		else:
+			return super().predict(context, image)
+
+
+
+
+

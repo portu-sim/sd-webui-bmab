@@ -676,6 +676,7 @@ def create_ui(is_img2img):
 
 def on_ui_settings():
 	shared.opts.add_option('bmab_debug_print', shared.OptionInfo(False, 'Print debug message.', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_debug_logging', shared.OptionInfo(False, 'Enable developer logging.', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_show_extends', shared.OptionInfo(False, 'Show before processing image. (DO NOT ENABLE IN CLOUD)', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_test_function', shared.OptionInfo(False, 'Show Test Function', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_keep_original_setting', shared.OptionInfo(False, 'Keep original setting', section=('bmab', 'BMAB')))

@@ -21,7 +21,9 @@ from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2
 
 override_sd_webui()
 filter.reload_filters()
-util.check_models()
+
+if not shared.opts.data.get('bmab_for_developer', False):
+	util.check_models()
 
 
 class PreventControlNet:
