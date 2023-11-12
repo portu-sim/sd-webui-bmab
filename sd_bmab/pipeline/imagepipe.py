@@ -13,8 +13,7 @@ from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.internalpipeline import Preprocess
 
 
-def process(context, image):
-	all_processors = [
+pipeline_modules = [
 		BeforeProcessFileSaver(),
 		CheckPointChanger(),
 		ResamplePreprocessor(),
@@ -36,9 +35,15 @@ def process(context, image):
 		AfterProcessFileSaver()
 	]
 
+
+def is_controlnet_required(context):
+	return ResamplePreprocessor().preprocess(context, None)
+
+
+def process(context, image):
 	processed = image.copy()
 
-	for proc in all_processors:
+	for proc in pipeline_modules:
 		try:
 			result = proc.preprocess(context, processed)
 			if result is None or not result:

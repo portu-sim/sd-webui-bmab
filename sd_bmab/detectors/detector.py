@@ -6,11 +6,12 @@ from sd_bmab.detectors.face import GroundingDinoFaceDetector, UltralyticsFaceDet
 from sd_bmab.detectors.face import UltralyticsFaceDetector8nv2, UltralyticsFaceDetector8m
 from sd_bmab.detectors.face import BmabFaceSmall, BmabFaceNormal
 from sd_bmab.detectors.hand import GroundingDinoHandDetector, UltralyticsHandDetector8n, UltralyticsHandDetector8s
+from sd_bmab.util import debug_print
 
 
 def get_detector(context: Context, model: str, **kwargs):
 
-	print('model', model)
+	debug_print('model', model)
 	# for backward compatibility for saved user
 	if model == 'GroundingDINO':
 		return GroundingDinoFaceDetector(**kwargs)

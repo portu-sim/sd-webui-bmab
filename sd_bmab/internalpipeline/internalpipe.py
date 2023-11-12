@@ -12,17 +12,28 @@ from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.processors.preprocess import PretrainingDetailer
 
 
+pipeline_step1 = [
+	ResamplePreprocessor(step=1),
+	PretrainingDetailer(step=1),
+	FaceDetailer(step=1),
+	ResizeIntermidiate(step=1),
+]
+
+pipeline_step2 = [
+	EdgeEnhancement(),
+	ResizeIntermidiate(),
+	Img2imgMasking(),
+	NoiseAlpha(),
+]
+
+
+def is_controlnet_required(context):
+	return ResamplePreprocessor(step=1).preprocess(context, None)
+
+
 def process_intermediate_step1(context, image):
-	all_processors = [
-		ResamplePreprocessor(step=1),
-		PretrainingDetailer(step=1),
-		FaceDetailer(step=1),
-		ResizeIntermidiate(step=1),
-	]
-
 	processed = image.copy()
-
-	for proc in all_processors:
+	for proc in pipeline_step1:
 		try:
 			result = proc.preprocess(context, processed)
 			if result is None or not result:
@@ -32,28 +43,18 @@ def process_intermediate_step1(context, image):
 			processed = ret
 		except Exception:
 			traceback.print_exc()
-
 	return processed
 
 
 def process_intermediate_step2(context, image):
-	all_processors = [
-		EdgeEnhancement(),
-		ResizeIntermidiate(),
-		Img2imgMasking(),
-		NoiseAlpha(),
-	]
-
 	processed = image.copy()
-
-	for proc in all_processors:
+	for proc in pipeline_step2:
 		result = proc.preprocess(context, processed)
 		if result is None or not result:
 			continue
 		ret = proc.process(context, processed)
 		proc.postprocess(context, processed)
 		processed = ret
-
 	return processed
 
 

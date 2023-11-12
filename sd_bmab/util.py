@@ -347,9 +347,9 @@ def check_models():
 		if not os.path.exists(model_path):
 			continue
 		_hash = calculate_hash(model_path)
-		print('hash', model_file, _hash, local_hash)
+		debug_print('hash', model_file, _hash, local_hash)
 		if _hash != local_hash:
-			print('different hash load', model_file)
+			debug_print('different hash load', model_file)
 			os.remove(model_path)
 			lazy_loader(model_file)
 

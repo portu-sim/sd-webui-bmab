@@ -69,7 +69,7 @@ class InpaintLamaResize(ProcessorBase):
 
 		x1, y1, x2, y2 = largest[1]
 		ratio = (y2 - y1) / img.height
-		print('ratio', ratio)
+		debug_print('ratio', ratio)
 
 		if ratio > self.value:
 			image_ratio = ratio / self.value
@@ -84,12 +84,12 @@ class InpaintLamaResize(ProcessorBase):
 
 		cn_args = util.get_cn_args(p)
 
-		print('resize_by_person_enabled_inpaint', self.value)
+		debug_print('resize_by_person_enabled_inpaint', self.value)
 		img = p.init_images[0]
 		context.script.extra_image.append(img)
 
 		ratio = self.get_ratio(context, img, p)
-		print('image resize ratio', ratio)
+		debug_print('image resize ratio', ratio)
 		org_size = img.size
 		dw, dh = org_size
 

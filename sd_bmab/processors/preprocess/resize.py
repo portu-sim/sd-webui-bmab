@@ -79,17 +79,17 @@ class ResizeIntermidiate(ProcessorBase):
 
 			debug_print('size', org_size)
 
-			largest = (0, None)
-			for box in boxes:
-				x1, y1, x2, y2 = box
-				size = (x2 - x1) * (y2 - y1)
-				if size > largest[0]:
-					largest = (size, box)
-
-			if largest[0] == 0:
+			if len(boxes) == 0:
 				return image
 
-			x1, y1, x2, y2 = largest[1]
+			largest = []
+			for idx, box in enumerate(boxes):
+				x1, y1, x2, y2 = box
+				largest.append(((y2 - y1), box))
+				debug_print(f'ratio {idx}', (y2 - y1) / image.height)
+			largest = sorted(largest, key=lambda c: c[0], reverse=True)
+
+			x1, y1, x2, y2 = largest[0][1]
 			ratio = (y2 - y1) / image.height
 			debug_print('ratio', ratio)
 			debug_print('org_size', org_size)

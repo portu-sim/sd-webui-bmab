@@ -2,6 +2,7 @@ from PIL import Image
 
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
+from sd_bmab.util import debug_print
 
 
 class BlendImage(ProcessorBase):
@@ -20,7 +21,7 @@ class BlendImage(ProcessorBase):
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB blend alpha', self.alpha)
 		#blend = Image.fromarray(self.input_image, mode='RGB')
-		print(self.input_image)
+		debug_print(self.input_image)
 		blend = self.input_image
 		img = Image.new(mode='RGB', size=image.size)
 		img.paste(image, (0, 0))

@@ -26,6 +26,7 @@ inpaint : Slow process but High quality. Repaint stretching image. (Use GPU).<br
 inpaint+lama : Very slow process but Very high quality. Repaint stretching image using ControlNet inpaint_only+lama (Use GPU with FIRE!!).<br>
 inpaint_only : Very slow process but Very high quality. Repaint stretching image using ControlNet inpaint_only (Use GPU with FIRE!!).<br>
 <br>
+<span style="color: red">Please DO NOT SET Latent upscaler in hires.fix.</span>
 </span>
 '''
 

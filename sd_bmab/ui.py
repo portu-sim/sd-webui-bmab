@@ -16,6 +16,7 @@ from sd_bmab.base import context
 from sd_bmab.base import filter
 from sd_bmab import processors
 from sd_bmab import masking
+from sd_bmab.util import debug_print
 
 
 bmab_version = 'v23.11.12.0'
@@ -589,7 +590,7 @@ def create_ui(is_img2img):
 				multiplier = random.randrange(10, 90, 1) / 100
 				extras.run_modelmerger(None, br, target[0], target[1], 'Weighted sum', multiplier, False, output, 'safetensors', 0, None, '', True, True, True, '{}')
 				result += f'{output}.safetensors generated<br>'
-			print('done')
+			debug_print('done')
 			return {
 				merge_result: {
 					'value': result,
@@ -650,7 +651,7 @@ def create_ui(is_img2img):
 			}
 
 		def image_selected(data: gr.SelectData, *args):
-			print(data.index)
+			debug_print(data.index)
 			global gallery_select_index
 			gallery_select_index = data.index
 

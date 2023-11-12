@@ -7,6 +7,7 @@ from PIL import Image
 
 import sd_bmab
 from sd_bmab import constants
+from sd_bmab.util import debug_print
 
 
 filters = [constants.filter_default]
@@ -51,7 +52,7 @@ def reload_filters():
 def get_filter(name):
 	if name == 'None':
 		return NoneFilter()
-	print('Filter', name)
+	debug_print('Filter', name)
 	path = os.path.dirname(sd_bmab.__file__)
 	path = os.path.normpath(os.path.join(path, '../filter'))
 	filter_path = f'{path}/{name}.py'
