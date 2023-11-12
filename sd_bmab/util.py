@@ -337,7 +337,7 @@ def lazy_loader(filename):
 
 def check_models():
 	models_hashes = {
-		'bmab_face_nm_yolov8n.pt': 'a1dc1f1e73',
+		'bmab_face_nm_yolov8n.pt': 'c53c29db23',
 		'bmab_face_sm_yolov8n.pt': 'a9ebee6fd9'
 	}
 
