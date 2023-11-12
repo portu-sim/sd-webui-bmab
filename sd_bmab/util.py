@@ -2,6 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
+import hashlib
 from pathlib import Path
 import glob
 from basicsr.utils.download_util import load_file_from_url
@@ -16,7 +17,6 @@ from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
 from modules.paths import models_path
-from modules import hashes
 
 from ultralytics import YOLO
 
@@ -338,7 +338,7 @@ def lazy_loader(filename):
 def check_models():
 	models_hashes = {
 		'bmab_face_nm_yolov8n.pt': 'c53c29db23',
-		'bmab_face_sm_yolov8n.pt': 'a9ebee6fd9'
+		'bmab_face_sm_yolov8n.pt': 'b3517666a5'
 	}
 
 	bmab_model_path = os.path.join(models_path, 'bmab')
@@ -365,7 +365,18 @@ def load_pretraining_model(filename):
 	return os.path.join(bmab_model_path, filename)
 
 
+def calculate_sha256(filename):
+	hash_sha256 = hashlib.sha256()
+	blksize = 1024 * 1024
+
+	with open(filename, "rb") as f:
+		for chunk in iter(lambda: f.read(blksize), b""):
+			hash_sha256.update(chunk)
+
+	return hash_sha256.hexdigest()
+
+
 def calculate_hash(filename):
-	sha256 = hashes.sha256(filename, filename)
+	sha256 = calculate_sha256(filename)
 	return sha256[:10]
 
