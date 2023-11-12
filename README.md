@@ -27,6 +27,24 @@ stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
 !git clone https://github.com/portu-sim/sd-webui-bmab /content/gdrive/$mainpth/sd/stable-diffusion-webui/extensions/sd-webui-bmab
 ```
 
+## Example
+
+<table>
+<tr>
+<td colspan="2"><img src="https://i.ibb.co/P6477Vg/resize-00101-2353183853.png">
+</td>
+</tr>
+<tr><td colspan="2"><img src="https://i.ibb.co/3vsBTFZ/resize-00183-1413773744.png"></td></tr>
+<tr><td colspan="2"><img src="https://i.ibb.co/tcYzHP1/resize-00226-4176028607.png"></td></tr>
+<tr><td colspan="2"><img src="https://i.ibb.co/r6G1cwy/resize-00340-4033828371.png"></td></tr>
+<tr>
+<td><img src="https://i.ibb.co/PmPJtVb/resize-00718-3635306692.png"></td>
+<td><img src="https://i.ibb.co/Bq2PFxc/resize-00793-3980284595.png"></td>
+</tr>
+<tr>
+<td colspan="2"><img src="https://i.ibb.co/Lnh4Kpm/resize-00824-738395988.png"></td>
+</tr>
+</table>
 
 ## Quick Test
 
@@ -69,14 +87,29 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 
 # Preprocess
 
-## Checkpoint
+## Context
 
 BMAB에서 사용할 Checkpoint와 VAE를 지정합니다.   
 특정 기능들은 자체 Checkpoint와 VAE를 설정할 수 있습니다.   
 한 번 변경된 Checkpoint는 그 이후 프로세스들이 계속 사용합니다.
 
-<img src="https://i.ibb.co/cFyCHjT/checkpoint.png">
+<img src="https://i.ibb.co/VTP5ddx/2023-11-12-3-48-54.png">
 
+#### txt2img noise multiplier for hires.fix
+
+hires.fix 단계에서 noise를 추가 할 수 있다.
+
+#### txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)
+
+hires.fix 단계에서 추가적인 noise를 더 할 수 있다.
+
+#### Hires.fix filter before upscaler
+
+Hires.fix 단계 중 upscaler 전에 filter를 적용할 수 있다.
+
+#### Hires.fix filter after upscaler
+
+Hires.fix 단계 중 upscaler 후에 filter를 적용할 수 있다.
 
 
 ## Resample (EXPERIMENTAL)
@@ -129,10 +162,23 @@ SD Checkpoint를 지정할 수 있습니다. 지정하지 않는다면 앞에서
 SD VAE를 지정할 수 있습니다. 지정하지 않는다면 앞에서 설정된 VAE를 사용합니다.   
 프로세스가 완료되어도 원래 것으로 돌려놓지 않습니다.
 
+#### Resample method
+
+Resample 방법을 선택할 수 있습니다.
+
+txt2img-1pass : txt2img을 hires.fix 없이 동작시킨다.   
+txt2img-2pass : txt2img를 hires.fix로 동작시킨다. 기본적으로 이미지를 출력할 때 hires.fix가 동작해야하만 한다.   
+img2img-1pass : img2img로 동작시킨다.   
+
+#### Resample filter
+
+Resample이 완료되고 난 이후에 외부 filter 코드를 호출하여 이미지 변환을 추가적으로 수행할 수 있다.
+
+
 #### Resample prompt
 
 resampling 과정에서 사용할 prompt입니다. 비어있는 경우 main prompt와 동일하며,   
-"#!org!#" 를 입력하면 main prompt를 대체합니다. "#!org!#" 이후에 추가로 prompt를 적을 수 있습니다.
+"#!org!#" 를 입력하면 main prompt를 대체합니다. "#!org!#" 이후에 추가로 prompt를 적을 수 있습니다.   
 ex) #!org!#, soft light, some more keyword
 
 #### Resample negative prompt
@@ -191,6 +237,10 @@ Pretraining detailer입니다. ultralytics로 pretraining 모델을 적용하여
 #### Enable pretraining detailer (EXPERIMENTAL)
 
 이 기능을 켜고 끌 수 있습니다.
+
+#### Enable pretraining before hires.fix
+
+pretraining detailer를 hires.fix 전에 수행하도록 한다.
 
 #### Pretraining model
 
@@ -302,6 +352,11 @@ Resize 하는 방식을 지정할 수 있습니다.
 이미지를 확장하고 원래 이미지를 어느 방향으로 정렬할 것인지를 결정합니다.
 
 <img src="https://i.ibb.co/g62KhZQ/align.png">
+
+#### Resize filter
+
+Resize가 완료되고 난 이후에 외부 filter 코드를 호출하여 이미지 변환을 추가적으로 수행할 수 있다.
+
 
 #### Resize by person intermediate
 
