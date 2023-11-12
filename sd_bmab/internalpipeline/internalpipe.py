@@ -1,3 +1,4 @@
+import traceback
 from functools import partial
 from modules import images
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
@@ -22,12 +23,15 @@ def process_intermediate_step1(context, image):
 	processed = image.copy()
 
 	for proc in all_processors:
-		result = proc.preprocess(context, processed)
-		if result is None or not result:
-			continue
-		ret = proc.process(context, processed)
-		proc.postprocess(context, processed)
-		processed = ret
+		try:
+			result = proc.preprocess(context, processed)
+			if result is None or not result:
+				continue
+			ret = proc.process(context, processed)
+			proc.postprocess(context, processed)
+			processed = ret
+		except Exception:
+			traceback.print_exc()
 
 	return processed
 

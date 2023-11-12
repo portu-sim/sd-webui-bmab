@@ -1,3 +1,5 @@
+import traceback
+
 from sd_bmab.base import dino
 from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpscaler
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize
@@ -45,7 +47,7 @@ def process(context, image):
 			proc.postprocess(context, processed)
 			processed = ret
 		except:
-			raise
+			traceback.print_exc()
 		finally:
 			RollbackModel().process(context, processed)
 
