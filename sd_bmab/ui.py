@@ -574,8 +574,8 @@ def create_ui(is_img2img):
 			checkpoints = [str(x) for x in sd_models.checkpoints_list.keys()]
 			target = random.choices(checkpoints, k=3)
 			multiplier = random.randrange(10, 90, 1) / 100
-			index = random.randrange(100, 900, 1)
-			output = f'bmab_random_{index}'
+            index = random.randrange(0x10000000, 0xFFFFFFFF, 1)  # 8자리 16진수로 변경
+            output = f'bmab_random_{format(index, "08X")}'  # 8자리 16진수로 포맷팅
 			extras.run_modelmerger(None, target[0], target[1], target[2], 'Weighted sum', multiplier, False, output, 'safetensors', 0, None, '', True, True, True, '{}')
 			result += f'{output}.safetensors generated<br>'
 			for x in range(1, random.randrange(0, 5, 1)):
@@ -583,8 +583,8 @@ def create_ui(is_img2img):
 				br = find_random(checkpoints, f'{output}.safetensors')
 				if br is None:
 					return
-				index = random.randrange(100, 900, 1)
-				output = f'bmab_random_{index}'
+                index = random.randrange(0x10000000, 0xFFFFFFFF, 1)  # 8자리 16진수로 변경
+                output = f'bmab_random_{format(index, "08X")}'  # 8자리 16진수로 포맷팅
 				target = random.choices(checkpoints, k=2)
 				multiplier = random.randrange(10, 90, 1) / 100
 				extras.run_modelmerger(None, br, target[0], target[1], 'Weighted sum', multiplier, False, output, 'safetensors', 0, None, '', True, True, True, '{}')
