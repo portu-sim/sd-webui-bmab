@@ -1,17 +1,14 @@
-import math
-
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
 
 from modules import shared
-from modules import devices
 
 from sd_bmab import util
+from sd_bmab import detectors
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 
 from sd_bmab.util import debug_print
-from sd_bmab.base.dino import dino_init, dino_predict
 
 
 class Obj(object):
@@ -120,6 +117,7 @@ class Hand(Obj):
 	name = 'hand'
 
 
+'''
 def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	text_prompt = "person . head . face . hand ."
 	debug_print('threshold', box_threshold)
@@ -176,7 +174,7 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 			boxes.append(person.get_box())
 			masks.append(mask)
 	return boxes, masks
-
+'''
 
 
 class HandDetailer(ProcessorBase):
@@ -191,6 +189,7 @@ class HandDetailer(ProcessorBase):
 		self.block_overscaled_image = True
 		self.auto_upscale = True
 		self.scale = 2
+
 	def preprocess(self, context: Context, image: Image):
 		if context.args['hand_detailing_enabled']:
 			self.hand_detailing = dict(context.args.get('module_config', {}).get('hand_detailing', {}))
@@ -207,32 +206,27 @@ class HandDetailer(ProcessorBase):
 
 	def process(self, context: Context, image: Image):
 
-		dino_init()
-
 		context.add_generation_param('BMAB_hand_option', util.dict_to_str(self.detailing_opt))
 		context.add_generation_param('BMAB_hand_parameter', util.dict_to_str(self.hand_detailing))
 
-		if self.detailing_method == 'subframe':
-			return self.process_hand_detailing_subframe(context, image)
-		elif self.detailing_method == 'at once':
+		if self.detailing_method == 'subframe' or self.detailing_method == 'at once':
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')
-			boxes, logits, phrases = dino_predict(image, 'person . hand')
-			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-				if phrase == 'hand':
-					b = util.fix_box_size(box)
-					dr.rectangle(b, fill=255)
+			detector = detectors.UltralyticsHandDetector8n()
+			boxes, logits = detector.predict(context, image)
+			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits)):
+				b = util.fix_box_size(box)
+				dr.rectangle(b, fill=255)
 			options = dict(mask=mask)
 			options.update(self.hand_detailing)
 			context.add_job()
 			with VAEMethodOverride():
 				image = process_img2img(context.sdprocessing, image, options=options)
 		elif self.detailing_method == 'each hand' or self.detailing_method == 'inpaint each hand':
-			boxes, logits, phrases = dino_predict(image, 'person . hand')
-			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
-				debug_print(float(logit), phrase)
-				if phrase != 'hand':
-					continue
+			detector = detectors.UltralyticsHandDetector8n()
+			boxes, logits = detector.predict(context, image)
+			for idx, (box, logit) in enumerate(zip(boxes, logits)):
+				debug_print(float(logit))
 
 				x1, y1, x2, y2 = tuple(int(x) for x in box)
 
@@ -280,6 +274,7 @@ class HandDetailer(ProcessorBase):
 
 		return image
 
+	'''
 	def process_hand_detailing_subframe(self, context, image):
 
 		boxes, masks = get_subframe(image, self.dilation, box_threshold=self.box_threshold)
@@ -343,6 +338,7 @@ class HandDetailer(ProcessorBase):
 			devices.torch_gc()
 
 		return image
+	'''
 
 	def postprocess(self, context: Context, image: Image):
 		pass

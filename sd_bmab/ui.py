@@ -244,7 +244,7 @@ def create_ui(is_img2img):
 							with gr.Column():
 								gr.Markdown('')
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable dino detect', value=False)
+							elem += gr.Checkbox(label='Enable detect', value=False)
 						with gr.Row():
 							elem += gr.Textbox(placeholder='1girl', visible=True, value='', label='Prompt')
 					with gr.Tab('Person', elem_id='bmab_person_tabs'):

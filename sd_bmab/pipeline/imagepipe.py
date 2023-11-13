@@ -1,6 +1,5 @@
 import traceback
 
-from sd_bmab.base import dino
 from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpscaler
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
@@ -94,4 +93,4 @@ def process_controlnet(context):
 
 
 def release():
-	dino.release()
+	pass

@@ -27,7 +27,7 @@ class PersonDetailer(ProcessorBase):
 		self.background_color = 1
 		self.background_blur = 0
 		self.best_quality = False
-		self.detection_model = 'GroundingDINO(person)'
+		self.detection_model = 'Ultralytics(person_yolov8n-seg.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
 
 	def preprocess(self, context: Context, image: Image):

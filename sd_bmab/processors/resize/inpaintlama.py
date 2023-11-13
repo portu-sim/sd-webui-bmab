@@ -6,7 +6,7 @@ from modules import devices
 from modules.processing import process_images, StableDiffusionProcessingImg2Img
 
 from sd_bmab import util
-from sd_bmab.base import apply_extensions, build_img2img, Context, ProcessorBase, dino
+from sd_bmab.base import apply_extensions, build_img2img, Context, ProcessorBase
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
 

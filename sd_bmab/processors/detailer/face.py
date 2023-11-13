@@ -30,7 +30,7 @@ class FaceDetailer(ProcessorBase):
 		self.limit = 1
 		self.sampler = constants.sampler_default
 		self.best_quality = False
-		self.detection_model = 'GroundingDINO(face)'
+		self.detection_model = 'Ultralytics(face_yolov8n.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
 		self.step = step
 		self.skip_large_face = False

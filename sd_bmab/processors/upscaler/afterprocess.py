@@ -2,10 +2,8 @@ from PIL import Image
 
 from modules import images
 
-from sd_bmab.base import dino
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
-from sd_bmab import constants, util
 from sd_bmab.util import debug_print
 
 
