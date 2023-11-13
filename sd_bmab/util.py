@@ -25,7 +25,7 @@ LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.L
 
 
 def debug_print(*args):
-	if shared.opts.bmab_debug_print:
+	if shared.opts.data.get('bmab_debug_print', False):
 		print(*args)
 
 
