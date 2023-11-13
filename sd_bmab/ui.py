@@ -328,9 +328,9 @@ def create_ui(is_img2img):
 								choices = detectors.list_face_detectors()
 								elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
 							with gr.Column():
-								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
-								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Dilation')
-								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Box threshold')
+								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Face Denoising Strength', elem_id='bmab_face_denoising_strength')
+								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Face Dilation', elem_id='bmab_face_dilation')
+								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Face Box threshold')
 								elem += gr.Checkbox(label='Skip face detailing by area', value=False)
 								elem += gr.Slider(minimum=0.0, maximum=3.0, value=0.26, step=0.01, label='Face area (MegaPixel)')
 					with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
