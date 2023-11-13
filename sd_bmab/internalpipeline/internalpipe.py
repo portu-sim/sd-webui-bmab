@@ -12,26 +12,18 @@ from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.processors.preprocess import PretrainingDetailer
 
 
-pipeline_step1 = [
-	ResamplePreprocessor(step=1),
-	PretrainingDetailer(step=1),
-	FaceDetailer(step=1),
-	ResizeIntermidiate(step=1),
-]
-
-pipeline_step2 = [
-	EdgeEnhancement(),
-	ResizeIntermidiate(),
-	Img2imgMasking(),
-	NoiseAlpha(),
-]
-
-
 def is_controlnet_required(context):
 	return ResamplePreprocessor(step=1).preprocess(context, None)
 
 
 def process_intermediate_step1(context, image):
+	pipeline_step1 = [
+		ResamplePreprocessor(step=1),
+		PretrainingDetailer(step=1),
+		FaceDetailer(step=1),
+		ResizeIntermidiate(step=1),
+	]
+	
 	processed = image.copy()
 	for proc in pipeline_step1:
 		try:
@@ -47,6 +39,13 @@ def process_intermediate_step1(context, image):
 
 
 def process_intermediate_step2(context, image):
+	pipeline_step2 = [
+		EdgeEnhancement(),
+		ResizeIntermidiate(),
+		Img2imgMasking(),
+		NoiseAlpha(),
+	]
+	
 	processed = image.copy()
 	for proc in pipeline_step2:
 		result = proc.preprocess(context, processed)
