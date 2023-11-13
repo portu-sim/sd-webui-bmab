@@ -13,7 +13,12 @@ from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.internalpipeline import Preprocess
 
 
-pipeline_modules = [
+def is_controlnet_required(context):
+	return ResamplePreprocessor().preprocess(context, None)
+
+
+def process(context, image):
+	pipeline_modules = [
 		BeforeProcessFileSaver(),
 		CheckPointChanger(),
 		ResamplePreprocessor(),
@@ -34,13 +39,7 @@ pipeline_modules = [
 		BlendImage(),
 		AfterProcessFileSaver()
 	]
-
-
-def is_controlnet_required(context):
-	return ResamplePreprocessor().preprocess(context, None)
-
-
-def process(context, image):
+	
 	processed = image.copy()
 
 	for proc in pipeline_modules:
