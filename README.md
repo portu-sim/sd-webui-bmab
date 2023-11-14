@@ -1,31 +1,10 @@
 
 # BMAB 기능 설명
 
-##동작환경
+BMAB는 Stable Diffusion WebUI의 확장 기능으로, 생성된 이미지를 설정에 따라 후처리하는 기능을 가지고 있습니다.   
+필요에 따라 인물, 얼굴, 손을 찾아 다시 그리거나, Resize, Resample, 노이즈 추가 등의 기능을 수행할 수 있으며,   
+두 장의 이미지를 합성하거나, Upscale의 기능을 수행 할 수 있습니다.
 
-Windows, Linux 로컬 환경에서만 동작합니다..
-
-**<span style="color: red">클라우드에서 동작을 보장할 수 없습니다..</span>**
-
-### Local
-
-pytorch 2.0.1   
-python 3.10 , 3.11   
-CUDA 11.7, 11.8   
-
-환경에서 동작 확인.
-
-### Colab
-
-코랩 유저를 위한 조언.   
-stable-diffusion-webui 앞에 셀을 만들고 아래를 추가하면,
-패키지가 설치된다. 동작 확인은 했지만 원할하게 쓸 수 있는지는 확인하지 못했습니다.
-
-```
-!pip3 install https://github.com/Bing-su/GroundingDINO/releases/download/0.1.0-2.0.1/groundingdino-0.1.0+torch2.0.1.cu118-cp310-cp310-linux_x86_64.whl
-!pip3 install segment_anything
-!git clone https://github.com/portu-sim/sd-webui-bmab /content/gdrive/$mainpth/sd/stable-diffusion-webui/extensions/sd-webui-bmab
-```
 
 ## Example
 

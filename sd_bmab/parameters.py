@@ -122,7 +122,7 @@ class Parameters(object):
 			('module_config.face_detailing_opt.sampler', constants.sampler_default),
 			('module_config.face_detailing.inpaint_full_res', 'Only masked'),
 			('module_config.face_detailing.inpaint_full_res_padding', 32),
-			('module_config.face_detailing_opt.detection_model', 'Ultralytics(face_yolov8n.pt)'),
+			('module_config.face_detailing_opt.detection_model', constants.face_detector_default),
 			('module_config.face_detailing.denoising_strength', 0.4),
 			('module_config.face_detailing_opt.dilation', 4),
 			('module_config.face_detailing_opt.box_threshold', 0.3),
@@ -272,6 +272,11 @@ class Parameters(object):
 		save_dir = os.path.join(os.path.dirname(__file__), "../saved")
 		with open(os.path.join(save_dir, f'{name}.json'), 'r') as f:
 			loaded_dict = json.load(f)
+
+		detailing_opt = loaded_dict.get('module_config', {}).get('face_detailing_opt', {})
+		detection_model = detailing_opt.get('detection_model', constants.face_detector_default)
+		if detection_model == 'GroundingDINO(face)':
+			detailing_opt['detection_model'] = constants.face_detector_default
 		default_args = Parameters.get_dict_from_args(self.params, None)
 		loaded_args = Parameters.get_param_from_dict('', loaded_dict)
 		final_dict = Parameters.get_dict_from_args(loaded_args, default_args)

@@ -1,8 +1,10 @@
+import math
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
 
 from modules import shared
+from modules import devices
 
 from sd_bmab import util
 from sd_bmab import detectors
@@ -117,11 +119,36 @@ class Hand(Obj):
 	name = 'hand'
 
 
-'''
-def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
-	text_prompt = "person . head . face . hand ."
+def predict(context, image, boxth, txtth):
+
+	ret_boxes = []
+	ret_logits = []
+	ret_phrases = []
+
+	detector = detectors.UltralyticsPersonDetector8n(box_threshold=boxth)
+	boxes, logits = detector.predict(context, image)
+	ret_boxes.extend(boxes)
+	ret_logits.extend(logits)
+	ret_phrases.extend(['person'] * len(boxes))
+
+	detector = detectors.UltralyticsFaceDetector8n(box_threshold=boxth)
+	boxes, logits = detector.predict(context, image)
+	ret_boxes.extend(boxes)
+	ret_logits.extend(logits)
+	ret_phrases.extend(['face'] * len(boxes))
+
+	detector = detectors.UltralyticsHandDetector8n(box_threshold=boxth)
+	boxes, logits = detector.predict(context, image)
+	ret_boxes.extend(boxes)
+	ret_logits.extend(logits)
+	ret_phrases.extend(['hand'] * len(boxes))
+
+	return ret_boxes, ret_logits, ret_phrases
+
+
+def get_subframe(context, pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 	debug_print('threshold', box_threshold)
-	boxes, logits, phrases = dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
+	boxes, logits, phrases = predict(context, pilimg, box_threshold, text_threshold)
 
 	people = []
 
@@ -174,7 +201,6 @@ def get_subframe(pilimg, dilation, box_threshold=0.30, text_threshold=0.20):
 			boxes.append(person.get_box())
 			masks.append(mask)
 	return boxes, masks
-'''
 
 
 class HandDetailer(ProcessorBase):
@@ -209,7 +235,9 @@ class HandDetailer(ProcessorBase):
 		context.add_generation_param('BMAB_hand_option', util.dict_to_str(self.detailing_opt))
 		context.add_generation_param('BMAB_hand_parameter', util.dict_to_str(self.hand_detailing))
 
-		if self.detailing_method == 'subframe' or self.detailing_method == 'at once':
+		if self.detailing_method == 'subframe':
+			return self.process_hand_detailing_subframe(context, image)
+		elif self.detailing_method == 'at once':
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')
 			detector = detectors.UltralyticsHandDetector8n()
@@ -274,10 +302,9 @@ class HandDetailer(ProcessorBase):
 
 		return image
 
-	'''
 	def process_hand_detailing_subframe(self, context, image):
 
-		boxes, masks = get_subframe(image, self.dilation, box_threshold=self.box_threshold)
+		boxes, masks = get_subframe(context, image, self.dilation, box_threshold=self.box_threshold)
 		if not boxes:
 			return image
 
@@ -338,7 +365,6 @@ class HandDetailer(ProcessorBase):
 			devices.torch_gc()
 
 		return image
-	'''
 
 	def postprocess(self, context: Context, image: Image):
 		pass

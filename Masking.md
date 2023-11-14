@@ -1,7 +1,7 @@
 
 # Auto Masking
 
-## Dino Detect
+## Detect
 
 * Img2Img 인물 사진을 추가한다.
 * Just resize 선택
@@ -16,7 +16,7 @@
 
 * BMAB를 Enable 한다.
 * 반드시 Process before img2img를 체크한다.
-* Dino detect enabled 체크하고 prompt에 person, 1girl, human...뭐든..
+* Detect enabled 체크하고 prompt에 person, 1girl, human...뭐든..
 
 <p>
 <img src="https://i.ibb.co/k525fb6/2023-08-16-1-47-45.png">

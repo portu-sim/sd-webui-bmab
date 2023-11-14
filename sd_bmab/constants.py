@@ -4,6 +4,7 @@ checkpoint_default = 'Use same checkpoint'
 vae_default = 'Use same vae'
 fast_upscaler = 'BMAB fast'
 filter_default = 'None'
+face_detector_default = 'BMAB Face(Normal)'
 
 checkpoint_description = '''
 <span style="color: gray">
