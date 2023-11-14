@@ -51,9 +51,9 @@ def create_ui(is_img2img):
 							with gr.Row():
 								vaes = [constants.vae_default]
 								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-								checkpoint_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
-								elem += checkpoint_vaes
-								refresh_checkpoint_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+								vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+								elem += vaes_models
+								refresh_vae_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 					with gr.Row():
 						gr.Markdown(constants.checkpoint_description)
 					with gr.Row():
@@ -519,7 +519,7 @@ def create_ui(is_img2img):
 			if value not in checkpoints:
 				value = checkpoints[0]
 			return {
-				refresh_resample_models: {
+				resample_models: {
 					'choices': checkpoints,
 					'value': value,
 					'__type__': 'update'
@@ -532,7 +532,7 @@ def create_ui(is_img2img):
 			if value not in vaes:
 				value = vaes[0]
 			return {
-				refresh_resample_vaes: {
+				resample_vaes: {
 					'choices': vaes,
 					'value': value,
 					'__type__': 'update'
@@ -545,20 +545,20 @@ def create_ui(is_img2img):
 			if value not in checkpoints:
 				value = checkpoints[0]
 			return {
-				refresh_checkpoint_models: {
+				checkpoint_models: {
 					'choices': checkpoints,
 					'value': value,
 					'__type__': 'update'
 				}
 			}
 
-		def hit_checkpoint_vae(value, *args):
+		def hit_vae_models(value, *args):
 			vaes = [constants.vae_default]
 			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
 			if value not in vaes:
 				value = vaes[0]
 			return {
-				refresh_checkpoint_vaes: {
+				vaes_models: {
 					'choices': vaes,
 					'value': value,
 					'__type__': 'update'
@@ -661,10 +661,10 @@ def create_ui(is_img2img):
 		refresh_btn.click(refresh_preset, outputs=elem)
 		refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
 		refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
-		refresh_resample_models.click(hit_resample_model, inputs=[refresh_resample_models], outputs=[refresh_resample_models])
-		refresh_resample_vaes.click(hit_resample_vae, inputs=[refresh_resample_vaes], outputs=[refresh_resample_vaes])
-		refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[refresh_checkpoint_models], outputs=[refresh_checkpoint_models])
-		refresh_checkpoint_vaes.click(hit_checkpoint_vae, inputs=[refresh_checkpoint_vaes], outputs=[refresh_checkpoint_vaes])
+		refresh_resample_models.click(hit_resample_model, inputs=[resample_models], outputs=[resample_models])
+		refresh_resample_vaes.click(hit_resample_vae, inputs=[resample_vaes], outputs=[resample_vaes])
+		refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[checkpoint_models], outputs=[checkpoint_models])
+		refresh_vae_models.click(hit_vae_models, inputs=[vaes_models], outputs=[vaes_models])
 		random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
 		btn_fetch_images.click(fetch_images, outputs=[gallery])
 		btn_reload_filter.click(reload_filter, inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter], outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter])
