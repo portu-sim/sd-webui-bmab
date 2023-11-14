@@ -1,5 +1,7 @@
 import traceback
 
+from modules import shared
+
 from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpscaler
 from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
@@ -43,6 +45,9 @@ def process(context, image):
 
 	for proc in pipeline_modules:
 		try:
+			if shared.state.interrupted or shared.state.skipped:
+				return
+
 			result = proc.preprocess(context, processed)
 			if result is None or not result:
 				continue
@@ -53,6 +58,7 @@ def process(context, image):
 			traceback.print_exc()
 		finally:
 			RollbackModel().process(context, processed)
+			CheckPointRestore().process(context, processed)
 
 	return processed
 
