@@ -198,24 +198,30 @@ class Parameters(object):
 		return arr
 
 	def get_dict(self, args, external_config):
-		if len(args) != len(self.params):
-			print('Refresh webui first.')
-			raise Exception('Refresh webui first.')
-
-		if args[0]:
-			args_list = [(self.params[idx][0], v) for idx, v in enumerate(args)]
-			args_list.extend(self.ext_params)
-			ar = Parameters.get_dict_from_args(args_list, None)
+		if isinstance(args, dict):
+			default_args = Parameters.get_dict_from_args(self.params, None)
+			default_args.update(args)
+			return default_args
 		else:
-			self.params.extend(self.ext_params)
-			ar = Parameters.get_dict_from_args(self.params, None)
+			if len(args) != len(self.params):
+				print('Refresh webui first.')
+				raise Exception('Refresh webui first.')
 
-		if external_config:
-			cfgarg = Parameters.get_param_from_dict('', external_config)
-			ar = Parameters.get_dict_from_args(cfgarg, ar)
-			ar['enabled'] = True
+			if args[0]:
+				args_list = [(self.params[idx][0], v) for idx, v in enumerate(args)]
+				args_list.extend(self.ext_params)
+				ar = Parameters.get_dict_from_args(args_list, None)
+			else:
+				self.params.extend(self.ext_params)
+				ar = Parameters.get_dict_from_args(self.params, None)
 
-		return ar
+			if external_config:
+				cfgarg = Parameters.get_param_from_dict('', external_config)
+				ar = Parameters.get_dict_from_args(cfgarg, ar)
+				ar['enabled'] = True
+
+			return ar
+		return None
 
 	def get_default(self):
 		return [x[1] for x in self.params]

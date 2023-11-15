@@ -73,7 +73,7 @@ class FinalProcessorBasic(ProcessorBase):
 
 		if self.noise_alpha_final != 0:
 			context.add_generation_param('BMAB noise alpha final', self.noise_alpha_final)
-			img_noise = util.generate_noise(image.size[0], image.size[1])
+			img_noise = util.generate_noise(context.sdprocessing.seed, image.size[0], image.size[1])
 			image = Image.blend(image, img_noise, alpha=self.noise_alpha_final)
 
 		if self.contrast != 1:

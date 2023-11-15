@@ -289,12 +289,13 @@ def b64_encoding(image):
 	return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
-def generate_noise(width, height):
+def generate_noise(seed, width, height):
 	img_1 = np.zeros([height, width, 3], dtype=np.uint8)
 	# Generate random Gaussian noise
 	mean = 0
 	stddev = 180
 	r, g, b = cv2.split(img_1)
+	cv2.setRNGSeed(seed)
 	cv2.randn(r, mean, stddev)
 	cv2.randn(g, mean, stddev)
 	cv2.randn(b, mean, stddev)

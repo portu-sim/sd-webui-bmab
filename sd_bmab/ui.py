@@ -14,7 +14,7 @@ from sd_bmab import detectors
 from sd_bmab import parameters
 from sd_bmab.base import context
 from sd_bmab.base import filter
-from sd_bmab import processors
+from sd_bmab import pipeline
 from sd_bmab import masking
 from sd_bmab.util import debug_print
 
@@ -613,7 +613,7 @@ def create_ui(is_img2img):
 			preview = final_images[gallery_select_index]
 			p = last_process
 			ctx = context.Context.newContext(bmab_script, p, a, gallery_select_index)
-			preview = processors.process(ctx, preview)
+			preview = pipeline.process(ctx, preview)
 			images.save_image(
 				preview, p.outpath_samples, '',
 				p.all_seeds[gallery_select_index], p.all_prompts[gallery_select_index],

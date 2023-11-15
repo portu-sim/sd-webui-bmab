@@ -50,7 +50,7 @@ class Openpose(ProcessorBase):
 		context.add_generation_param('BMAB controlnet mode', 'lineart')
 		context.add_generation_param('BMAB noise strength', noise_strength)
 
-		img = util.generate_noise(context.sdprocessing.width, context.sdprocessing.height)
+		img = util.generate_noise(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
 		cn_op_arg = self.get_openpose_args(img)
 		idx = cn_args[0] + context.controlnet_count
 		context.controlnet_count += 1
