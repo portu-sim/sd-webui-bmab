@@ -13,7 +13,14 @@ from sd_bmab.processors.preprocess import PretrainingDetailer
 
 
 def is_controlnet_required(context):
-	return ResamplePreprocessor(step=1).preprocess(context, None)
+	pipeline_modules = [
+		ResamplePreprocessor(step=1),
+		ResizeIntermidiate(step=1)
+	]
+	for mod in pipeline_modules:
+		if mod.use_controlnet(context):
+			return True
+	return False
 
 
 def process_intermediate_step1(context, image):

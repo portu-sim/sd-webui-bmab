@@ -6,6 +6,9 @@ class ProcessorBase(object):
 	def __init__(self) -> None:
 		super().__init__()
 
+	def use_controlnet(self, context: Context):
+		return False
+
 	def preprocess(self, context: Context, image: Image):
 		pass
 

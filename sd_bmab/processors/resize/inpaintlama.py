@@ -18,17 +18,22 @@ class InpaintLamaResize(ProcessorBase):
 		self.value = 0,
 		self.denoising_strength = 0.4
 		self.dilation = 4
-		self.mode = 'Inpaint'
+		self.mode = 'ControlNet inpaint+lama'
+		self.enabled = False
+
+	def use_controlnet(self, context: Context):
+		self.preprocess(context, None)
+		return self.enabled
 
 	def preprocess(self, context: Context, image: Image):
-		enabled = context.args.get('resize_by_person_enabled', False)
+		self.enabled = context.args.get('resize_by_person_enabled', self.enabled)
 		self.resize_by_person_opt = context.args.get('module_config', {}).get('resize_by_person_opt', {})
 		self.value = self.resize_by_person_opt.get('scale', 0)
 		self.denoising_strength = self.resize_by_person_opt.get('denoising_strength', 0.4)
 		self.dilation = self.resize_by_person_opt.get('dilation', 0.4)
 		self.mode = self.resize_by_person_opt.get('mode', self.mode)
 
-		return enabled and self.mode == 'ControlNet inpaint+lama'
+		return self.enabled and self.mode == 'ControlNet inpaint+lama'
 
 	@staticmethod
 	def get_inpaint_lama_args(image, mask):

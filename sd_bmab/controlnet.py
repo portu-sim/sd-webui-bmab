@@ -18,6 +18,7 @@ class FakeControlNet:
 		self.all_prompts = None
 		self.all_negative_prompts = None
 		self.enabled = self.is_controlnet_enabled() if cn_enabled else False
+		debug_print('FakeControlNet', self.enabled, cn_enabled)
 
 	def __enter__(self):
 		if self.enabled:

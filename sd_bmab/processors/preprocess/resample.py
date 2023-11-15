@@ -37,6 +37,10 @@ class ResamplePreprocessor(ProcessorBase):
 		self.base_sd_model = None
 		self.preprocess_step = step
 
+	def use_controlnet(self, context: Context):
+		self.preprocess(context, None)
+		return self.enabled
+
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['resample_enabled']
 		self.resample_opt = context.args.get('module_config', {}).get('resample_opt', {})

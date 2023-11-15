@@ -16,7 +16,14 @@ from sd_bmab.util import debug_print
 
 
 def is_controlnet_required(context):
-	return ResamplePreprocessor().preprocess(context, None)
+	pipeline_modules = [
+		ResamplePreprocessor(),
+		InpaintLamaResize(),
+	]
+	for mod in pipeline_modules:
+		if mod.use_controlnet(context):
+			return True
+	return False
 
 
 def process(context, image):

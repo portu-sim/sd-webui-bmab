@@ -24,6 +24,12 @@ class ResizeIntermidiate(ProcessorBase):
 		self.denoising_strength = 0.75
 		self.step = step
 
+	def use_controlnet(self, context: Context):
+		self.preprocess(context, None)
+		if self.enabled and self.method in ['inpaint+lama', 'inpaint_only']:
+			return True
+		return False
+
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args.get('resize_intermediate_enabled', False)
 		self.resize_by_person_opt = context.args.get('module_config', {}).get('resize_intermediate_opt', {})
