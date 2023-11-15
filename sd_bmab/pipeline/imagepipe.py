@@ -12,10 +12,18 @@ from sd_bmab.processors.controlnet import LineartNoise
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.internalpipeline import Preprocess
+from sd_bmab.util import debug_print
 
 
 def is_controlnet_required(context):
-	return ResamplePreprocessor().preprocess(context, None)
+	pipeline_modules = [
+		ResamplePreprocessor(),
+		InpaintLamaResize(),
+	]
+	for mod in pipeline_modules:
+		if mod.use_controlnet(context):
+			return True
+	return False
 
 
 def process(context, image):
@@ -43,22 +51,24 @@ def process(context, image):
 	
 	processed = image.copy()
 
-	for proc in pipeline_modules:
-		try:
-			if shared.state.interrupted or shared.state.skipped:
-				return
+	try:
+		for proc in pipeline_modules:
+			try:
+				if shared.state.interrupted or shared.state.skipped:
+					return
 
-			result = proc.preprocess(context, processed)
-			if result is None or not result:
-				continue
-			ret = proc.process(context, processed)
-			proc.postprocess(context, processed)
-			processed = ret
-		except:
-			traceback.print_exc()
-		finally:
-			RollbackModel().process(context, processed)
-			CheckPointRestore().process(context, processed)
+				result = proc.preprocess(context, processed)
+				if result is None or not result:
+					continue
+				ret = proc.process(context, processed)
+				proc.postprocess(context, processed)
+				processed = ret
+			except:
+				traceback.print_exc()
+	finally:
+		debug_print('Restore Checkpoint at final')
+		RollbackModel().process(context, processed)
+		CheckPointRestore().process(context, processed)
 
 	return processed
 
