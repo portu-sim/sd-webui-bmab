@@ -27,7 +27,7 @@ class ResizeIntermidiate(ProcessorBase):
 
 	def use_controlnet(self, context: Context):
 		self.preprocess(context, None)
-		if self.enabled and self.method in ['inpaint+lama', 'inpaint_only']:
+		if self.enabled and self.method in ['inpaint_only+lama', 'inpaint_only']:
 			return True
 		return False
 
