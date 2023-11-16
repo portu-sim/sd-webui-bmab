@@ -11,7 +11,7 @@ from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, Noise
 from sd_bmab.processors.controlnet import LineartNoise
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor
-from sd_bmab.internalpipeline import Preprocess
+from sd_bmab.pipeline.internal import Preprocess
 from sd_bmab.util import debug_print
 
 

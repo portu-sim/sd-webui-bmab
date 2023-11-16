@@ -2,7 +2,7 @@ from PIL import Image
 
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
-from sd_bmab.internalpipeline import process_intermediate_step1, process_intermediate_step2
+from sd_bmab.pipeline.internal import process_intermediate_step1, process_intermediate_step2
 
 
 class Preprocess(ProcessorBase):

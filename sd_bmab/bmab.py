@@ -6,8 +6,8 @@ from modules import images
 from sd_bmab import parameters
 from sd_bmab.base import context, filter
 
-from sd_bmab import pipeline
-from sd_bmab import internalpipeline
+from sd_bmab.pipeline import post
+from sd_bmab.pipeline import internal
 from sd_bmab import masking
 from sd_bmab import ui
 from sd_bmab import util
@@ -58,8 +58,8 @@ class BmabExtScript(scripts.Script):
 			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
 			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
 		else:
-			internalpipeline.process_img2img(ctx)
-		pipeline.process_controlnet(ctx)
+			post.process_img2img(ctx)
+		post.process_controlnet(ctx)
 
 	def postprocess_image(self, p, pp, *args):
 		self.config, a = parameters.parse_args(args)
@@ -71,8 +71,8 @@ class BmabExtScript(scripts.Script):
 			return
 
 		ctx = context.Context.newContext(self, p, a, self.index)
-		with controlnet.PreventControlNet(p, cn_enabled=pipeline.is_controlnet_required(ctx)):
-			pp.image = pipeline.process(ctx, pp.image)
+		with controlnet.PreventControlNet(p, cn_enabled=post.is_controlnet_required(ctx)):
+			pp.image = post.process(ctx, pp.image)
 			ui.final_images.append(pp.image)
 		self.index += 1
 
@@ -80,7 +80,7 @@ class BmabExtScript(scripts.Script):
 		if shared.opts.bmab_show_extends:
 			processed.images.extend(self.extra_image)
 
-		pipeline.release()
+		post.release()
 		masking.release()
 
 	def describe(self):
@@ -91,10 +91,10 @@ class BmabExtScript(scripts.Script):
 			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
 
 		ctx = context.Context.newContext(self, p, a, idx)
-		with controlnet.PreventControlNet(p, cn_enabled=internalpipeline.is_controlnet_required(ctx)):
-			image = internalpipeline.process_intermediate_step1(ctx, image)
+		with controlnet.PreventControlNet(p, cn_enabled=internal.is_controlnet_required(ctx)):
+			image = internal.process_intermediate_step1(ctx, image)
 			image = images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
-			image = internalpipeline.process_intermediate_step2(ctx, image)
+			image = internal.process_intermediate_step2(ctx, image)
 		return image
 
 

@@ -166,7 +166,7 @@ def create_ui(is_img2img):
 						gr.HTML(constants.resize_description)
 					with gr.Row():
 						with gr.Column():
-							methods = ['stretching', 'inpaint', 'inpaint+lama', 'inpaint_only']
+							methods = ['stretching', 'inpaint', 'inpaint+lama', 'inpaint_only', 'inpaint_only+lama']
 							elem += gr.Dropdown(label='Method', visible=True, value=methods[0], choices=methods)
 						with gr.Column():
 							align = [x for x in util.alignment.keys()]

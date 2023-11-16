@@ -9,6 +9,7 @@ from sd_bmab.base import filter
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
 from sd_bmab.base import process_img2img, process_img2img_with_controlnet
+from sd_bmab.external.lama import LamaInpainting
 
 
 class ResizeIntermidiate(ProcessorBase):
@@ -152,6 +153,37 @@ class ResizeIntermidiate(ProcessorBase):
 			filter.postprocess_filter(bmab_filter, context)
 			return image
 		elif self.method == 'inpaint+lama':
+			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
+			lama = LamaInpainting()
+			stretching_image = lama(stretching_image, mask)
+			debug_print('mask size', mask.size)
+			seed, subseed = context.get_seeds()
+			options = dict(
+				seed=seed, subseed=subseed,
+				denoising_strength=self.denoising_strength,
+				resize_mode=0,
+				mask=mask,
+				mask_blur=4,
+				inpainting_fill=1,
+				inpaint_full_res=True,
+				inpaint_full_res_padding=32,
+				inpainting_mask_invert=0,
+				initial_noise_multiplier=1.0,
+				prompt=context.get_prompt_by_index(),
+				negative_prompt=context.get_negative_prompt_by_index(),
+				batch_size=1,
+				n_iter=1,
+				restore_faces=False,
+				do_not_save_samples=True,
+				do_not_save_grid=True,
+			)
+			context.add_job()
+			filter.preprocess_filter(bmab_filter, context, options)
+			processed = process_img2img(context.sdprocessing, stretching_image, options=options)
+			image = filter.process_filter(bmab_filter, context, image, processed)
+			filter.postprocess_filter(bmab_filter, context)
+			return image
+		elif self.method == 'inpaint_only+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
 			opt = dict(denoising_strength=self.denoising_strength)
 			debug_print('Stretching image size', stretching_image.size)
