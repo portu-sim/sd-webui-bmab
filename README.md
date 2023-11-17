@@ -9,7 +9,7 @@ BMAB is an extension of Stable Diffusion WebUI and has the function of post-proc
 If necessary, you can find and redraw people, faces, and hands, or perform functions such as resize, resample, and add noise.
 You can composite two images or perform the Upscale function.
 
-<a href="https://github.com/portu-sim/sd-webui-bmab/docs/kr/manual.md">Manual (KR)</a>
+<a href="./docs/kr/manual.md">Manual (KR)</a>
 
 
 ## Example
