@@ -43,16 +43,16 @@ Enabled 된 상태에서는 항상 이미지가 아래에 위치하고,
 본 이미지 변경을 하기 전에 사전 처리 과정을 수행합니다.   
 조건에 따라 hires.fix 과정에 개입할 수도 있습니다.
 
-<a href="preprocess.md">Preprocess</a>
+<a href="./docs/kr/preprocess.md">Preprocess</a>
 
 # BMAB
 
 Person, Hand, Face detailer를 수행하거나, 이미지 합성 혹은 노이즈 추가등의 기능을 수행합니다.
 
-<a href="bmab.md">bmab</a>
+<a href="./docs/kr/bmab.md">bmab</a>
 
 # Postprocess
 
 이미지 처리가 완료된 이후, 인물의 크기에 따라 배경을 확장하거나 upscale을 할 수 있습니다.
 
-<a href="preprocess.md">Postprocess</a>
+<a href="./docs/kr/preprocess.md">Postprocess</a>
