@@ -39,7 +39,11 @@ class Obj(object):
 	def is_in(self, obj) -> bool:
 		x1, y1, x2, y2 = self.inbox
 		mx1, my1, mx2, my2 = obj.xyxy
-		return mx1 <= x1 <= mx2 and mx1 <= x2 <= mx2 and my1 <= y1 <= my2 and my1 <= y2 <= my2
+
+		x = int(x1 + (x2 - x1) / 2)
+		y = int(y1 + (y2 - y1) / 2)
+
+		return mx1 <= x <= mx2 and my1 <= y <= my2
 
 	def append(self, obj):
 		obj.parent = self
