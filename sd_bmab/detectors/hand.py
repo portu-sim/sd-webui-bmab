@@ -52,3 +52,12 @@ class UltralyticsHandDetector8s(UltralyticsHandDetector):
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self.model = 'hand_yolov8s.pt'
+
+
+class BmabHandDetector(UltralyticsHandDetector):
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		self.model = 'bmab_hand_yolov8n.pt'
+
+	def target(self):
+		return 'BMAB Hand(Normal)'

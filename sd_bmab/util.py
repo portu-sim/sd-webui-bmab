@@ -337,8 +337,9 @@ def lazy_loader(filename):
 
 def check_models():
 	models_hashes = {
-		'bmab_face_nm_yolov8n.pt': 'c53c29db23',
-		'bmab_face_sm_yolov8n.pt': 'b3517666a5'
+		'bmab_face_nm_yolov8n.pt': '82a88926da',
+		'bmab_face_sm_yolov8n.pt': '08e2180f5b',
+		'bmab_hand_yolov8n.pt': '15f3124f3b',
 	}
 
 	bmab_model_path = os.path.join(models_path, 'bmab')

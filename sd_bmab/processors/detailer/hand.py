@@ -196,7 +196,7 @@ def ultralytics_predict(context, image, boxth, txtth):
 	ret_logits.extend(logits)
 	ret_phrases.extend(['face'] * len(boxes))
 
-	detector = detectors.UltralyticsHandDetector8n(box_threshold=boxth)
+	detector = detectors.BmabHandDetector(box_threshold=boxth)
 	boxes, logits = detector.predict(context, image)
 	ret_boxes.extend(boxes)
 	ret_logits.extend(logits)
