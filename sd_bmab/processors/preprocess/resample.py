@@ -38,8 +38,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.preprocess_step = step
 
 	def use_controlnet(self, context: Context):
-		self.preprocess(context, None)
-		return self.enabled
+		return self.preprocess(context, None)
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['resample_enabled']
