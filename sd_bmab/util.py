@@ -295,7 +295,7 @@ def generate_noise(seed, width, height):
 	mean = 0
 	stddev = 180
 	r, g, b = cv2.split(img_1)
-	cv2.setRNGSeed(seed)
+	# cv2.setRNGSeed(seed)
 	cv2.randn(r, mean, stddev)
 	cv2.randn(g, mean, stddev)
 	cv2.randn(b, mean, stddev)
