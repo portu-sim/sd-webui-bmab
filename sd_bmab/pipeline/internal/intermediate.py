@@ -10,7 +10,7 @@ class Preprocess(ProcessorBase):
 		super().__init__()
 
 	def preprocess(self, context: Context, image: Image):
-		return not context.is_hires_fix() and not context.is_img2img()
+		return context.is_txtimg() and not context.is_hires_fix()
 
 	def process(self, context: Context, image: Image):
 		image = process_intermediate_step1(context, image)

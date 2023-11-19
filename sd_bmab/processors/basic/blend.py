@@ -16,12 +16,12 @@ class BlendImage(ProcessorBase):
 		self.enabled = context.args['blend_enabled']
 		self.input_image = context.args['input_image']
 		self.alpha = context.args['blend_alpha']
-		return self.enabled and self.input_image is not None and 0 <= self.alpha <= 1
+		#return self.enabled and self.input_image is not None and 0 <= self.alpha <= 1
+		return False
 
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB blend alpha', self.alpha)
 		#blend = Image.fromarray(self.input_image, mode='RGB')
-		debug_print(self.input_image)
 		blend = self.input_image
 		img = Image.new(mode='RGB', size=image.size)
 		img.paste(image, (0, 0))

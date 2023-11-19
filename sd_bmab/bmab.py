@@ -58,7 +58,7 @@ class BmabExtScript(scripts.Script):
 			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
 			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
 		else:
-			post.process_img2img(ctx)
+			internal.process_img2img(ctx)
 		post.process_controlnet(ctx)
 
 	def postprocess_image(self, p, pp, *args):

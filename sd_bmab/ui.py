@@ -410,7 +410,7 @@ def create_ui(is_img2img):
 							upscalers = [x.name for x in shared.sd_upscalers]
 							elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
 							elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
-		with gr.Accordion(f'BMAB Config & Preset', open=False):
+		with gr.Accordion(f'BMAB Config, Preset, Installer', open=False):
 			with gr.Row():
 				configs = parameters.Parameters().list_config()
 				config = '' if not configs else configs[0]
