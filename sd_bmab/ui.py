@@ -14,6 +14,7 @@ from sd_bmab import detectors
 from sd_bmab import parameters
 from sd_bmab.base import context
 from sd_bmab.base import filter
+from sd_bmab.base import installer
 from sd_bmab import pipeline
 from sd_bmab import masking
 from sd_bmab.util import debug_print
@@ -449,6 +450,13 @@ def create_ui(is_img2img):
 						merge_result = gr.Markdown('Result here')
 					with gr.Row():
 						random_checkpoint = gr.Button('Merge Random Checkpoint', visible=True, interactive=True, elem_id='bmab_merge_random_checkpoint')
+				with gr.Tab('Installer', elem_id='bmab_install_tabs'):
+					with gr.Row():
+						pkgs = ['GroundingDINO']
+						dd_pkg = gr.Dropdown(label='Package', visible=True, value=pkgs[0], choices=pkgs)
+						btn_install = ui_components.ToolButton('🔄', visible=True, interactive=True, tooltip='Install package', elem_id='bmab_btn_install')
+					with gr.Row():
+						markdown_install = gr.Markdown('')
 		with gr.Accordion(f'BMAB Testroom', open=False, visible=shared.opts.data.get('bmab_for_developer', False)):
 			with gr.Row():
 				gallery = gr.Gallery(label='Images', value=[], elem_id='bmab_testroom_gallery')
@@ -655,6 +663,20 @@ def create_ui(is_img2img):
 			global gallery_select_index
 			gallery_select_index = data.index
 
+		def hit_install(*args):
+			pkg_name = args[0]
+			if pkg_name == 'GroundingDINO':
+				installer.install_groudingdino()
+				msg = f'{pkg_name} installed'
+			else:
+				msg = 'Nothing installed.'
+			return {
+				markdown_install: {
+					'value': msg,
+					'__type__': 'update'
+				}
+			}
+
 		load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
@@ -671,6 +693,8 @@ def create_ui(is_img2img):
 
 		btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
 		gallery.select(image_selected, inputs=[gallery])
+
+		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[markdown_install])
 
 	return elem
 
