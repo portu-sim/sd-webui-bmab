@@ -56,3 +56,10 @@ Person, Hand, Face detailer를 수행하거나, 이미지 합성 혹은 노이�
 이미지 처리가 완료된 이후, 인물의 크기에 따라 배경을 확장하거나 upscale을 할 수 있습니다.
 
 <a href="./preprocess.md">Postprocess</a>
+
+
+# API
+
+stable diffusion webui의 API 기능을 호출할때 BMAB extension을 사용할 수 있습니다.
+
+<a href="./api.md">API Guide</a>
