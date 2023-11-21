@@ -198,9 +198,9 @@ class Parameters(object):
 		return arr
 
 	def get_dict(self, args, external_config):
-		if isinstance(args, dict):
+		if isinstance(args[0], dict):
 			default_args = Parameters.get_dict_from_args(self.params, None)
-			default_args.update(args)
+			default_args.update(args[0])
 			return default_args
 		else:
 			if len(args) != len(self.params):

@@ -31,7 +31,7 @@ class BmabExtScript(scripts.Script):
 		self.index = 0
 
 	def title(self):
-		return 'BMAB Extension'
+		return 'BMAB'
 
 	def show(self, is_img2img):
 		return scripts.AlwaysVisible
