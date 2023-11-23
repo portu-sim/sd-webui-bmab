@@ -45,7 +45,7 @@ class ResizeIntermidiate(ProcessorBase):
 		if not self.enabled:
 			return False
 		if not context.is_txtimg():
-			return True
+			return self.enabled
 		if self.step == 1 and self.method == 'stretching':
 			return False
 		if self.step == 2 and self.method != 'stretching':
