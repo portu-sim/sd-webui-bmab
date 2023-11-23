@@ -42,17 +42,18 @@ class ResizeIntermidiate(ProcessorBase):
 		self.value = self.resize_by_person_opt.get('scale', self.value)
 		self.denoising_strength = self.resize_by_person_opt.get('denoising_strength', self.denoising_strength)
 
-		if not self.enabled:
-			return False
-		if not context.is_txtimg():
+		if context.is_txtimg():
+			if not self.enabled:
+				return False
+			if self.step == 1 and self.method == 'stretching':
+				return False
+			if self.step == 2 and self.method != 'stretching':
+				return False
+			if 0.5 > self.value >= 1.0:
+				return False
 			return self.enabled
-		if self.step == 1 and self.method == 'stretching':
-			return False
-		if self.step == 2 and self.method != 'stretching':
-			return False
-		if 0.5 > self.value >= 1.0:
-			return False
-		return self.enabled
+		else:
+			return self.enabled
 
 	@staticmethod
 	def get_inpaint_lama_args(image, mask, module):

@@ -16,6 +16,11 @@ You can composite two images or perform the Upscale function.
 
 <table>
 <tr>
+<td colspan="2"><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
+Resize intermediate (inpaint+lama, Bottom, 0.75, 0.6), Face Detailing, ControlNet Noise (0.7, 0, 0.6), Noise Alpha (0.1)
+</td>
+</tr>
+<tr>
 <td colspan="2">
 <img src="https://i.ibb.co/D9tz1NY/00180-3383798469.png">
 Resize intermediate (Center, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0, 0.4)
@@ -31,6 +36,10 @@ Resize intermediate (Center, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0
 <tr>
 <td><img src="https://i.ibb.co/PmPJtVb/resize-00718-3635306692.png"></td>
 <td><img src="https://i.ibb.co/Bq2PFxc/resize-00793-3980284595.png"></td>
+</tr>
+<tr>
+<td><img src="https://i.ibb.co/ZMNC1Cm/00518-1067577565.jpg"></td>
+<td><img src="https://i.ibb.co/JtjGrMX/00126-496754363.jpg"></td>
 </tr>
 <tr>
 <td colspan="2"><img src="https://i.ibb.co/Lnh4Kpm/resize-00824-738395988.png">

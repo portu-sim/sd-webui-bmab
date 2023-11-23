@@ -72,6 +72,14 @@ class LineartNoise(ProcessorBase):
 
 		cn_args = util.get_cn_args(context.sdprocessing)
 		debug_print('ControlNet', cn_args)
+		for num in range(*cn_args):
+			obj = context.sdprocessing.script_args[num]
+			if hasattr(obj, 'enabled') and obj.enabled:
+				context.controlnet_count += 1
+			elif isinstance(obj, dict) and 'module' in obj and obj['enabled']:
+				context.controlnet_count += 1
+			else:
+				break
 
 		debug_print('noise enabled.', self.noise_strength)
 		context.add_generation_param('BMAB controlnet mode', 'lineart')

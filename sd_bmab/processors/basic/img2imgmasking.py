@@ -12,12 +12,15 @@ from sd_bmab.base import exmodels
 class Img2imgMasking(ProcessorBase):
 	def __init__(self) -> None:
 		super().__init__()
-
+		self.enabled = False
+		self.prompt = ''
+		self.input_image = None
+		
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['detect_enabled']
 		self.prompt = context.args['masking_prompt']
 		self.input_image = context.args['input_image']
-		return isinstance(context.sdprocessing, StableDiffusionProcessingImg2Img) and self.enabled
+		return not context.is_txtimg() and self.enabled
 
 	def sam(self, context, prompt, input_image):
 		dino = exmodels.get_external_model('grdino')
