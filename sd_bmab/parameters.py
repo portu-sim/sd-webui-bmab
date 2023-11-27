@@ -158,6 +158,7 @@ class Parameters(object):
 			('detailing_after_upscale', True),
 			('upscaler_name', 'None'),
 			('upscale_ratio', 1.5),
+			('postprocess_final_filter', 'None'),
 			('config_file', ''),
 			('preset', 'None'),
 		]

@@ -21,13 +21,16 @@ class BaseFilter(object):
 	def configurations(self):
 		return {}
 
-	def preprocess_filter(self, context, *args, **kwargs):
+	def preprocess(self, context, *args, **kwargs):
 		pass
 
-	def process_filter(self, context, base: Image, processed: Image, *args, **kwargs):
+	def process(self, context, base: Image, processed: Image, *args, **kwargs):
+		return processed
+
+	def postprocess(self, context, *args, **kwargs):
 		pass
 
-	def postprocess_filter(self, context, *args, **kwargs):
+	def finalprocess(self, context, *args, **kwargs):
 		pass
 
 
@@ -69,13 +72,17 @@ def load_module(file_name, module_name):
 
 
 def preprocess_filter(bmab_filter, context, *args, **kwargs):
-	bmab_filter.preprocess_filter(context, *args, **kwargs)
+	bmab_filter.preprocess(context, *args, **kwargs)
 
 
 def process_filter(bmab_filter, context, base: Image, processed: Image, *args, **kwargs):
-	return bmab_filter.process_filter(context, base, processed, *args, **kwargs)
+	return bmab_filter.process(context, base, processed, *args, **kwargs)
 
 
 def postprocess_filter(bmab_filter, context, *args, **kwargs):
-	bmab_filter.postprocess_filter(context, *args, **kwargs)
+	bmab_filter.postprocess(context, *args, **kwargs)
+
+
+def finalprocess_filter(bmab_filter, context, *args, **kwargs):
+	bmab_filter.finalprocess(context, *args, **kwargs)
 

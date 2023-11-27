@@ -2,8 +2,8 @@ import traceback
 
 from modules import shared
 
-from sd_bmab.processors.upscaler import AfterProcessUpscaler, BeforeProcessUpscaler
-from sd_bmab.processors.resize import InpaintResize, InpaintLamaResize
+from sd_bmab.processors.postprocess import AfterProcessUpscaler, BeforeProcessUpscaler
+from sd_bmab.processors.postprocess import InpaintResize, InpaintLamaResize, FinalFilter
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
 from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChanger, CheckPointRestore
@@ -45,6 +45,7 @@ def process(context, image):
 		CheckPointRestore(),
 		AfterProcessUpscaler(),
 		FinalProcessorBasic(),
+		FinalFilter(),
 		AfterProcessFileSaver()
 	]
 	
@@ -68,7 +69,11 @@ def process(context, image):
 		debug_print('Restore Checkpoint at final')
 		RollbackModel().process(context, processed)
 		CheckPointRestore().process(context, processed)
-
+		for proc in pipeline_modules:
+			try:
+				proc.finalprocess(context, processed)
+			except:
+				traceback.print_exc()
 	return processed
 
 

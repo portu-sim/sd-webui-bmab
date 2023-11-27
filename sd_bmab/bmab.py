@@ -29,6 +29,7 @@ class BmabExtScript(scripts.Script):
 		self.extra_image = []
 		self.config = {}
 		self.index = 0
+		self.stop_generation = False
 
 	def title(self):
 		return 'BMAB'
@@ -37,9 +38,10 @@ class BmabExtScript(scripts.Script):
 		return scripts.AlwaysVisible
 
 	def ui(self, is_img2img):
-		return ui.create_ui(is_img2img)
+		return ui.create_ui(self, is_img2img)
 
 	def before_process(self, p, *args):
+		self.stop_generation = False
 		self.extra_image = []
 		ui.final_images = []
 		ui.last_process = p
@@ -75,6 +77,8 @@ class BmabExtScript(scripts.Script):
 			pp.image = post.process(ctx, pp.image)
 			ui.final_images.append(pp.image)
 		self.index += 1
+		if self.stop_generation:
+			shared.state.interrupted = True
 
 	def postprocess(self, p, processed, *args):
 		if shared.opts.bmab_show_extends:

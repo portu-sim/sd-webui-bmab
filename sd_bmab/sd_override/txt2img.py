@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from PIL import Image
+from dataclasses import dataclass
 
 from modules import processing
 from modules import shared
@@ -17,6 +18,7 @@ from modules.sd_samplers_common import images_tensor_to_samples, decode_first_st
 from sd_bmab.base import filter
 
 
+@dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
 
     def __post_init__(self):
@@ -78,7 +80,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
                     filter_name = self.bscript_args['txt2img_filter_hresfix_before_upscale']
                     filter1 = filter.get_filter(filter_name)
                     filter.preprocess_filter(filter1, None)
-                    filter.process_filter(filter1, None, None, image)
+                    filter.process_filter(filter1, None, None, image, sdprocess=self)
                     filter.postprocess_filter(filter1, None)
 
                     if hasattr(self.bscript, 'resize_image'):
@@ -89,7 +91,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
                     filter_name = self.bscript_args['txt2img_filter_hresfix_after_upscale']
                     filter2 = filter.get_filter(filter_name)
                     filter.preprocess_filter(filter2, None)
-                    image = filter.process_filter(filter2, None, image, resized)
+                    image = filter.process_filter(filter2, None, image, resized, sdprocess=self)
                     filter.postprocess_filter(filter2, None)
                 else:
                     if hasattr(self.bscript, 'resize_image'):

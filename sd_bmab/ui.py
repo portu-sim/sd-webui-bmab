@@ -20,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v23.11.23.0'
+bmab_version = 'v23.11.27.0'
 
 final_images = []
 last_process = None
@@ -28,7 +28,7 @@ bmab_script = None
 gallery_select_index = 0
 
 
-def create_ui(is_img2img):
+def create_ui(bscript, is_img2img):
 	class ListOv(list):
 		def __iadd__(self, x):
 			self.append(x)
@@ -36,7 +36,11 @@ def create_ui(is_img2img):
 
 	elem = ListOv()
 	with gr.Group():
-		elem += gr.Checkbox(label=f'Enable BMAB', value=False)
+		with gr.Row():
+			with gr.Column():
+				elem += gr.Checkbox(label=f'Enable BMAB', value=False)
+			with gr.Column():
+				btn_stop = ui_components.ToolButton('⏹️', visible=True, interactive=True, tooltip='stop generation', elem_id='bmab_stop_generation')
 		with gr.Accordion(f'BMAB Preprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Context', id='bmab_context', elem_id='bmab_context_tabs'):
@@ -410,6 +414,10 @@ def create_ui(is_img2img):
 							upscalers = [x.name for x in shared.sd_upscalers]
 							elem += gr.Dropdown(label='Upscaler', visible=True, value=upscalers[0], choices=upscalers)
 							elem += gr.Slider(minimum=1, maximum=4, value=1.5, step=0.1, label='Upscale ratio')
+				with gr.Tab('Filter', id='bmab_final_filter', elem_id='bmab_final_filter_tab'):
+					with gr.Row():
+						dd_final_filter = gr.Dropdown(label='Final filter', visible=True, value=filter.filters[0], choices=filter.filters)
+						elem += dd_final_filter
 		with gr.Accordion(f'BMAB Config, Preset, Installer', open=False):
 			with gr.Row():
 				configs = parameters.Parameters().list_config()
@@ -633,7 +641,7 @@ def create_ui(is_img2img):
 				}
 			}
 
-		def reload_filter(f1, f2, f3, f4, *args):
+		def reload_filter(f1, f2, f3, f4, f5, *args):
 			filter.reload_filters()
 			return {
 				dd_hiresfix_filter1: {
@@ -656,6 +664,11 @@ def create_ui(is_img2img):
 					'value': f4,
 					'__type__': 'update'
 				},
+				dd_final_filter: {
+					'choices': filter.filters,
+					'value': f5,
+					'__type__': 'update'
+				}
 			}
 
 		def image_selected(data: gr.SelectData, *args):
@@ -677,6 +690,10 @@ def create_ui(is_img2img):
 				}
 			}
 
+		def stop_process(*args):
+			bscript.stop_generation = True
+			gr.Info('Waiting for processing done.')
+
 		load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
@@ -689,12 +706,13 @@ def create_ui(is_img2img):
 		refresh_vae_models.click(hit_vae_models, inputs=[vaes_models], outputs=[vaes_models])
 		random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
 		btn_fetch_images.click(fetch_images, outputs=[gallery])
-		btn_reload_filter.click(reload_filter, inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter], outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter])
+		btn_reload_filter.click(reload_filter, inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter], outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter])
 
 		btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
 		gallery.select(image_selected, inputs=[gallery])
 
 		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[markdown_install])
+		btn_stop.click(stop_process)
 
 	return elem
 

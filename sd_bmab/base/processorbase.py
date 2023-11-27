@@ -17,3 +17,6 @@ class ProcessorBase(object):
 
 	def postprocess(self, context: Context, image: Image):
 		pass
+
+	def finalprocess(self, context: Context, image: Image):
+		pass
