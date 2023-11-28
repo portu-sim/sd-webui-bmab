@@ -44,40 +44,61 @@ def create_ui(bscript, is_img2img):
 		with gr.Accordion(f'BMAB Preprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Context', id='bmab_context', elem_id='bmab_context_tabs'):
-					with gr.Row():
-						with gr.Column():
-							with gr.Row():
-								checkpoints = [constants.checkpoint_default]
-								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-								checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
-								elem += checkpoint_models
-								refresh_checkpoint_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
-						with gr.Column():
-							with gr.Row():
-								vaes = [constants.vae_default]
-								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-								vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
-								elem += vaes_models
-								refresh_vae_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
-					with gr.Row():
-						gr.Markdown(constants.checkpoint_description)
-					with gr.Row():
-						elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
-					with gr.Row():
-						elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
-					with gr.Row():
-						with gr.Column():
-							with gr.Row():
-								dd_hiresfix_filter1 = gr.Dropdown(label='Hires.fix filter before upscale', visible=True, value=filter.filters[0], choices=filter.filters)
-								elem += dd_hiresfix_filter1
-						with gr.Column():
-							with gr.Row():
-								dd_hiresfix_filter2 = gr.Dropdown(label='Hires.fix filter after upscale', visible=True, value=filter.filters[0], choices=filter.filters)
-								elem += dd_hiresfix_filter2
+					with gr.Tab('Generic'):
+						with gr.Row():
+							with gr.Column():
+								with gr.Row():
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+									elem += checkpoint_models
+									refresh_checkpoint_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+							with gr.Column():
+								with gr.Row():
+									vaes = [constants.vae_default]
+									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+									vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+									elem += vaes_models
+									refresh_vae_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+						with gr.Row():
+							gr.Markdown(constants.checkpoint_description)
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
+						with gr.Row():
+							with gr.Column():
+								with gr.Row():
+									dd_hiresfix_filter1 = gr.Dropdown(label='Hires.fix filter before upscale', visible=True, value=filter.filters[0], choices=filter.filters)
+									elem += dd_hiresfix_filter1
+							with gr.Column():
+								with gr.Row():
+									dd_hiresfix_filter2 = gr.Dropdown(label='Hires.fix filter after upscale', visible=True, value=filter.filters[0], choices=filter.filters)
+									elem += dd_hiresfix_filter2
+					with gr.Tab('Kohya Hires.fix'):
+						with gr.Row():
+							with gr.Column():
+								elem += gr.Checkbox(label='Enable Kohya hires.fix', value=False)
+						with gr.Row():
+							gr.HTML(constants.kohya_hiresfix_description)
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=0.5, step=0.01, label="Stop at, first", value=0.15)
+							elem += gr.Slider(minimum=1, maximum=10, step=1, label="Depth, first", value=3)
+						with gr.Row():
+							elem += gr.Slider(minimum=0, maximum=0.5, step=0.01, label="Stop at, second", value=0.4)
+							elem += gr.Slider(minimum=1, maximum=10, step=1, label="Depth, second", value=4)
+						with gr.Row():
+							elem += gr.Dropdown(['bicubic', 'bilinear', 'nearest', 'nearest-exact'], label='Layer scaler', value='bicubic')
+							elem += gr.Slider(minimum=0.1, maximum=1.0, step=0.05, label="Downsampling scale", value=0.5)
+							elem += gr.Slider(minimum=1.0, maximum=4.0, step=0.1, label="Upsampling scale", value=2.0)
+						with gr.Row():
+							elem += gr.Checkbox(label="Smooth scaling", value=True)
+							elem += gr.Checkbox(label="Early upsampling", value=False)
+							elem += gr.Checkbox(label='Disable for additional passes', value=True)
 				with gr.Tab('Resample', id='bmab_resample', elem_id='bmab_resample_tabs'):
 					with gr.Row():
 						with gr.Column():
-							elem += gr.Checkbox(label='Enable self resample (EXPERIMENTAL)', value=False)
+							elem += gr.Checkbox(label='Enable self resample', value=False)
 						with gr.Column():
 							elem += gr.Checkbox(label='Save image before processing', value=False)
 					with gr.Row():
@@ -127,7 +148,7 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, label='Resample end', elem_id='bmab_resample_cn_end')
 				with gr.Tab('Pretraining', id='bmab_pretraining', elem_id='bmab_pretraining_tabs'):
 					with gr.Row():
-						elem += gr.Checkbox(label='Enable pretraining detailer (EXPERIMENTAL)', value=False)
+						elem += gr.Checkbox(label='Enable pretraining detailer', value=False)
 					with gr.Row():
 						elem += gr.Checkbox(label='Enable pretraining before hires.fix', value=False)
 					with gr.Column(min_width=100):
@@ -277,7 +298,7 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable face detailing', value=False)
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable face detailing before hires.fix (EXPERIMENTAL)', value=False)
+							elem += gr.Checkbox(label='Enable face detailing before hires.fix', value=False)
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 						with gr.Row():

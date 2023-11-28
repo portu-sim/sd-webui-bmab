@@ -31,3 +31,8 @@ inpaint_only : Very slow process but Very high quality. Repaint stretching image
 </span>
 '''
 
+kohya_hiresfix_description = '''
+<span style="color: gray">
+This is EXPERIMENTAL function.
+</span>
+'''
