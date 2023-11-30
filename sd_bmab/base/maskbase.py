@@ -14,6 +14,9 @@ class MaskBase(object):
 	def predict(self, image, box):
 		pass
 
+	def predict_multiple(self, image, points, labels, boxes=None):
+		pass
+
 	@classmethod
 	def release(cls):
 		pass

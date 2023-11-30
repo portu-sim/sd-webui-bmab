@@ -70,6 +70,39 @@ class SamHqPredict(MaskBase):
 			result.paste(mask, mask=mask)
 		return result
 
+	def predict_multiple(self, image, points, labels, boxes=None):
+		sam = self.load()
+		mask_predictor = SamPredictor(sam)
+
+		numpy_image = np.array(image)
+		opencv_image = cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
+		mask_predictor.set_image(opencv_image)
+
+		result = Image.new('L', image.size, 0)
+		kwargs = dict(multimask_output=True)
+		if len(points) > 0:
+			kwargs['point_coords'] = points
+			kwargs['point_labels'] = labels
+		if boxes is not None:
+			for box in boxes:
+				x1, y1, x2, y2 = box
+				box = np.array([int(x1), int(y1), int(x2), int(y2)])
+				masks, scores, logits = mask_predictor.predict(
+					box=box,
+					**kwargs
+				)
+				for mask in masks:
+					mask = Image.fromarray(mask)
+					result.paste(mask, mask=mask)
+		else:
+			masks, scores, logits = mask_predictor.predict(
+				**kwargs
+			)
+			for mask in masks:
+				mask = Image.fromarray(mask)
+				result.paste(mask, mask=mask)
+		return result
+
 	@classmethod
 	def release(cls):
 		global sam_hq_model

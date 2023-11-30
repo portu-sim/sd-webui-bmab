@@ -1,3 +1,10 @@
+### v23.11.30.0
+
+* Code Fix
+  * Support BMAB DR
+  * Img2img rollback
+
+
 ### v23.11.28.0
 
 * New Feature
