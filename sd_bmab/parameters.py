@@ -1,6 +1,7 @@
 import os
 import json
 from sd_bmab import constants
+from sd_bmab.util import debug_print
 
 
 def parse_args(args):
@@ -216,7 +217,7 @@ class Parameters(object):
 			return default_args
 		else:
 			if len(args) != len(self.params):
-				print('Refresh webui first.')
+				debug_print('Refresh webui first.')
 				raise Exception('Refresh webui first.')
 
 			if args[0]:
@@ -252,11 +253,11 @@ class Parameters(object):
 		cfg_dir = os.path.join(os.path.dirname(__file__), "../preset")
 		json_file = os.path.join(cfg_dir, f'{config_file}.json')
 		if not os.path.isfile(json_file):
-			print(f'Not found configuration file {config_file}.json')
+			debug_print(f'Not found configuration file {config_file}.json')
 			return '\n'.join(newprompt), {}
 		with open(json_file) as f:
 			config = json.load(f)
-		print('Loading config', json.dumps(config, indent=2))
+		debug_print('Loading config', json.dumps(config, indent=2))
 		return '\n'.join(newprompt), config
 
 	def load_preset(self, args):
@@ -270,11 +271,11 @@ class Parameters(object):
 		cfg_dir = os.path.join(os.path.dirname(__file__), "../preset")
 		json_file = os.path.join(cfg_dir, f'{name}.json')
 		if not os.path.isfile(json_file):
-			print(f'Not found configuration file {name}.json')
+			debug_print(f'Not found configuration file {name}.json')
 			return {}
 		with open(json_file) as f:
 			config = json.load(f)
-		print('Loading config', json.dumps(config, indent=2))
+		debug_print('Loading config', json.dumps(config, indent=2))
 		return config
 
 	def get_save_config_name(self, args):
