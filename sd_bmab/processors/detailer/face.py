@@ -6,6 +6,7 @@ from PIL import ImageFilter
 
 from modules import shared
 from modules import devices
+from modules import extra_networks
 from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import constants, util
@@ -29,7 +30,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = 'Score'
 		self.limit = 1
 		self.sampler = constants.sampler_default
-		self.best_quality = False
+		self.disable_extra_networks = False
 		self.detection_model = 'Ultralytics(face_yolov8n.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
 		self.step = step
@@ -47,7 +48,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = self.detailing_opt.get('sort_by', self.order)
 		self.limit = self.detailing_opt.get('limit', self.limit)
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
-		self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
+		self.disable_extra_networks = self.detailing_opt.get('disable_extra_networks', self.disable_extra_networks)
 		self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 		self.skip_large_face = self.detailing_opt.get('skip_large_face', self.skip_large_face)
 		self.large_face_pixels = self.detailing_opt.get('large_face_pixels', self.large_face_pixels)
@@ -73,7 +74,7 @@ class FaceDetailer(ProcessorBase):
 		if self.override_parameter:
 			face_config = dict(self.parameters)
 		else:
-			if self.best_quality or shared.opts.bmab_keep_original_setting:
+			if shared.opts.bmab_keep_original_setting:
 				face_config['width'] = image.width
 				face_config['height'] = image.height
 			else:
@@ -176,7 +177,10 @@ class FaceDetailer(ProcessorBase):
 
 			seed, subseed = context.get_seeds()
 			options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
-			with VAEMethodOverride(hiresfix=self.best_quality):
+			if self.disable_extra_networks:
+				prompt, extra_network_data = extra_networks.parse_prompts([options['prompt']])
+				options['prompt'] = prompt
+			with VAEMethodOverride():
 				img2img_imgage = process_img2img(context.sdprocessing, image, options=options)
 
 			x1, y1, x2, y2 = util.fix_box_size(box)

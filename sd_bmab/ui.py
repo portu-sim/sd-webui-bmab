@@ -300,7 +300,7 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable face detailing before hires.fix', value=False)
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
+							elem += gr.Checkbox(label='Disable extra networks in prompt (LORA, Hypernetwork, ...)', value=False)
 						with gr.Row():
 							with gr.Column(min_width=100):
 								elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right', 'Center'], type='value', value='Score')

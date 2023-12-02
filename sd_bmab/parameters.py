@@ -111,7 +111,7 @@ class Parameters(object):
 			('module_config.person_detailing.cfg_scale', 7),
 			('face_detailing_enabled', False),
 			('face_detailing_before_hiresfix_enabled', False),
-			('module_config.face_detailing_opt.best_quality', False),
+			('module_config.face_detailing_opt.disable_extra_networks', False),
 			('module_config.face_detailing_opt.sort_by', 'Score'),
 			('module_config.face_detailing_opt.limit', 1),
 			('module_config.face_detailing_opt.prompt0', ''),
