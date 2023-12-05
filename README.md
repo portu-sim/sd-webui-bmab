@@ -16,6 +16,11 @@ You can composite two images or perform the Upscale function.
 
 <table>
 <tr>
+<td colspan="2"><img src="https://i.ibb.co/ns1Kn04/00460-759278328.jpg">
+Face Detailing, ControlNet Noise (0.4, 0, 0.4),
+</td>
+</tr>
+<tr>
 <td colspan="2"><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
 Resize intermediate (inpaint+lama, Bottom, 0.75, 0.6), Face Detailing, ControlNet Noise (0.7, 0, 0.6), Noise Alpha (0.1)
 </td>
