@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from PIL import Image
 from dataclasses import dataclass
-
+from typing import Any
 from modules import processing
 from modules import shared
 from modules import sd_samplers
@@ -20,10 +20,13 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 
 @dataclass(repr=False)
-class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
+class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessing):
+    sd_model: Any = None
 
     def __post_init__(self):
         super().__post_init__()
+
+        self.sd_model = shared.sd_model
         self.bscript = None
         self.bscript_args = None
         self.extra_noise = 0
