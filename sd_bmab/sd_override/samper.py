@@ -5,7 +5,8 @@ from modules.sd_samplers import set_samplers
 from modules.shared import opts, state
 import inspect
 from modules import sd_samplers_common
-from modules.script_callbacks import ExtraNoiseParams, extra_noise_callback
+#from modules.script_callbacks import ExtraNoiseParams, extra_noise_callback
+from .script_callbacks_extranoise import ExtraNoiseParams, extra_noise_callback, on_extra_noise
 
 
 class KDiffusionSamplerBMAB(KDiffusionSampler):
