@@ -2,7 +2,7 @@ import modules
 import k_diffusion.sampling
 from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules.sd_samplers import set_samplers
-from modules.shared import opts, state
+from modules.shared import opts, state, shared
 import inspect
 from modules import sd_samplers_common
 #from modules.script_callbacks import ExtraNoiseParams, extra_noise_callback
