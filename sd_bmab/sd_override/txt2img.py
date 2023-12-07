@@ -10,10 +10,10 @@ from modules import images
 from modules import devices
 from modules import extra_networks
 from modules import sd_models
-from modules import rng
+from ..external import rng
 from modules.shared import opts
-from modules.processing import StableDiffusionProcessingTxt2Img
-from modules.sd_samplers_common import images_tensor_to_samples, decode_first_stage, approximation_indexes
+from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage
+from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
 from sd_bmab.base import filter
 from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
