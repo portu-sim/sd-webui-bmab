@@ -3,7 +3,7 @@ from modules import sd_models
 from modules import sd_vae
 from modules.processing import StableDiffusionProcessingImg2Img
 
-from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
+from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv#, StableDiffusionProcessingImg2ImgOv
 from sd_bmab.util import debug_print
 from sd_bmab import constants
 
@@ -77,7 +77,8 @@ class Context(object):
 		shared.state.current_image_sampling_step = 0
 
 	def is_img2img(self):
-		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2ImgOv) or isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)
+		#return isinstance(self.sdprocessing, StableDiffusionProcessingImg2ImgOv) or isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)
+		return isinstance(self.sdprocessing, StableDiffusionProcessingImg2Img)
 
 	def is_txtimg(self):
 		return isinstance(self.sdprocessing, StableDiffusionProcessingTxt2ImgOv)
