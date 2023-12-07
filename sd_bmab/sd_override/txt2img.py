@@ -4,14 +4,13 @@ from PIL import Image
 from dataclasses import dataclass
 from typing import Any
 from modules import processing
-from modules import shared
 from modules import sd_samplers
 from modules import images
 from modules import devices
 from modules import extra_networks
 from modules import sd_models
 from ..external import rng
-from modules.shared import opts
+from modules.shared import opts, shared
 from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
