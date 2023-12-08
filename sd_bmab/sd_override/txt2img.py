@@ -20,7 +20,7 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 
 @dataclass(repr=False)
-class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessing):
+class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     sd_model: Any = None
 
     def __post_init__(self):
