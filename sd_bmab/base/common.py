@@ -1,4 +1,5 @@
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 
 
 class VAEMethodOverride:
