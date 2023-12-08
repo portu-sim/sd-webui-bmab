@@ -9,8 +9,7 @@ from modules import images
 from modules import devices
 from modules import extra_networks
 from modules import sd_models
-from ..external import rng
-from ..external.rng import ImageRNG
+from ..external.rng import rng
 from modules import shared
 from modules.shared import opts, state, sd_model
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage
