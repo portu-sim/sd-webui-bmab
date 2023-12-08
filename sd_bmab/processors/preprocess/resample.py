@@ -1,6 +1,7 @@
 from PIL import Image
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 from modules import images
 
