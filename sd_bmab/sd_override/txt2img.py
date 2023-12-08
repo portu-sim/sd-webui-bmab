@@ -22,7 +22,7 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    def __init__(self, **kwargs):
+    def __init__(self, shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w, **kwargs):
         super().__init__(**kwargs)
 
         self.bscript = None
@@ -30,9 +30,14 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
         self.shape = shape
-        
-       # Initialize self.rng as an instance of ImageRNG
-        self.rng = ImageRNG(shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w)
+        self.seeds = seeds
+        self.subseeds = subseeds
+        self.subseed_strength = subseed_strength
+        self.seed_resize_from_h = seed_resize_from_h
+        self.seed_resize_from_w = seed_resize_from_w
+
+        # Initialize self.rng as an instance of ImageRNG
+        self.rng = ImageRNG(shape=self.shape, seeds=self.seeds, subseeds=self.subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
 
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
