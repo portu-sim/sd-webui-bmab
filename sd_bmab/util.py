@@ -12,7 +12,8 @@ from PIL import ImageDraw
 from PIL import ImageFilter
 
 import modules
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
