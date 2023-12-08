@@ -30,11 +30,20 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.bscript_args = None
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
-        self.rng = rng.ImageRNG(samples.shape[1:], self.seeds, subseeds=self.subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
+        
+        # Initialize self.rng using inherited variables
+        self.rng = rng.ImageRNG(
+            shape=(self.samples.shape[1:]),  # Use the inherited 'samples' variable to define the shape
+            seeds=self.seeds,
+            subseeds=self.subseeds,
+            subseed_strength=self.subseed_strength,
+            seed_resize_from_h=self.seed_resize_from_h,
+            seed_resize_from_w=self.seed_resize_from_w
+        )
 
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
-
+            
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
 
             x = self.rng.next()
