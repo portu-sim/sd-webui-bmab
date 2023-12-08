@@ -29,6 +29,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.bscript_args = None
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
+        self.shape = shape
         
        # Initialize self.rng as an instance of ImageRNG
         self.rng = ImageRNG(shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w)
