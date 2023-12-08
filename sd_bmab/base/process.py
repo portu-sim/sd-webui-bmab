@@ -4,7 +4,8 @@ from PIL import ImageDraw
 from copy import copy, deepcopy
 from pathlib import Path
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 from modules.processing import process_images, StableDiffusionProcessingImg2Img
 
