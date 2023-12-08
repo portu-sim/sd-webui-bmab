@@ -12,7 +12,7 @@ from modules import sd_models
 from ..external import rng
 from modules import shared
 from modules.shared import opts, state, sd_model
-from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage
+from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
 from sd_bmab.base import filter
@@ -21,12 +21,10 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    sd_model: Any = None
 
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-        self.sd_model = shared.sd_model
         self.bscript = None
         self.bscript_args = None
         self.extra_noise = 0
