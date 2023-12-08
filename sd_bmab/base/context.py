@@ -1,5 +1,5 @@
-from modules import shared
-from modules import sd_models
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import sd_vae
 from modules.processing import StableDiffusionProcessingImg2Img
 
