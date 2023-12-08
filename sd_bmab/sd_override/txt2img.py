@@ -22,8 +22,6 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    rng: rng.ImageRNG | None = None
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
