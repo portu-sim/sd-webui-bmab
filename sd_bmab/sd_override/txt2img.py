@@ -21,7 +21,8 @@ from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-
+    rng: rng.ImageRNG | None = field(default=None, init=False)
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -29,6 +30,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.bscript_args = None
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
+        self.rng = rng.ImageRNG(samples.shape[1:], self.seeds, subseeds=self.subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
 
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
