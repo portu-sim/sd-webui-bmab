@@ -174,24 +174,26 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
             
-            x = self.rng.next()
-            samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
-            del x
+            # Generate noise using self.rng.next()
+            noise = self.rng.next()
+            # Use the noise directly for sampling
+            samples = self.sampler.sample(self, noise, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(noise))
 
             if not self.enable_hr:
                 return samples
 
+            decoded_samples = None
             if self.latent_scale_mode is None:
+                # Process decoded samples
                 decoded_samples = torch.stack(processing.decode_latent_batch(self.sd_model, samples, target_device=devices.cpu, check_for_nans=True)).to(dtype=torch.float32)
             else:
-                decoded_samples = None
-
-            with SkipWritingToConfig():
-                sd_models.reload_model_weights(info=self.hr_checkpoint_info)
-
-            devices.torch_gc()
-
-        return self.sample_hr_pass(samples, decoded_samples, seeds, subseeds, subseed_strength, prompts)
+                # Reload model weights and perform necessary actions
+                with SkipWritingToConfig():
+                    sd_models.reload_model_weights(info=self.hr_checkpoint_info)
+                devices.torch_gc()
+    
+            # Call the method for HR pass
+            return self.sample_hr_pass(samples, decoded_samples, seeds, subseeds, subseed_strength, prompts)
 
 
 
