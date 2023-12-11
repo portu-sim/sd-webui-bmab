@@ -175,9 +175,10 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             hypertile_set(self)
             x = create_random_tensors([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
             x *= self.initial_noise_multiplier
-            samples = self.sampler.sample_img2img(self, self.init_latent, x, conditioning, unconditional_conditioning, image_conditioning=self.image_conditioning)
-            if self.mask is not None:
-                samples = samples * self.nmask + self.init_latent * self.mask
+            samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
+
+            self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
+
             del x
 
             if not self.enable_hr:
