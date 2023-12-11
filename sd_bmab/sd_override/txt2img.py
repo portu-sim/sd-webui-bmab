@@ -14,6 +14,7 @@ from ..external.rng.rng import ImageRNG
 from modules import shared
 from modules.shared import opts, state, sd_model
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
+from modules.sd_hijack_hypertile import hypertile_set
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
 from sd_bmab.base import filter
