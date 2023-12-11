@@ -20,6 +20,21 @@ from sd_bmab.base import filter
 from sd_bmab.external.kohyahiresfix import KohyaHiresFixPreprocessor
 
 
+class SkipWritingToConfig:
+    """This context manager prevents load_model_weights from writing checkpoint name to the config when it loads weight."""
+
+    skip = False
+    previous = None
+
+    def __enter__(self):
+        self.previous = SkipWritingToConfig.skip
+        SkipWritingToConfig.skip = True
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        SkipWritingToConfig.skip = self.previous
+
+
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
@@ -171,7 +186,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             else:
                 decoded_samples = None
 
-            with sd_models.SkipWritingToConfig():
+            with SkipWritingToConfig():
                 sd_models.reload_model_weights(info=self.hr_checkpoint_info)
 
             devices.torch_gc()
