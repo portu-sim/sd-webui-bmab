@@ -10,10 +10,10 @@ def randn(seed, shape, generator=None):
 
     manual_seed(seed)
 
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         return torch.asarray((generator or nv_rng).randn(shape), device=devices.device)
 
-    if shared.opts.randn_source == "cpu" or devices.device.type == 'mps':
+    if devices.device.backend == "cpu" or devices.device.type == 'mps':
         return torch.randn(shape, device=devices.cpu, generator=generator).to(devices.device)
 
     return torch.randn(shape, device=devices.device, generator=generator)
@@ -24,11 +24,11 @@ def randn_local(seed, shape):
 
     Does not change the global random number generator. You can only generate the seed's first tensor using this function."""
 
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         rng = rng_philox.Generator(seed)
         return torch.asarray(rng.randn(shape), device=devices.device)
 
-    local_device = devices.cpu if shared.opts.randn_source == "cpu" or devices.device.type == 'mps' else devices.device
+    local_device = devices.cpu if devices.device.backend == "cpu" or devices.device.type == 'mps' else devices.device
     local_generator = torch.Generator(local_device).manual_seed(int(seed))
     return torch.randn(shape, device=local_device, generator=local_generator).to(devices.device)
 
@@ -38,10 +38,10 @@ def randn_like(x):
 
     Use either randn() or manual_seed() to initialize the generator."""
 
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         return torch.asarray(nv_rng.randn(x.shape), device=x.device, dtype=x.dtype)
 
-    if shared.opts.randn_source == "cpu" or x.device.type == 'mps':
+    if devices.device.backend == "cpu" or x.device.type == 'mps':
         return torch.randn_like(x, device=devices.cpu).to(x.device)
 
     return torch.randn_like(x)
@@ -52,10 +52,10 @@ def randn_without_seed(shape, generator=None):
 
     Use either randn() or manual_seed() to initialize the generator."""
 
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         return torch.asarray((generator or nv_rng).randn(shape), device=devices.device)
 
-    if shared.opts.randn_source == "cpu" or devices.device.type == 'mps':
+    if devices.device.backend == "cpu" or devices.device.type == 'mps':
         return torch.randn(shape, device=devices.cpu, generator=generator).to(devices.device)
 
     return torch.randn(shape, device=devices.device, generator=generator)
@@ -64,7 +64,7 @@ def randn_without_seed(shape, generator=None):
 def manual_seed(seed):
     """Set up a global random number generator using the specified seed."""
 
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         global nv_rng
         nv_rng = rng_philox.Generator(seed)
         return
@@ -73,10 +73,10 @@ def manual_seed(seed):
 
 
 def create_generator(seed):
-    if shared.opts.randn_source == "cuda":
+    if devices.device.backend == "cuda":
         return rng_philox.Generator(seed)
 
-    device = devices.cpu if shared.opts.randn_source == "cpu" or devices.device.type == 'mps' else devices.device
+    device = devices.cpu if devices.device.backend == "cpu" or devices.device.type == 'mps' else devices.device
     generator = torch.Generator(device).manual_seed(int(seed))
     return generator
 
