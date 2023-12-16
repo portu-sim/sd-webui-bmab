@@ -4,7 +4,8 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFilter
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 from modules import extra_networks
 from modules.processing import StableDiffusionProcessingImg2Img
