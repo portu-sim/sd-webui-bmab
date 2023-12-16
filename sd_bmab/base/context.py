@@ -98,16 +98,16 @@ class Context(object):
 			else:
 				sd_models.reload_model_weights(shared.sd_model, info)
 				
-	def get_loaded_vae_name(self):
-		if sd_vae.loaded_vae_file is None:
+	def get_loaded_vae_name(self, loaded_vae_file):
+		if loaded_vae_file is None:
 			return None
-		return os.path.basename(sd_vae.loaded_vae_file)
+		return os.path.basename(loaded_vae_file)
 	
-	def save_and_apply_checkpoint(self, checkpoint, vae):
+	def save_and_apply_checkpoint(self, checkpoint, vae, loaded_vae_file):
 		if checkpoint is not None and self.base_sd_model is None:
 			self.base_sd_model = shared.opts.data['sd_model_checkpoint']
 		if vae is not None and self.base_vae is None:
-			self.base_vae = self.get_loaded_vae_name()
+			self.base_vae = self.get_loaded_vae_name(loaded_vae_file)
 		self.change_checkpoint(checkpoint, vae)
 
 	def restore_checkpoint(self):
