@@ -53,7 +53,7 @@ class RefinerPreprocessor(ProcessorBase):
 	def process(self, context: Context, image: Image):
 
 		if self.checkpoint != constants.checkpoint_default:
-			context.save_and_apply_checkpoint(self.checkpoint, None)
+			context.save_and_apply_checkpoint(self.checkpoint, None, self.loaded_vae_file)
 
 		output_width = image.width
 		output_height = image.height
