@@ -18,8 +18,8 @@ class CheckPointChanger(ProcessorBase):
 		return not (self.checkpoint == constants.checkpoint_default and self.checkpoint == constants.vae_default)
 
 	def process(self, context: Context, image: Image):
-		debug_print('Change checkpoint', self.checkpoint, self.vae)
-		context.save_and_apply_checkpoint(self.checkpoint, self.vae)
+		debug_print('Change checkpoint', self.checkpoint, self.vae, self.loaded_vae_file)
+		context.save_and_apply_checkpoint(self.checkpoint, self.vae, self.loaded_vae_file))
 		return image
 
 
