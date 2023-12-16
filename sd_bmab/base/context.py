@@ -1,3 +1,4 @@
+import os
 from modules import shared, sd_models
 from modules.shared import opts, state, sd_model
 from modules import sd_vae
