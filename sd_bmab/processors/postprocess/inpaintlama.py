@@ -1,7 +1,8 @@
 from PIL import Image
 from PIL import ImageDraw
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 from modules.processing import process_images, StableDiffusionProcessingImg2Img
 
