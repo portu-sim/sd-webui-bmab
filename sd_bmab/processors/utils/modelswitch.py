@@ -2,6 +2,7 @@
 from PIL import Image
 
 from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
