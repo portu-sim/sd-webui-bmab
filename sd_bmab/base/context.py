@@ -1,6 +1,7 @@
 from modules import shared, sd_models
 from modules.shared import opts, state, sd_model
 from modules import sd_vae
+from modules.sd_vae import loaded_vae_file
 from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv#, StableDiffusionProcessingImg2ImgOv
@@ -97,10 +98,9 @@ class Context(object):
 				sd_models.reload_model_weights(shared.sd_model, info)
 				
 	def get_loaded_vae_name():
-	    if loaded_vae_file is None:
-	        return None
-	
-	    return os.path.basename(loaded_vae_file)
+		if loaded_vae_file is None:
+			return None
+		return os.path.basename(loaded_vae_file)
 	
 	def save_and_apply_checkpoint(self, checkpoint, vae):
 		if checkpoint is not None and self.base_sd_model is None:
