@@ -1,6 +1,7 @@
 from copy import copy
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import processing
 from modules import img2img
 from modules.processing import Processed
