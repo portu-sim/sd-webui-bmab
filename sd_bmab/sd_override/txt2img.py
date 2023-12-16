@@ -46,6 +46,35 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
 
+    
+    def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
+        with KohyaHiresFixPreprocessor(self):
+            
+            hypertile_set(self)
+            x = create_random_tensors([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
+            x *= self.initial_noise_multiplier
+
+            self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
+            samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
+
+            del x
+
+            if not self.enable_hr:
+                return samples
+
+            if self.latent_scale_mode is None:
+                decoded_samples = torch.stack(processing.decode_latent_batch(self.sd_model, samples, target_device=devices.cpu, check_for_nans=True)).to(dtype=torch.float32)
+            else:
+                decoded_samples = None
+
+            with sd_models.SkipWritingToConfig():
+                sd_models.reload_model_weights(info=self.hr_checkpoint_info)
+
+            devices.torch_gc()
+
+        return self.sample_hr_pass(samples, decoded_samples, seeds, subseeds, subseed_strength, prompts)
+
+    
     def sample_hr_pass(self, samples, decoded_samples, seeds, subseeds, subseed_strength, prompts):
         if shared.state.interrupted:
             return samples
@@ -170,32 +199,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         return decoded_samples
 
     
-    def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
-        with KohyaHiresFixPreprocessor(self):
-            
-            hypertile_set(self)
-            x = create_random_tensors([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
-            x *= self.initial_noise_multiplier
-            samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
 
-            self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
-
-            del x
-
-            if not self.enable_hr:
-                return samples
-
-            if self.latent_scale_mode is None:
-                decoded_samples = torch.stack(processing.decode_latent_batch(self.sd_model, samples, target_device=devices.cpu, check_for_nans=True)).to(dtype=torch.float32)
-            else:
-                decoded_samples = None
-
-            with sd_models.SkipWritingToConfig():
-                sd_models.reload_model_weights(info=self.hr_checkpoint_info)
-
-            devices.torch_gc()
-
-        return self.sample_hr_pass(samples, decoded_samples, seeds, subseeds, subseed_strength, prompts)
 
 
 
