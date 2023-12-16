@@ -95,7 +95,13 @@ class Context(object):
 				debug_print(f'Unknown model: {name}')
 			else:
 				sd_models.reload_model_weights(shared.sd_model, info)
-
+				
+	def get_loaded_vae_name():
+	    if loaded_vae_file is None:
+	        return None
+	
+	    return os.path.basename(loaded_vae_file)
+	
 	def save_and_apply_checkpoint(self, checkpoint, vae):
 		if checkpoint is not None and self.base_sd_model is None:
 			self.base_sd_model = shared.opts.data['sd_model_checkpoint']
