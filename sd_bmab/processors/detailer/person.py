@@ -4,7 +4,8 @@ from PIL import Image
 from PIL import ImageFilter
 from PIL import ImageEnhance
 
-from modules import shared
+from modules import shared, sd_models
+from modules.shared import opts, state, sd_model
 from modules import devices
 
 from sd_bmab import util, masking
