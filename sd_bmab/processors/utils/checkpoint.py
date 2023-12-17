@@ -11,10 +11,12 @@ class CheckPointChanger(ProcessorBase):
 		super().__init__()
 		self.checkpoint = constants.checkpoint_default
 		self.vae = constants.vae_default
+		self.loaded_vae_file = None  # Initialize loaded_vae_file attribute
 
 	def preprocess(self, context: Context, image: Image):
 		self.checkpoint = context.args['preprocess_checkpoint']
 		self.vae = context.args['preprocess_vae']
+	        self.loaded_vae_file = context.args.get('loaded_vae_file')
 		return not (self.checkpoint == constants.checkpoint_default and self.checkpoint == constants.vae_default)
 
 	def process(self, context: Context, image: Image):
