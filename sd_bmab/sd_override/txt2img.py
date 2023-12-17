@@ -44,7 +44,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.bscript = None
         self.bscript_args = None
         self.extra_noise = 0
-        self.initial_noise_multiplier = opts.initial_noise_multiplier if self.initial_noise_multiplier is None else self.initial_noise_multiplier
+        self.initial_noise_multiplier = opts.initial_noise_multiplier
         self.rng = rng.ImageRNG(**kwargs)
     
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
