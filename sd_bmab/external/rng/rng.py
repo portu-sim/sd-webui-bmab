@@ -2,6 +2,8 @@ import torch
 from . import rng_philox
 from modules import devices, shared
 
+nv_rng = None
+
 def randn(seed, shape, generator=None):
     """Generate a tensor with random numbers from a normal distribution using seed.
 
