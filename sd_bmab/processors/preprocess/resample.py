@@ -37,6 +37,7 @@ class ResamplePreprocessor(ProcessorBase):
 
 		self.base_sd_model = None
 		self.preprocess_step = step
+		self.loaded_vae_file = None  # Initialize loaded_vae_file attribute
 
 	def use_controlnet(self, context: Context):
 		return self.preprocess(context, None)
@@ -88,6 +89,7 @@ class ResamplePreprocessor(ProcessorBase):
 
 	def process(self, context: Context, image: Image):
 		if self.checkpoint != constants.checkpoint_default or self.vae != constants.vae_default:
+			loaded_vae_file = context.args.get('loaded_vae_file')
 			context.save_and_apply_checkpoint(self.checkpoint, self.vae, self.loaded_vae_file)
 
 		if self.prompt == '':
