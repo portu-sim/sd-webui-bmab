@@ -10,7 +10,7 @@ from modules import devices
 from modules import extra_networks
 from modules import sd_models
 from ..external.rng import rng
-from ..external.rng.rng import ImageRNG
+#from ..external.rng.rng import ImageRNG
 from modules import shared
 from modules.shared import opts, state, sd_model
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
@@ -54,8 +54,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
             
-            #seeds = [seed for seed, generator in zip(self.seeds, self.generators)]
-            #noise = create_random_tensors(seeds, self.shape, generator=None)
+            #noise = create_random_tensors(self.shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self)
             #x = noise.to(shared.device)
             
             x = self.rng.next()
