@@ -27,6 +27,7 @@ class RefinerPreprocessor(ProcessorBase):
 		self.scale = 1
 		self.width = 0
 		self.height = 0
+		self.loaded_vae_file = None  # Initialize loaded_vae_file attribute
 
 	def preprocess(self, context: Context, image: Image):
 		self.enabled = context.args['refiner_enabled']
@@ -53,6 +54,7 @@ class RefinerPreprocessor(ProcessorBase):
 	def process(self, context: Context, image: Image):
 
 		if self.checkpoint != constants.checkpoint_default:
+			loaded_vae_file = context.args.get('loaded_vae_file')
 			context.save_and_apply_checkpoint(self.checkpoint, None, self.loaded_vae_file)
 
 		output_width = image.width
