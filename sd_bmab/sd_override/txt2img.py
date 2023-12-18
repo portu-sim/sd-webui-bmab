@@ -45,8 +45,8 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         # Initialize ImageRNG using default attributes
         self.rng = rng.ImageRNG(
             shape = [4, self.height // 8, self.width // 8],
-            seeds = None,
-            subseeds = None,
+            seeds = -1,
+            subseeds = -1,
             subseed_strength = 0.0,
             seed_resize_from_h = 0,
             seed_resize_from_w = 0
