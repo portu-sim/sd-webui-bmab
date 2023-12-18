@@ -41,16 +41,6 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
         # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
-        
-        # Initialize ImageRNG using default attributes
-        self.rng = rng.ImageRNG(
-            shape = [4, self.height // 8, self.width // 8],
-            seeds = -1,
-            subseeds = -1,
-            subseed_strength = 0.0,
-            seed_resize_from_h = 0,
-            seed_resize_from_w = 0
-        )
 
         self.bscript = None
         self.bscript_args = None
@@ -63,14 +53,18 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             #hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
-
-            #noise = create_random_tensors(shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self)
+            
+            #x = create_random_tensors([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
+            #x *= self.initial_noise_multiplier
+            
+            #noise = create_random_tensors(shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self.p)
             #x = noise.to(shared.device)
 
-            #x = rng.ImageRNG(shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w)
-            #return x.next()
+            x = rng.ImageRNG([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
+            return x.next()
 
-            x = self.rng.next()
+            #x = self.rng.next()
+            
             samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
             del x
 
