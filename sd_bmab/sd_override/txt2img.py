@@ -38,13 +38,13 @@ class SkipWritingToConfig:
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    def __init__(self, shape, **kwargs):
+    def __init__(self, **kwargs):
         # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
         
         # Initialize ImageRNG using inherited attributes
         self.rng = rng.ImageRNG(
-            shape=shape,
+            shape=[4, self.height // 8, self.width // 8],
             seeds=self.seeds,
             subseeds=self.subseeds,
             subseed_strength=self.subseed_strength,
