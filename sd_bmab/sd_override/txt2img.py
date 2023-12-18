@@ -61,9 +61,9 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             #x = noise.to(shared.device)
 
             self.rng = rng.ImageRNG([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
-            return x.next()
+            #return x.next()
 
-            #x = self.rng.next()
+            x = self.rng.next()
             
             samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
             del x
