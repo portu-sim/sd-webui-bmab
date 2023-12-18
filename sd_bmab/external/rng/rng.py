@@ -3,7 +3,7 @@ from . import rng_philox
 from modules import devices, shared
 
 # ui.py
-# shared.opts.add_option('randn_source',shared.OptionInfo(default=[0], label="RNG", component=gr.Radio, component_args={"choices": ["GPU", "CPU", "NV"]}, section=('bmab', 'BMAB')))
+# shared.opts.add_option('randn_source',shared.OptionInfo(default="GPU", label="RNG", component=gr.Radio, component_args={"choices": ["GPU", "CPU", "NV"]}, section=('bmab', 'BMAB')))
 
 def randn(seed, shape, generator=None):
     """Generate a tensor with random numbers from a normal distribution using seed.
