@@ -13,7 +13,7 @@ from ..external.rng import rng
 #from ..external.rng.rng import ImageRNG
 from modules import shared
 from modules.shared import opts, state, sd_model
-from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
+from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
 from modules.sd_hijack_hypertile import hypertile_set
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
@@ -50,7 +50,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
             
-            #hypertile_set(self)
+            hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
             
@@ -60,7 +60,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             #noise = create_random_tensors(shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self.p)
             #x = noise.to(shared.device)
 
-            x = rng.ImageRNG([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
+            self.rng = rng.ImageRNG([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
             return x.next()
 
             #x = self.rng.next()
