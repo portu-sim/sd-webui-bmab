@@ -13,7 +13,7 @@ from ..external.rng import rng
 #from ..external.rng.rng import ImageRNG
 from modules import shared
 from modules.shared import opts, state, sd_model
-from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
+from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
 from modules.sd_hijack_hypertile import hypertile_set
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
 
@@ -38,14 +38,13 @@ class SkipWritingToConfig:
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    def __init__(self, **kwargs):
+    def __init__(self, shape, **kwargs):
         # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
         
         # Initialize ImageRNG using inherited attributes
-        #self.rng = rng.ImageRNG(**kwargs)
         self.rng = rng.ImageRNG(
-            shape=self.shape,
+            shape=shape,
             seeds=self.seeds,
             subseeds=self.subseeds,
             subseed_strength=self.subseed_strength,
@@ -64,10 +63,14 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             #hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
-            
+
+            #noise = create_random_tensors(shape, seeds, subseeds=None, subseed_strength=0.0, seed_resize_from_h=0, seed_resize_from_w=0, p=None)
             #noise = create_random_tensors(self.shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self)
             #x = noise.to(shared.device)
-            
+
+            #x = rng.ImageRNG(shape, seeds, subseeds=None, subseed_strength=0.0, seed_resize_from_h=0, seed_resize_from_w=0)
+            #return x.next()
+
             x = self.rng.next()
             samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
             del x
