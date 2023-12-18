@@ -39,13 +39,24 @@ class SkipWritingToConfig:
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
+        # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
+        
+        # Initialize ImageRNG using inherited attributes
+        #self.rng = rng.ImageRNG(**kwargs)
+        self.rng = rng.ImageRNG(
+            shape=self.shape,
+            seeds=self.seeds,
+            subseeds=self.subseeds,
+            subseed_strength=self.subseed_strength,
+            seed_resize_from_h=self.seed_resize_from_h,
+            seed_resize_from_w=self.seed_resize_from_w
+        )
 
         self.bscript = None
         self.bscript_args = None
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
-        self.rng = rng.ImageRNG(**kwargs)
     
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
