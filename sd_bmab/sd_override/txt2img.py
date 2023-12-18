@@ -38,18 +38,18 @@ class SkipWritingToConfig:
 
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
-    def __init__(self, shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w, **kwargs):
+    def __init__(self, **kwargs):
         # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
         
-        # Initialize ImageRNG using inherited attributes
+        # Initialize ImageRNG using default attributes
         self.rng = rng.ImageRNG(
-            shape=shape or [4, self.height // 8, self.width // 8],
-            seeds=seeds or None,
-            subseeds=subseeds or None,
-            subseed_strength=subseed_strength or 0.0,
-            seed_resize_from_h=seed_resize_from_h or 0,
-            seed_resize_from_w=seed_resize_from_w or 0
+            shape = [4, self.height // 8, self.width // 8],
+            seeds = None,
+            subseeds = None,
+            subseed_strength = 0.0,
+            seed_resize_from_h = 0,
+            seed_resize_from_w = 0
         )
 
         self.bscript = None
@@ -67,7 +67,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             #noise = create_random_tensors(shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self)
             #x = noise.to(shared.device)
 
-            #x = rng.ImageRNG(shape, seeds, subseeds=None, subseed_strength=0.0, seed_resize_from_h=0, seed_resize_from_w=0)
+            #x = rng.ImageRNG(shape, seeds, subseeds, subseed_strength, seed_resize_from_h, seed_resize_from_w)
             #return x.next()
 
             x = self.rng.next()
