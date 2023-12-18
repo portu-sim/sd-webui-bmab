@@ -39,9 +39,10 @@ class SkipWritingToConfig:
 @dataclass(repr=False)
 class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
-        # Retrieve attributes from the parent class using kwargs
         super().__init__(**kwargs)
-
+        
+        self.shape=[4, self.height // 8, self.width // 8]
+        
         self.bscript = None
         self.bscript_args = None
         self.extra_noise = 0
@@ -53,16 +54,8 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
             hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
-            
-            #x = create_random_tensors([4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
-            #x *= self.initial_noise_multiplier
-            
-            #noise = create_random_tensors(shape, seeds, subseeds, subseed_strength, self.seed_resize_from_h, self.seed_resize_from_w, self.p)
-            #x = noise.to(shared.device)
 
-            self.rng = rng.ImageRNG(shape=[4, self.height // 8, self.width // 8], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
-            #return x.next()
-
+            self.rng = rng.ImageRNG(shape=self.shape, seeds=seeds, subseeds=self.subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
             x = self.rng.next()
             
             samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
