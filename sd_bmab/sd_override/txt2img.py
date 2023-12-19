@@ -12,7 +12,7 @@ from modules import sd_models
 from ..external.rng import rng
 #from ..external.rng.rng import ImageRNG
 from modules import shared
-from modules.shared import opts, state, sd_model
+from modules.shared import opts, state, sd_model, log
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
 from modules.sd_hijack_hypertile import hypertile_set
 from modules.sd_samplers_common import images_tensor_to_samples, approximation_indexes
@@ -51,7 +51,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
             
-            hypertile_set(self)
+            #hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
 
