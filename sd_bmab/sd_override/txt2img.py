@@ -41,7 +41,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        self.shape=[4, self.height // 8, self.width // 8]
+        #self.shape=[4, self.height // 8, self.width // 8]
         
         self.bscript = None
         self.bscript_args = None
