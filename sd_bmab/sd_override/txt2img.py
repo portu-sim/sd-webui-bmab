@@ -55,7 +55,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
 
-            self.rng = rng.ImageRNG(shape=self.shape, seeds=seeds, subseeds=self.subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
+            self.rng = rng.ImageRNG(shape=self.shape, seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w)
             x = self.rng.next()
             
             samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
