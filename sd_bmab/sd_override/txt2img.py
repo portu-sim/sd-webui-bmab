@@ -51,7 +51,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         with KohyaHiresFixPreprocessor(self):
             
-            #hypertile_set(self)
+            hypertile_set(self)
 
             self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
 
