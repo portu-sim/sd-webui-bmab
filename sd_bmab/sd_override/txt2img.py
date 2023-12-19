@@ -10,7 +10,6 @@ from modules import devices
 from modules import extra_networks
 from modules import sd_models
 from ..external.rng import rng
-#from ..external.rng.rng import ImageRNG
 from modules import shared
 from modules.shared import opts, state, sd_model, log
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
@@ -41,7 +40,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        #self.shape=[4, self.height // 8, self.width // 8]
+        shape=[4, self.height // 8, self.width // 8]
         
         self.bscript = None
         self.bscript_args = None
