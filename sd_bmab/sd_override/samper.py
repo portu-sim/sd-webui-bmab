@@ -2,7 +2,7 @@ import modules
 import k_diffusion.sampling
 from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules.sd_samplers import set_samplers
-from modules import shared, sd_models
+from modules import shared
 from modules.shared import opts, state, sd_model
 import inspect
 from modules import sd_samplers_common
