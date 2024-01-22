@@ -55,7 +55,7 @@ Person, Hand, Face detailer를 수행하거나, 이미지 합성 혹은 노이�
 
 이미지 처리가 완료된 이후, 인물의 크기에 따라 배경을 확장하거나 upscale을 할 수 있습니다.
 
-<a href="./preprocess.md">Postprocess</a>
+<a href="./postprocess.md">Postprocess</a>
 
 
 # API
