@@ -75,6 +75,14 @@ class ResizeIntermidiate(ProcessorBase):
 		return cn_args
 
 	def process(self, context: Context, image: Image):
+		bmab_filter = filter.get_filter(self.filter)
+		filter.preprocess_filter(bmab_filter, context)
+		image = self.process_resize(context, image)
+		image = filter.process_filter(bmab_filter, context, image, image)
+		filter.postprocess_filter(bmab_filter, context)
+		return image
+
+	def process_resize(self, context: Context, image: Image):
 		context.add_generation_param('BMAB process_resize_by_person', self.value)
 		org_size = image.size
 
@@ -112,8 +120,6 @@ class ResizeIntermidiate(ProcessorBase):
 		else:
 			image_ratio = 1 / self.value
 
-		bmab_filter = filter.get_filter(self.filter)
-
 		context.add_generation_param('BMAB process_resize_by_person_ratio', '%.3s' % image_ratio)
 
 		debug_print('image resize ratio', image_ratio)
@@ -122,9 +128,6 @@ class ResizeIntermidiate(ProcessorBase):
 		if self.method == 'stretching':
 			# image = util.resize_image(2, image, int(image.width * image_ratio), int(image.height * image_ratio))
 			debug_print('Stretching')
-			filter.preprocess_filter(bmab_filter, context)
-			image = filter.process_filter(bmab_filter, context, image, stretching_image)
-			filter.postprocess_filter(bmab_filter, context)
 			return image
 		elif self.method == 'inpaint':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
@@ -150,10 +153,7 @@ class ResizeIntermidiate(ProcessorBase):
 				do_not_save_grid=True,
 			)
 			context.add_job()
-			filter.preprocess_filter(bmab_filter, context, options)
-			processed = process_img2img(context.sdprocessing, stretching_image, options=options)
-			image = filter.process_filter(bmab_filter, context, image, processed)
-			filter.postprocess_filter(bmab_filter, context)
+			image = process_img2img(context.sdprocessing, stretching_image, options=options)
 			return image
 		elif self.method == 'inpaint+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
@@ -181,10 +181,7 @@ class ResizeIntermidiate(ProcessorBase):
 				do_not_save_grid=True,
 			)
 			context.add_job()
-			filter.preprocess_filter(bmab_filter, context, options)
-			processed = process_img2img(context.sdprocessing, stretching_image, options=options)
-			image = filter.process_filter(bmab_filter, context, image, processed)
-			filter.postprocess_filter(bmab_filter, context)
+			image = process_img2img(context.sdprocessing, stretching_image, options=options)
 			return image
 		elif self.method == 'inpaint_only+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
@@ -193,10 +190,7 @@ class ResizeIntermidiate(ProcessorBase):
 			debug_print('Mask image size', mask.size)
 			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only+lama')
 			context.add_job()
-			filter.preprocess_filter(bmab_filter, context, opt)
-			processed = process_img2img_with_controlnet(context, image, opt, cnarg)
-			image = filter.process_filter(bmab_filter, context, image, processed)
-			filter.postprocess_filter(bmab_filter, context)
+			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		elif self.method == 'inpaint_only':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
 			opt = dict(denoising_strength=self.denoising_strength)
@@ -204,10 +198,7 @@ class ResizeIntermidiate(ProcessorBase):
 			debug_print('Mask image size', mask.size)
 			cnarg = self.get_inpaint_lama_args(stretching_image, mask, 'inpaint_only')
 			context.add_job()
-			filter.preprocess_filter(bmab_filter, context, opt)
-			processed = process_img2img_with_controlnet(context, image, opt, cnarg)
-			image = filter.process_filter(bmab_filter, context, image, processed)
-			filter.postprocess_filter(bmab_filter, context)
+			image = process_img2img_with_controlnet(context, image, opt, cnarg)
 		return image
 
 	def postprocess(self, context: Context, image: Image):

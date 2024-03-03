@@ -7,7 +7,7 @@ from modules import shared
 from modules import devices
 
 from sd_bmab import detectors
-from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
+from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride, process_img2img_with_controlnet
 
 from sd_bmab.util import debug_print
 
@@ -243,6 +243,23 @@ class HandDetailer(ProcessorBase):
 
 		return context.args['hand_detailing_enabled']
 
+	@staticmethod
+	def get_depth_hand_refiner(weight, begin, end):
+		cn_args = {
+			'module': 'depth_hand_refiner',
+			'model': shared.opts.bmab_cn_inpaint_depth_hand,
+			'weight': weight,
+			"guidance_start": begin,
+			"guidance_end": end,
+			'resize_mode': 'Just Resize',
+			'pixel_perfect': False,
+			'control_mode': 'ControlNet is more important',
+			'processor_res': 512,
+			'threshold_a': 64,
+			'threshold_b': 64,
+		}
+		return cn_args
+
 	def process(self, context: Context, image: Image):
 
 		context.add_generation_param('BMAB_hand_option', util.dict_to_str(self.detailing_opt))
@@ -250,23 +267,53 @@ class HandDetailer(ProcessorBase):
 
 		if self.detailing_method == 'subframe':
 			return self.process_hand_detailing_subframe(context, image)
+		elif self.detailing_method == 'depth hand refiner':
+			mask = Image.new('L', image.size, 0)
+			dr = ImageDraw.Draw(mask, 'L')
+			if shared.opts.bmab_use_dino_predict:
+				dino = exmodels.get_external_model('grdino')
+				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
+				dino.release()
+			else:
+				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
+			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
+				if phrase == 'hand':
+					b = util.fix_box_size(box)
+					dr.rectangle(b, fill=255)
+			options = dict(mask=mask)
+			options.update(self.hand_detailing)
+			context.add_job()
+			with VAEMethodOverride():
+				controlnet = self.get_depth_hand_refiner(image, 1, 0, 1)
+				image = process_img2img_with_controlnet(context, image, options, controlnet)
 		elif self.detailing_method == 'at once':
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')
-			detector = detectors.UltralyticsHandDetector8n()
-			boxes, logits = detector.predict(context, image)
-			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits)):
-				b = util.fix_box_size(box)
-				dr.rectangle(b, fill=255)
+			if shared.opts.bmab_use_dino_predict:
+				dino = exmodels.get_external_model('grdino')
+				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
+				dino.release()
+			else:
+				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
+			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
+				if phrase=='hand':
+					b = util.fix_box_size(box)
+					dr.rectangle(b, fill=255)
 			options = dict(mask=mask)
 			options.update(self.hand_detailing)
 			context.add_job()
 			with VAEMethodOverride():
 				image = process_img2img(context.sdprocessing, image, options=options)
 		elif self.detailing_method == 'each hand' or self.detailing_method == 'inpaint each hand':
-			detector = detectors.UltralyticsHandDetector8n()
-			boxes, logits = detector.predict(context, image)
-			for idx, (box, logit) in enumerate(zip(boxes, logits)):
+			if shared.opts.bmab_use_dino_predict:
+				dino = exmodels.get_external_model('grdino')
+				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
+				dino.release()
+			else:
+				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
+			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
+				if phrase != 'hand':
+					continue
 				debug_print(float(logit))
 
 				x1, y1, x2, y2 = tuple(int(x) for x in box)
