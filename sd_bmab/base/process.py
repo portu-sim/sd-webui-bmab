@@ -17,7 +17,7 @@ from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffus
 def apply_extensions(p, cn_enabled=False):
 	script_runner = copy(p.scripts)
 	script_args = deepcopy(p.script_args)
-	active_script = ['dynamic_thresholding', 'stable-diffusion-webui-wildcards']
+	active_script = ['dynamic_thresholding', 'wildcards']
 
 	if cn_enabled:
 		active_script.append('controlnet')
@@ -106,7 +106,7 @@ def process_img2img(p, img, options=None):
 
 	with StopGeneration():
 		processed = process_images(img2img)
-		img = processed.images[0]
+	img = processed.images[0]
 
 	img2img.close()
 
@@ -181,7 +181,8 @@ def process_txt2img(p, options=None, controlnet=None):
 		sc_args[idx] = controlnet
 		txt2img.script_args = sc_args
 
-	processed = process_images(txt2img)
+	with StopGeneration():
+		processed = process_images(txt2img)
 	img = processed.images[0]
 	devices.torch_gc()
 	return img
