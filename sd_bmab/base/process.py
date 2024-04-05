@@ -9,6 +9,7 @@ from modules import devices
 from modules.processing import process_images
 
 from sd_bmab import util
+from sd_bmab.base.common import StopGeneration
 from sd_bmab.base.context import Context
 from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
 
@@ -103,8 +104,9 @@ def process_img2img(p, img, options=None):
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(p)
 
-	processed = process_images(img2img)
-	img = processed.images[0]
+	with StopGeneration():
+		processed = process_images(img2img)
+		img = processed.images[0]
 
 	img2img.close()
 
