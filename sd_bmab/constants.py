@@ -1,4 +1,5 @@
 sampler_default = 'Use same sampler'
+scheduler_default = 'Use same scheduler'
 resize_mode_default = 'Intermediate'
 checkpoint_default = 'Use same checkpoint'
 vae_default = 'Use same vae'

@@ -93,8 +93,8 @@ class BmabExtScript(scripts.Script):
 	def resize_image(self, p, a, resize_mode, idx, image, width, height, upscaler_name):
 		if not a['enabled']:
 			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
-
-		ctx = context.Context.newContext(self, p, a, idx)
+		img_idx = p.iteration * p.batch_size + idx
+		ctx = context.Context.newContext(self, p, a, img_idx)
 		with controlnet.PreventControlNet(p, cn_enabled=internal.is_controlnet_required(ctx)):
 			image = internal.process_intermediate_step1(ctx, image)
 			image = images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)

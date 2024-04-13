@@ -3,6 +3,7 @@ from PIL import Image
 from modules import devices
 from modules import images
 
+from sd_bmab import util
 from sd_bmab import constants
 from sd_bmab.util import debug_print
 from sd_bmab.base import process_img2img, Context, ProcessorBase, process_img2img_with_controlnet
@@ -20,6 +21,7 @@ class RefinerPreprocessor(ProcessorBase):
 		self.prompt = None
 		self.negative_prompt = None
 		self.sampler = None
+		self.scheduler = None
 		self.upscaler = None
 		self.steps = 20
 		self.cfg_scale = 0.7
@@ -37,6 +39,7 @@ class RefinerPreprocessor(ProcessorBase):
 		self.prompt = self.refiner_opt.get('prompt', '')
 		self.negative_prompt = self.refiner_opt.get('negative_prompt', '')
 		self.sampler = self.refiner_opt.get('sampler', None)
+		self.scheduler = self.refiner_opt.get('scheduler', None)
 		self.upscaler = self.refiner_opt.get('upscaler', None)
 		self.steps = self.refiner_opt.get('steps', None)
 		self.cfg_scale = self.refiner_opt.get('cfg_scale', None)
@@ -86,6 +89,8 @@ class RefinerPreprocessor(ProcessorBase):
 			self.checkpoint = context.sdprocessing.sd_model
 		if self.sampler == constants.sampler_default:
 			self.sampler = context.sdprocessing.sampler_name
+		if self.scheduler == constants.scheduler_default:
+			self.scheduler = util.get_scheduler(context.sdprocessing)
 
 		seed, subseed = context.get_seeds()
 		options = dict(
@@ -103,6 +108,7 @@ class RefinerPreprocessor(ProcessorBase):
 			prompt=self.prompt,
 			negative_prompt=self.negative_prompt,
 			sampler_name=self.sampler,
+			scheduler=self.scheduler,
 			batch_size=1,
 			n_iter=1,
 			steps=self.steps,

@@ -20,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v24.04.05.0'
+bmab_version = 'v24.04.14.0'
 
 final_images = []
 last_process = None
@@ -131,9 +131,14 @@ def create_ui(bscript, is_img2img):
 						elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Resample negative prompt')
 					with gr.Row():
 						with gr.Column(min_width=100):
-							asamplers = [constants.sampler_default]
-							asamplers.extend([x.name for x in shared.list_samplers()])
-							elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+							with gr.Row():
+								with gr.Column(min_width=50):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+								with gr.Column(min_width=50):
+									ascheduler = util.get_scueduler_list()
+									elem += gr.Dropdown(label='Scheduler', elem_id="resample_scheduler", choices=ascheduler, value=ascheduler[0])
 						with gr.Column(min_width=100):
 							upscalers = [constants.fast_upscaler]
 							upscalers.extend([x.name for x in shared.sd_upscalers])
@@ -164,9 +169,14 @@ def create_ui(bscript, is_img2img):
 						elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Pretraining negative prompt')
 					with gr.Row():
 						with gr.Column(min_width=100):
-							asamplers = [constants.sampler_default]
-							asamplers.extend([x.name for x in shared.list_samplers()])
-							elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+							with gr.Row():
+								with gr.Column(min_width=50):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+								with gr.Column(min_width=50):
+									ascheduler = util.get_scueduler_list()
+									elem += gr.Dropdown(label='Scheduler', elem_id="pretraining_scheduler", choices=ascheduler, value=ascheduler[0])
 					with gr.Row():
 						with gr.Column(min_width=100):
 							elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Pretraining sampling steps', elem_id='bmab_pretraining_steps')
@@ -228,9 +238,14 @@ def create_ui(bscript, is_img2img):
 						elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
 					with gr.Row():
 						with gr.Column(min_width=100):
-							asamplers = [constants.sampler_default]
-							asamplers.extend([x.name for x in shared.list_samplers()])
-							elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+							with gr.Row():
+								with gr.Column(min_width=50):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampling method', visible=True, value=asamplers[0], choices=asamplers)
+								with gr.Column(min_width=50):
+									ascheduler = util.get_scueduler_list()
+									elem += gr.Dropdown(label='Scheduler', elem_id="refiner_scheduler", choices=ascheduler, value=ascheduler[0])
 						with gr.Column(min_width=100):
 							upscalers = [constants.fast_upscaler]
 							upscalers.extend([x.name for x in shared.sd_upscalers])
@@ -345,14 +360,22 @@ def create_ui(bscript, is_img2img):
 										elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
 						with gr.Row():
 							with gr.Column(min_width=100):
-								asamplers = [constants.sampler_default]
-								asamplers.extend([x.name for x in shared.list_samplers()])
-								elem += gr.Dropdown(label='Sampler', visible=True, value=asamplers[0], choices=asamplers)
-								inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
-								elem += inpaint_area
-								elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
-								choices = detectors.list_face_detectors()
-								elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
+								with gr.Row():
+									with gr.Column(min_width=50):
+										asamplers = [constants.sampler_default]
+										asamplers.extend([x.name for x in shared.list_samplers()])
+										elem += gr.Dropdown(label='Sampler', elem_id="face_sampler", visible=True, value=asamplers[0], choices=asamplers)
+									with gr.Column(min_width=50):
+										ascheduler = util.get_scueduler_list()
+										elem += gr.Dropdown(label='Scheduler', elem_id="face_scheduler", choices=ascheduler, value=ascheduler[0])
+								with gr.Row():
+									inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
+									elem += inpaint_area
+								with gr.Row():
+									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+								with gr.Row():
+									choices = detectors.list_face_detectors()
+									elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
 							with gr.Column():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Face Denoising Strength', elem_id='bmab_face_denoising_strength')
 								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Face Dilation', elem_id='bmab_face_dilation')

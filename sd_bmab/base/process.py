@@ -85,8 +85,16 @@ def build_img2img(p, img, options):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings=p.override_settings,
+		override_settings={
+			'sd_model_checkpoint': shared.sd_model.sd_checkpoint_info.name_for_extra
+		},
 	)
+
+	if hasattr(p, 'scheduler'):
+		i2i_param['scheduler'] = p.scheduler,
+	else:
+		del options['scheduler']
+
 	if options is not None:
 		i2i_param.update(options)
 
@@ -161,8 +169,15 @@ def process_txt2img(p, options=None, controlnet=None):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings=p.override_settings,
+		override_settings={
+			'sd_model_checkpoint':  shared.sd_model.sd_checkpoint_info.name_for_extra
+		},
 	)
+
+	if hasattr(p, 'scheduler'):
+		t2i_param['scheduler'] = p.scheduler,
+	else:
+		del options['scheduler']
 
 	if options is not None:
 		t2i_param.update(options)

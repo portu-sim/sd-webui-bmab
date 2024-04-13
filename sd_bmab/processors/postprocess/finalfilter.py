@@ -16,7 +16,7 @@ class FinalFilter(ProcessorBase):
 	def process(self, context: Context, image: Image):
 		self.filter = filter.get_filter(self.filter_name)
 		if self.filter is not None:
-			filter.preprocess_filter(self.filter, context)
+			filter.preprocess_filter(self.filter, context, image)
 			image = filter.process_filter(self.filter, context, None, image)
 			filter.postprocess_filter(self.filter, context)
 		return image

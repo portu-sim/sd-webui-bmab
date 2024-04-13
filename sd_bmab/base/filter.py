@@ -8,6 +8,7 @@ from PIL import Image
 import sd_bmab
 from sd_bmab import constants
 from sd_bmab.util import debug_print
+from sd_bmab import controlnet
 
 
 filters = [constants.filter_default]
@@ -21,7 +22,10 @@ class BaseFilter(object):
 	def configurations(self):
 		return {}
 
-	def preprocess(self, context, *args, **kwargs):
+	def is_controlnet_required(self):
+		return False
+
+	def preprocess(self, context, image, *args, **kwargs):
 		pass
 
 	def process(self, context, base: Image, processed: Image, *args, **kwargs):
@@ -60,7 +64,7 @@ def get_filter(name):
 	path = os.path.normpath(os.path.join(path, '../filter'))
 	filter_path = f'{path}/{name}.py'
 	mod = load_module(filter_path, 'filter')
-	return eval(f'mod.Filter{name}()')
+	return eval(f'mod.Filter()')
 
 
 def load_module(file_name, module_name):
@@ -71,8 +75,8 @@ def load_module(file_name, module_name):
 	return module
 
 
-def preprocess_filter(bmab_filter, context, *args, **kwargs):
-	bmab_filter.preprocess(context, *args, **kwargs)
+def preprocess_filter(bmab_filter, context, image, *args, **kwargs):
+	bmab_filter.preprocess(context, image, *args, **kwargs)
 
 
 def process_filter(bmab_filter, context, base: Image, processed: Image, *args, **kwargs):

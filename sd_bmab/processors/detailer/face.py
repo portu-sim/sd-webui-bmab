@@ -30,6 +30,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = 'Score'
 		self.limit = 1
 		self.sampler = constants.sampler_default
+		self.scheduler = constants.scheduler_default
 		self.disable_extra_networks = False
 		self.detection_model = 'Ultralytics(face_yolov8n.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
@@ -48,6 +49,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = self.detailing_opt.get('sort_by', self.order)
 		self.limit = self.detailing_opt.get('limit', self.limit)
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
+		self.scheduler = self.detailing_opt.get('scheduler', self.scheduler)
 		self.disable_extra_networks = self.detailing_opt.get('disable_extra_networks', self.disable_extra_networks)
 		self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 		self.skip_large_face = self.detailing_opt.get('skip_large_face', self.skip_large_face)
@@ -87,6 +89,8 @@ class FaceDetailer(ProcessorBase):
 
 		if self.sampler != constants.sampler_default:
 			face_config['sampler_name'] = self.sampler
+		if self.scheduler != constants.scheduler_default:
+			face_config['scheduler'] = self.scheduler
 
 		context.add_generation_param('BMAB_face_option', util.dict_to_str(self.detailing_opt))
 		context.add_generation_param('BMAB_face_parameter', util.dict_to_str(face_config))

@@ -97,7 +97,9 @@ class Context(object):
 
 	def save_and_apply_checkpoint(self, checkpoint, vae):
 		if checkpoint is not None and self.base_sd_model is None:
-			self.base_sd_model = shared.opts.data['sd_model_checkpoint']
+			self.base_sd_model = shared.sd_model.sd_checkpoint_info.name_for_extra
+			print(shared.sd_model.sd_checkpoint_info.name_for_extra)
+			print(shared.opts.data['sd_model_checkpoint'])
 		if vae is not None and self.base_vae is None:
 			self.base_vae = sd_vae.get_loaded_vae_name()
 		self.change_checkpoint(checkpoint, vae)
