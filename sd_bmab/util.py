@@ -18,6 +18,7 @@ from modules import devices
 from modules import images
 from modules.sd_samplers import sample_to_image
 from modules.paths import models_path
+from sd_bmab import constants
 
 from ultralytics import YOLO
 
@@ -385,3 +386,19 @@ def calculate_hash(filename):
 	sha256 = calculate_sha256(filename)
 	return sha256[:10]
 
+
+def get_scueduler_list():
+	ascheduler = [constants.scheduler_default]
+	try:
+		'for sd 1.8 compat'
+		from modules import sd_schedulers
+		ascheduler.extend([x.label for x in sd_schedulers.schedulers])
+	except:
+		pass
+	return ascheduler
+
+
+def get_scheduler(p):
+	if hasattr(p, 'scheduler'):
+		return p.scheduler
+	return constants.scheduler_default
