@@ -187,8 +187,6 @@ def process_txt2img(p, options=None, controlnet=None):
 	if options is not None:
 		t2i_param.update(options)
 
-	return t2i_param
-
 	txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
 	txt2img.cached_c = [None, None]
 	txt2img.cached_uc = [None, None]
