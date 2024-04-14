@@ -89,7 +89,6 @@ def build_img2img(p, img, options):
 		#override_settings=p.override_settings,
 		override_settings={
 			'sd_model_checkpoint': shared.opts.data['sd_model_checkpoint']
-			#'sd_model_checkpoint': shared.sd_model.sd_checkpoint_info.name_for_extra
 		},
 	)
 
@@ -175,9 +174,9 @@ def process_txt2img(p, options=None, controlnet=None):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
+		#override_settings=p.override_settings,
 		override_settings={
 			'sd_model_checkpoint': shared.opts.data['sd_model_checkpoint']
-			#'sd_model_checkpoint': shared.sd_model.sd_checkpoint_info.name_for_extra
 		},
 	)
 
