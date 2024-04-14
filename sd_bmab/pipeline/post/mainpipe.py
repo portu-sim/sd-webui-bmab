@@ -62,7 +62,11 @@ def process(context, image):
 				result = proc.preprocess(context, processed)
 				if result is None or not result:
 					continue
+				if shared.state.interrupted or shared.state.skipped:
+					break
 				ret = proc.process(context, processed)
+				if shared.state.interrupted or shared.state.skipped:
+					break
 				proc.postprocess(context, processed)
 				processed = ret
 			except:
