@@ -27,3 +27,22 @@ class VAEMethodOverride:
 			shared.opts.sd_vae_decode_method = self.decode_method
 		if self.img2img_fix_steps is not None:
 			shared.opts.img2img_fix_steps = self.img2img_fix_steps
+
+
+class StopGeneration:
+
+	def __init__(self) -> None:
+		super().__init__()
+		if not hasattr(shared.state, 'stopping_generation'):
+			return
+		self.stopping_generation = shared.state.stopping_generation
+
+	def __enter__(self):
+		if not hasattr(shared.state, 'stopping_generation'):
+			return
+		shared.state.stopping_generation = False
+
+	def __exit__(self, *args, **kwargs):
+		if not hasattr(shared.state, 'stopping_generation'):
+			return
+		shared.state.stopping_generation = self.stopping_generation
