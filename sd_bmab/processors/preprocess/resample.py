@@ -27,6 +27,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.prompt = None
 		self.negative_prompt = None
 		self.sampler = None
+		self.scheduler = None
 		self.upscaler = None
 		self.steps = 20
 		self.cfg_scale = 0.7
@@ -55,6 +56,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.prompt = self.resample_opt.get('prompt', self.prompt)
 		self.negative_prompt = self.resample_opt.get('negative_prompt', self.negative_prompt)
 		self.sampler = self.resample_opt.get('sampler', self.sampler)
+		self.scheduler = self.resample_opt.get('scheduler', self.scheduler)
 		self.upscaler = self.resample_opt.get('upscaler', self.upscaler)
 		self.steps = self.resample_opt.get('steps', self.steps)
 		self.cfg_scale = self.resample_opt.get('cfg_scale', self.cfg_scale)
@@ -105,6 +107,8 @@ class ResamplePreprocessor(ProcessorBase):
 			self.checkpoint = context.sdprocessing.sd_model
 		if self.sampler == constants.sampler_default:
 			self.sampler = context.sdprocessing.sampler_name
+		if self.scheduler == constants.scheduler_default:
+			self.scheduler = util.get_scheduler(context.sdprocessing)
 
 		bmab_filter = filter.get_filter(self.filter)
 
@@ -115,11 +119,12 @@ class ResamplePreprocessor(ProcessorBase):
 			prompt=self.prompt,
 			negative_prompt=self.negative_prompt,
 			sampler_name=self.sampler,
+			scheduler=self.scheduler,
 			steps=self.steps,
 			cfg_scale=self.cfg_scale,
 		)
 
-		filter.preprocess_filter(bmab_filter, context, options)
+		filter.preprocess_filter(bmab_filter, context, image, options)
 
 		context.add_job()
 		if self.save_image:
