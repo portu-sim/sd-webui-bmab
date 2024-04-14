@@ -1,3 +1,13 @@
+### v24.04.05
+
+* Code Fix
+  * 1.8.0 설치시에 동작하지 않는 버그를 수정했습니다.
+  * preprocess filter 분리
+  * hires.fix - upscale 시에 필터가 정확하게 적용되지 않는 버그 수정
+  * ControlNet Noise 사용시에 그레이 이미지를 사용하도록 수정
+  * 그 외 몇가지 코드 리펙토링
+
+
 ### v23.11.30.0
 
 * Code Fix
