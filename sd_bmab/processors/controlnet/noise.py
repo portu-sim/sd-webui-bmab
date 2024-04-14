@@ -65,14 +65,17 @@ class LineartNoise(ProcessorBase):
 
 	def get_controlnet_args(self, context):
 		img = util.generate_noise(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
-		return self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end)
+		noise = img.convert('L').convert('RGB')
+		return self.get_noise_args(noise, self.noise_strength, self.noise_begin, self.noise_end)
 
 	def get_noise_from_cache(self, seed, width, height):
 		path = os.path.dirname(sd_bmab.__file__)
 		path = os.path.normpath(os.path.join(path, '../cache'))
 		cache_file = f'{path}/noise_{width}_{height}.png'
 		if os.path.isfile(cache_file):
-			return Image.open(cache_file)
+			img = Image.open(cache_file)
+			noise = img.convert('L').convert('RGB')
+			return noise
 		img = util.generate_noise(seed, width, height)
 		img.save(cache_file)
 		return img
