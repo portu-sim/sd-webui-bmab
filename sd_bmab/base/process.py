@@ -93,13 +93,13 @@ def build_img2img(p, img, options):
 		},
 	)
 
-	if hasattr(p, 'scheduler'):
-		i2i_param['scheduler'] = p.scheduler,
+	if 'scheduler' in options:
+	    	i2i_param['scheduler'] = p.scheduler,
 	else:
-		del options['scheduler']
-
+	    	del options['scheduler']
+	
 	if options is not None:
-		i2i_param.update(options)
+	    	i2i_param.update(options)
 
 	return i2i_param
 
@@ -180,13 +180,13 @@ def process_txt2img(p, options=None, controlnet=None):
 		},
 	)
 
-	if hasattr(p, 'scheduler'):
-		t2i_param['scheduler'] = p.scheduler,
+	if 'scheduler' in options:
+	    	t2i_param['scheduler'] = p.scheduler,
 	else:
-		del options['scheduler']
-
+	    	del options['scheduler']
+	
 	if options is not None:
-		t2i_param.update(options)
+	    	t2i_param.update(options)
 
 	txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
 	txt2img.cached_c = [None, None]
