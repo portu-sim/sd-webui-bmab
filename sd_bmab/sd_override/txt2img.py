@@ -46,6 +46,12 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
 
+    def init(self, all_prompts, all_seeds, all_subseeds):
+        ret = super().init(all_prompts, all_seeds, all_subseeds)
+        self.extra_generation_params['Hires prompt'] = ''
+        self.extra_generation_params['Hires negative prompt'] = ''
+        return ret
+    
     def txt2img_image_conditioning(p, x, width=None, height=None):
         width = width or p.width
         height = height or p.height
@@ -114,23 +120,23 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
                         filter1 = filter.get_filter(filter_name)
                         from sd_bmab.base import Context
                         context = Context(self.bscript, self, self.bscript_args, i)
-                        filter.preprocess_filter(filter1, context)
+                        filter.preprocess_filter(filter1, context, image)
                         image = filter.process_filter(filter1, context, None, image, sdprocess=self)
                         filter.postprocess_filter(filter1, context)
 
                         if hasattr(self.bscript, 'resize_image'):
-                            resized = self.bscript.resize_image(self, self.bscript_args, _i, 0, image, target_width, target_height, self.hr_upscaler)
+                            resized = self.bscript.resize_image(self, self.bscript_args, 0, i, image, target_width, target_height, self.hr_upscaler)
                         else:
                             image = images.resize_image(1, image, target_width, target_height, upscaler_name=self.hr_upscaler)
 
                         filter_name = self.bscript_args['txt2img_filter_hresfix_after_upscale']
                         filter2 = filter.get_filter(filter_name)
-                        filter.preprocess_filter(filter2, context)
+                        filter.preprocess_filter(filter2, context, image)
                         image = filter.process_filter(filter2, context, image, resized, sdprocess=self)
                         filter.postprocess_filter(filter2, context)
                     else:
                         if hasattr(self.bscript, 'resize_image'):
-                            image = self.bscript.resize_image(self, self.bscript_args, _i, 0, image, target_width, target_height, self.hr_upscaler)
+                            image = self.bscript.resize_image(self, self.bscript_args, 0, i, image, target_width, target_height, self.hr_upscaler)
                         else:
                             image = images.resize_image(1, image, target_width, target_height, upscaler_name=self.hr_upscaler)
 
