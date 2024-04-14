@@ -4,7 +4,7 @@ from modules import shared
 
 from sd_bmab.processors.postprocess import AfterProcessUpscaler, BeforeProcessUpscaler
 from sd_bmab.processors.postprocess import InpaintResize, InpaintLamaResize, FinalFilter
-from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer
+from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer, PreprocessFaceDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
 from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChanger, CheckPointRestore
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha
@@ -29,6 +29,7 @@ def is_controlnet_required(context):
 def process(context, image):
 	pipeline_modules = [
 		BeforeProcessFileSaver(),
+		PreprocessFaceDetailer(),
 		CheckPointChanger(),
 		PreprocessFilter(),
 		ResamplePreprocessor(),
