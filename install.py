@@ -1,10 +1,7 @@
 import launch
 import os
 import glob
-import requests
 from modules.paths import models_path
-#from basicsr.utils.download_util import load_file_from_url
-#from sd_bmab.util import lazy_loader
 from huggingface_hub import hf_hub_download
 from urllib.parse import urlparse
 
