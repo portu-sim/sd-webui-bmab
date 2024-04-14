@@ -110,7 +110,6 @@ class PretrainingDetailer(ProcessorBase):
 			else:
 				pretraining_config['prompt'] = context.get_prompt_by_index()
 
-			pretraining_config['prompt'] = prompt
 			pretraining_config['negative_prompt'] = context.get_negative_prompt_by_index()
 
 			debug_print('prompt', pretraining_config['prompt'])
@@ -132,6 +131,11 @@ class PretrainingDetailer(ProcessorBase):
 				img2img_imgage = process_img2img(context.sdprocessing, image, options=options)
 
 			x1, y1, x2, y2 = util.fix_box_size(box)
+			x1 -= int(detected_mask.width / 2)
+			x2 += int(detected_mask.width / 2)
+			y1 -= int(detected_mask.height / 2)
+			y2 += int(detected_mask.height / 2)
+			
 			detected_mask = Image.new('L', image.size, color=0)
 			dr = ImageDraw.Draw(detected_mask, 'L')
 			dr.rectangle((x1, y1, x2, y2), fill=255)
