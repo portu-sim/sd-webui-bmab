@@ -17,7 +17,7 @@ from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv#, StableDiffu
 def apply_extensions(p, cn_enabled=False):
 	script_runner = copy(p.scripts)
 	script_args = deepcopy(p.script_args)
-	active_script = ['dynamic_thresholding']
+	active_script = ['dynamic_thresholding', 'stable-diffusion-webui-wildcards']
 
 	if cn_enabled:
 		active_script.append('controlnet')
