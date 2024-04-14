@@ -2,6 +2,7 @@ import traceback
 from functools import partial
 from modules import images
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
+from modules import shared
 
 from sd_bmab.base import Context
 from sd_bmab.processors.detailer import FaceDetailer
@@ -10,6 +11,7 @@ from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
 from sd_bmab.processors.preprocess import ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.processors.preprocess import PretrainingDetailer
+from sd_bmab.processors.utils import CheckPointChanger, CheckPointRestore
 
 
 def is_controlnet_required(context):
@@ -25,10 +27,12 @@ def is_controlnet_required(context):
 
 def process_intermediate_step1(context, image):
 	pipeline_step1 = [
+		CheckPointChanger(),
 		ResamplePreprocessor(step=1),
 		PretrainingDetailer(step=1),
 		FaceDetailer(step=1),
 		ResizeIntermidiate(step=1),
+		CheckPointRestore(),
 	]
 	
 	processed = image.copy()
@@ -37,7 +41,11 @@ def process_intermediate_step1(context, image):
 			result = proc.preprocess(context, processed)
 			if result is None or not result:
 				continue
+			if shared.state.interrupted or shared.state.skipped:
+				break
 			ret = proc.process(context, processed)
+			if shared.state.interrupted or shared.state.skipped:
+				break
 			proc.postprocess(context, processed)
 			processed = ret
 		except Exception:
@@ -58,6 +66,8 @@ def process_intermediate_step2(context, image):
 		result = proc.preprocess(context, processed)
 		if result is None or not result:
 			continue
+		if shared.state.interrupted or shared.state.skipped:
+			break
 		ret = proc.process(context, processed)
 		proc.postprocess(context, processed)
 		processed = ret
