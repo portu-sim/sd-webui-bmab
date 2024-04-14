@@ -75,7 +75,6 @@ def build_img2img(p, img, options):
 		seed_resize_from_h=p.seed_resize_from_h,
 		seed_resize_from_w=p.seed_resize_from_w,
 		sampler_name=p.sampler_name,
-		scheduler=p.scheduler,
 		batch_size=1,
 		n_iter=1,
 		steps=p.steps,
@@ -94,10 +93,11 @@ def build_img2img(p, img, options):
 		},
 	)
 
-	if 'scheduler' in options:
+	if hasattr(p, 'scheduler'):
 	    	i2i_param['scheduler'] = p.scheduler,
 	else:
-	    	del options['scheduler']
+	    	if 'scheduler' in options:
+	        	del options['scheduler']
 	
 	if options is not None:
 	    	i2i_param.update(options)
@@ -164,7 +164,6 @@ def process_txt2img(p, options=None, controlnet=None):
 		seed_resize_from_h=p.seed_resize_from_h,
 		seed_resize_from_w=p.seed_resize_from_w,
 		sampler_name=p.sampler_name,
-		scheduler=p.scheduler,
 		batch_size=1,
 		n_iter=1,
 		steps=p.steps,
@@ -182,13 +181,16 @@ def process_txt2img(p, options=None, controlnet=None):
 		},
 	)
 
-	if 'scheduler' in options:
+	if hasattr(p, 'scheduler'):
 	    	t2i_param['scheduler'] = p.scheduler,
 	else:
-	    	del options['scheduler']
+	    	if 'scheduler' in options:
+	        	del options['scheduler']
 	
 	if options is not None:
 	    	t2i_param.update(options)
+
+	return t2i_param
 
 	txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
 	txt2img.cached_c = [None, None]
