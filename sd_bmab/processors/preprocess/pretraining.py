@@ -23,7 +23,8 @@ class PretrainingDetailer(ProcessorBase):
 		self.pretraining_model = None
 		self.prompt = ''
 		self.negative_prompt = ''
-		self.sampler = ''
+		self.sampler = constants.sampler_default
+		self.scheduler = constants.scheduler_default
 		self.steps = 20
 		self.cfg_scale = 7
 		self.denoising_strength = 0.75
@@ -59,6 +60,7 @@ class PretrainingDetailer(ProcessorBase):
 		self.prompt = self.pretraining_opt.get('prompt', self.prompt)
 		self.negative_prompt = self.pretraining_opt.get('negative_prompt', self.negative_prompt)
 		self.sampler = self.pretraining_opt.get('sampler', self.sampler)
+		self.scheduler = self.pretraining_opt.get('scheduler', self.scheduler)
 		self.steps = self.pretraining_opt.get('steps', self.steps)
 		self.cfg_scale = self.pretraining_opt.get('cfg_scale', self.cfg_scale)
 		self.denoising_strength = self.pretraining_opt.get('denoising_strength', self.denoising_strength)
@@ -82,6 +84,7 @@ class PretrainingDetailer(ProcessorBase):
 			'steps': self.steps,
 			'cfg_scale': self.cfg_scale,
 			'sampler_name': context.sdprocessing.sampler_name if self.sampler == constants.sampler_default else self.sampler,
+			'scheduler': util.get_scheduler(context.sdprocessing) if self.scheduler == constants.scheduler_default else self.scheduler,
 			'denoising_strength': self.denoising_strength,
 			'width': context.sdprocessing.width,
 			'height': context.sdprocessing.height,
