@@ -20,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v23.12.05.0'
+bmab_version = 'v23.03.03.0'
 
 final_images = []
 last_process = None
@@ -366,7 +366,7 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
 						with gr.Row():
-							elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once'])
+							elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once', 'depth hand refiner'])
 						with gr.Row():
 							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
 						with gr.Row():
@@ -757,9 +757,10 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_use_specific_model', shared.OptionInfo(False, 'Use specific model', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_model', shared.OptionInfo(default='', label='Checkpoint for Person, Face, Hand', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_openpose', shared.OptionInfo(default='control_v11p_sd15_openpose_fp16 [73c2b67d]', label='ControlNet openpose model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
-	shared.opts.add_option('bmab_cn_lineart', shared.OptionInfo(default='control_v11p_sd15_lineart [43d4be0d]', label='ControlNet lineart model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_cn_lineart', shared.OptionInfo(default='control_v11p_sd15_lineart_fp16 [5c23b17d]', label='ControlNet lineart model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_inpaint', shared.OptionInfo(default='control_v11p_sd15_inpaint_fp16 [be8bc0ed]', label='ControlNet inpaint model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_tile_resample', shared.OptionInfo(default='control_v11f1e_sd15_tile_fp16 [3b860298]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_cn_inpaint_depth_hand', shared.OptionInfo(default='control_sd15_inpaint_depth_hand_fp16 [09456e54]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('img2img_extra_noise',shared.OptionInfo(default=0.0, label="Extra noise multiplier for img2img and hires fix", component=gr.Slider, component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01}, section=('bmab', 'BMAB')))
 	shared.opts.add_option('randn_source',shared.OptionInfo(default="NV", label="RNG", component=gr.Radio, component_args={"choices": ["GPU", "CPU", "NV"]}, section=('bmab', 'BMAB')))
 
