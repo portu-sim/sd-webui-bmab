@@ -46,6 +46,20 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
         self.extra_noise = 0
         self.initial_noise_multiplier = opts.initial_noise_multiplier
 
+    def txt2img_image_conditioning(p, x, width=None, height=None):
+        width = width or p.width
+        height = height or p.height
+        if p.sd_model.model.conditioning_key in {'hybrid', 'concat'}: # Inpainting models
+            image_conditioning = torch.zeros(x.shape[0], 3, height, width, device=x.device)
+            image_conditioning = p.sd_model.get_first_stage_encoding(p.sd_model.encode_first_stage(image_conditioning))
+            image_conditioning = torch.nn.functional.pad(image_conditioning, (0, 0, 0, 0, 1, 0), value=1.0) # pylint: disable=not-callable
+            image_conditioning = image_conditioning.to(x.dtype)
+            return image_conditioning
+        elif p.sd_model.model.conditioning_key == "crossattn-adm": # UnCLIP models
+            return x.new_zeros(x.shape[0], 2*p.sd_model.noise_augmentor.time_embed.dim, dtype=x.dtype, device=x.device)
+        else:
+            return x.new_zeros(x.shape[0], 5, 1, 1, dtype=x.dtype, device=x.device)
+    
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
 
         latent_scale_mode = shared.latent_upscale_modes.get(self.hr_upscaler, None) if self.hr_upscaler is not None else shared.latent_upscale_modes.get(shared.latent_upscale_default_mode, "None")
