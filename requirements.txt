@@ -3,7 +3,7 @@ segment_anything_hq
 ultralytics
 pillow
 
-basicsr
+basicsr==1.4.2
 kornia
 omegaconf
 numpy
