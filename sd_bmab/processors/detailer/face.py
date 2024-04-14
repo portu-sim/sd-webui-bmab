@@ -195,3 +195,13 @@ class FaceDetailer(ProcessorBase):
 
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()
+
+
+class PreprocessFaceDetailer(FaceDetailer):
+
+	def __init__(self, step=2) -> None:
+		super().__init__(step)
+
+	def preprocess(self, context: Context, image: Image):
+		super().preprocess(context, image)
+		return not context.is_hires_fix() and self.hiresfix_enabled
