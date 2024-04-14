@@ -20,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v23.03.03.0'
+bmab_version = 'v24.04.05.0'
 
 final_images = []
 last_process = None
