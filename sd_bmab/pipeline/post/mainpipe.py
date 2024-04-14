@@ -10,7 +10,7 @@ from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChange
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha
 from sd_bmab.processors.controlnet import LineartNoise
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
-from sd_bmab.processors.preprocess import ResamplePreprocessor
+from sd_bmab.processors.preprocess import ResamplePreprocessor, PreprocessFilter
 from sd_bmab.pipeline.internal import Preprocess
 from sd_bmab.util import debug_print
 
@@ -30,6 +30,7 @@ def process(context, image):
 	pipeline_modules = [
 		BeforeProcessFileSaver(),
 		CheckPointChanger(),
+		PreprocessFilter(),
 		ResamplePreprocessor(),
 		PretrainingDetailer(),
 		Preprocess(),
