@@ -70,8 +70,10 @@ class LineartNoise(ProcessorBase):
 
 	def get_noise_from_cache(self, seed, width, height):
 		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../cache'))
-		cache_file = f'{path}/noise_{width}_{height}.png'
+		cache_dir = os.path.normpath(os.path.join(path, '..', 'cache'))
+		if not os.path.isdir(cache_dir):
+			os.mkdir(cache_dir)
+		cache_file = os.path.join(cache_dir, f'noise_{width}_{height}.png')
 		if os.path.isfile(cache_file):
 			img = Image.open(cache_file)
 			noise = img.convert('L').convert('RGB')
