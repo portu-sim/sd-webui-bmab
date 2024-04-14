@@ -12,7 +12,7 @@ from modules.processing import process_images, StableDiffusionProcessingImg2Img
 from sd_bmab import util
 from sd_bmab.base.common import StopGeneration
 from sd_bmab.base.context import Context
-from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv#, StableDiffusionProcessingImg2ImgOv
+from sd_bmab.sd_override import StableDiffusionProcessingTxt2ImgOv, StableDiffusionProcessingImg2ImgOv
 
 
 def apply_extensions(p, cn_enabled=False):
@@ -86,8 +86,18 @@ def build_img2img(p, img, options):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings=p.override_settings,
+		#override_settings=p.override_settings,
+		override_settings={
+			'sd_model_checkpoint': shared.opts.data['sd_model_checkpoint']
+			#'sd_model_checkpoint': shared.sd_model.sd_checkpoint_info.name_for_extra
+		},
 	)
+
+	if hasattr(p, 'scheduler'):
+		i2i_param['scheduler'] = p.scheduler,
+	else:
+		del options['scheduler']
+
 	if options is not None:
 		i2i_param.update(options)
 
@@ -100,8 +110,8 @@ def process_img2img(p, img, options=None):
 
 	i2i_param = build_img2img(p, img, options)
 
-	#img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
-	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
+	#img2img = StableDiffusionProcessingImg2Img(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(p)
@@ -119,8 +129,8 @@ def process_img2img(p, img, options=None):
 def process_img2img_with_controlnet(context: Context, image, options, controlnet):
 	i2i_param = build_img2img(context.sdprocessing, image, options)
 
-	#img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
-	img2img = StableDiffusionProcessingImg2Img(**i2i_param)
+	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
+	#img2img = StableDiffusionProcessingImg2Img(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing, cn_enabled=True)
@@ -164,8 +174,16 @@ def process_txt2img(p, options=None, controlnet=None):
 		extra_generation_params=p.extra_generation_params,
 		do_not_save_samples=True,
 		do_not_save_grid=True,
-		override_settings=p.override_settings,
+		override_settings={
+			'sd_model_checkpoint': shared.opts.data['sd_model_checkpoint']
+			#'sd_model_checkpoint': shared.sd_model.sd_checkpoint_info.name_for_extra
+		},
 	)
+
+	if hasattr(p, 'scheduler'):
+		t2i_param['scheduler'] = p.scheduler,
+	else:
+		del options['scheduler']
 
 	if options is not None:
 		t2i_param.update(options)
