@@ -1,6 +1,6 @@
 segment_anything
 segment_anything_hq
-ultralytics
+ultralytics==8.0.122
 pillow
 
 basicsr==1.4.2
