@@ -4,6 +4,8 @@ from PIL import Image
 from dataclasses import dataclass
 
 import modules
+from modules.processing_class import StableDiffusionProcessingTxt2Img, decode_first_stage
+from modules.processing_helpers import txt2img_image_conditioning, create_random_tensors
 from modules import processing
 from modules import sd_samplers
 from modules import images
@@ -11,7 +13,7 @@ from modules import devices
 from modules import sd_models
 from modules import shared
 from modules.shared import opts
-from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
+#from modules.processing import StableDiffusionProcessingTxt2Img, decode_first_stage, create_random_tensors
 from modules.sd_hijack_hypertile import hypertile_set
 
 from sd_bmab.base import filter
