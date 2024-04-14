@@ -5,6 +5,8 @@ import requests
 from modules.paths import models_path
 #from basicsr.utils.download_util import load_file_from_url
 #from sd_bmab.util import lazy_loader
+from huggingface_hub import hf_hub_download
+from urllib.parse import urlparse
 
 
 def install_segmentanything():
@@ -35,27 +37,9 @@ for pack_name, func in required:
         func()
 
 
-def download_file_from_url(url, save_path):
-    response = requests.get(url)
-    with open(save_path, 'wb') as f:
-        f.write(response.content)
-
-
-def force_loader(filename):
-    bmab_model_path = os.path.join(models_path, "bmab")
-    files = glob.glob(bmab_model_path)
-
-    if filename in targets and filename not in files:
-        download_file_from_url(targets[filename], bmab_model_path)
-    return os.path.join(bmab_model_path, filename)
-
 # Define the targets dictionary outside the lazy_loader function
-targets = {
-    'sam_vit_b_01ec64.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth',
-    'sam_vit_l_0b3195.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth',
-    'sam_vit_h_4b8939.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth',
+targets_huggingface = {
     'groundingdino_swint_ogc.pth': 'https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth',
-    'GroundingDINO_SwinT_OGC.py': 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py',
     'face_yolov8n.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt',
     'face_yolov8n_v2.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n_v2.pt',
     'face_yolov8m.pt': 'https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt',
@@ -72,15 +56,25 @@ targets = {
     'bmab_face_nm_yolov8n.pt': 'https://huggingface.co/portu-sim/bmab/resolve/main/bmab_face_nm_yolov8n.pt',
     'bmab_face_sm_yolov8n.pt': 'https://huggingface.co/portu-sim/bmab/resolve/main/bmab_face_sm_yolov8n.pt',
     'bmab_hand_yolov8n.pt': 'https://huggingface.co/portu-sim/bmab/resolve/main/bmab_hand_yolov8n.pt',
-    'ControlNetLama.pth': 'https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetLama.pth',
+    'ControlNetLama.pth': 'https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetLama.pth'
 }
 
-# Load all files listed in the targets dictionary
-loaded_files = {}
-for filename in targets.keys():
-    loaded_files[filename] = force_loader(filename)
+for filename, url in targets_huggingface.items():
+    # Extracting repo_id from the URL
+    repo_id = url.split('/')[3] + '/' + url.split('/')[4]
 
-# Now you can use the loaded file paths as needed
-for filename, file_path in loaded_files.items():
-    print(f"Loaded {filename} from {file_path}")
+    bmab_model_path = os.path.join(models_path, "bmab")
+    files = glob.glob(bmab_model_path)
 
+    if filename not in files:
+        # Downloading the file with destination folder specified
+        hf_hub_download(repo_id=repo_id, filename=filename, local_dir=bmab_model_path)
+        print(f"Downloaded {filename} to {bmab_model_path}")
+
+
+targets_no-huggingface = {
+    'sam_vit_b_01ec64.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth',
+    'sam_vit_l_0b3195.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth',
+    'sam_vit_h_4b8939.pth': 'https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth',
+    'GroundingDINO_SwinT_OGC.py': 'https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/main/groundingdino/config/GroundingDINO_SwinT_OGC.py',
+}
