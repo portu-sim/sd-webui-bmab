@@ -76,7 +76,7 @@ class ResizeIntermidiate(ProcessorBase):
 
 	def process(self, context: Context, image: Image):
 		bmab_filter = filter.get_filter(self.filter)
-		filter.preprocess_filter(bmab_filter, context)
+		filter.preprocess_filter(bmab_filter, context, image)
 		image = self.process_resize(context, image)
 		image = filter.process_filter(bmab_filter, context, image, image)
 		filter.postprocess_filter(bmab_filter, context)
