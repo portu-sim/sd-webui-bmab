@@ -13,15 +13,13 @@ def install_ultralytics():
     launch.run_pip('install ultralytics')
 
 
-def install_basicsr():
-    launch.run_pip('install basicsr')
+launch.run_pip('install basicsr==1.4.2')
 
 
 required = {
     ('segment_anything', install_segmentanything),
     ('segment_anything_hq', install_segmentanything_hq),
     ('ultralytics', install_ultralytics),
-    ('basicsr', install_basicsr)
 }
 
 for pack_name, func in required:
