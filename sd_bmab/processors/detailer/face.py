@@ -73,14 +73,19 @@ class FaceDetailer(ProcessorBase):
 			'inpaint_full_res_padding': self.parameters['inpaint_full_res_padding'],
 			'cfg_scale': context.sdprocessing.cfg_scale,
 			'steps': context.sdprocessing.steps,
-			'mask_blur': context.sdprocessing.mask_blur,
 		}
 
 		if self.override_parameter:
 			face_config = dict(self.parameters)
 		else:
-			face_config['width'] = 512
-			face_config['height'] = 512
+			if shared.opts.bmab_keep_original_setting:
+				face_config['width'] = image.width
+				face_config['height'] = image.height
+			else:
+				face_config['width'] = 512
+				face_config['height'] = 512
+				if isinstance(context.sdprocessing, StableDiffusionProcessingImg2Img):
+					face_config['mask_blur'] = context.sdprocessing.mask_blur
 
 		if self.sampler != constants.sampler_default:
 			face_config['sampler_name'] = self.sampler
