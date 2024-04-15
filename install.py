@@ -1,7 +1,7 @@
 import launch
 import os
 import glob
-from modules.paths import models_path
+from modules.paths import data_path
 from huggingface_hub import hf_hub_download
 from urllib.parse import urlparse
 
@@ -60,7 +60,7 @@ for filename, url in targets_huggingface.items():
     # Extracting repo_id from the URL
     repo_id = url.split('/')[3] + '/' + url.split('/')[4]
 
-    bmab_model_path = os.path.join(models_path, "bmab")
+    bmab_model_path = os.path.join(models_path, "models")
     files = glob.glob(bmab_model_path)
 
     if filename not in files:
