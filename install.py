@@ -60,7 +60,7 @@ for filename, url in targets_huggingface.items():
     # Extracting repo_id from the URL
     repo_id = url.split('/')[3] + '/' + url.split('/')[4]
 
-    bmab_model_path = os.path.join(models_path, "models")
+    bmab_model_path = os.path.join(data_path, "models")
     files = glob.glob(bmab_model_path)
 
     if filename not in files:
