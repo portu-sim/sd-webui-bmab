@@ -139,7 +139,7 @@ class PersonDetailer(ProcessorBase):
 			options['inpaint_full_res'] = 32
 
 			with VAEMethodOverride(hiresfix=self.best_quality):
-				img2img_result = process_img2img(context.sdprocessing, cropped, options=options)
+				img2img_result = process_img2img(context, cropped, options=options)
 			img2img_result = img2img_result.resize(cropped.size, resample=util.LANCZOS)
 			blur = ImageFilter.GaussianBlur(3)
 			cropped_mask = cropped_mask.filter(blur)

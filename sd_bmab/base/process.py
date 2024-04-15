@@ -41,7 +41,8 @@ def apply_extensions(p, cn_enabled=False):
 	return script_runner, script_args
 
 
-def build_img2img(p, img, options):
+def build_img2img(context, img, options):
+	p = context.sdprocessing
 	img = img.convert('RGB')
 
 	if 'inpaint_full_res' in options:
@@ -95,22 +96,23 @@ def build_img2img(p, img, options):
 	else:
 		del options['scheduler']
 
+	context.apply_checkpoint(i2i_param)
 	if options is not None:
 		i2i_param.update(options)
 
 	return i2i_param
 
 
-def process_img2img(p, img, options=None):
+def process_img2img(context: Context, img, options=None):
 	if shared.state.skipped or shared.state.interrupted:
 		return img
 
-	i2i_param = build_img2img(p, img, options)
+	i2i_param = build_img2img(context, img, options)
 
 	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
 	img2img.cached_c = [None, None]
 	img2img.cached_uc = [None, None]
-	img2img.scripts, img2img.script_args = apply_extensions(p)
+	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing)
 
 	with StopGeneration():
 		processed = process_images(img2img)
@@ -144,7 +146,8 @@ def process_img2img_with_controlnet(context: Context, image, options, controlnet
 	return image
 
 
-def process_txt2img(p, options=None, controlnet=None):
+def process_txt2img(context, options=None, controlnet=None):
+	p = context.sdprocessing
 	t2i_param = dict(
 		denoising_strength=0.4,
 		outpath_samples=p.outpath_samples,
@@ -179,6 +182,7 @@ def process_txt2img(p, options=None, controlnet=None):
 	else:
 		del options['scheduler']
 
+	context.apply_checkpoint(t2i_param)
 	if options is not None:
 		t2i_param.update(options)
 

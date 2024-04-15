@@ -21,6 +21,7 @@ class LamaInpainting:
     def __init__(self):
         self.model = None
         self.device = 'cpu'  #devices.get_optimal_device()
+        # self.device = devices.get_optimal_device()
 
     @staticmethod
     def load_image(pilimg, mode='RGB'):
