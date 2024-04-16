@@ -90,6 +90,9 @@ class ResamplePreprocessor(ProcessorBase):
 		return cn_args
 
 	def process(self, context: Context, image: Image):
+		if self.checkpoint != constants.checkpoint_default or self.vae != constants.vae_default:
+			loaded_vae_file = context.args.get('loaded_vae_file')
+			context.save_and_apply_checkpoint(self.checkpoint, self.vae, self.loaded_vae_file)
 		if self.prompt == '':
 			self.prompt = context.get_prompt_by_index()
 			debug_print('prompt', self.prompt)
