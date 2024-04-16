@@ -186,7 +186,7 @@ class FaceDetailer(ProcessorBase):
 				prompt, extra_network_data = extra_networks.parse_prompts([options['prompt']])
 				options['prompt'] = prompt
 			with VAEMethodOverride():
-				img2img_imgage = process_img2img(context.sdprocessing, image, options=options)
+				img2img_imgage = process_img2img(context, image, options=options)
 
 			x1, y1, x2, y2 = util.fix_box_size(box)
 			face_mask = Image.new('L', image.size, color=0)
