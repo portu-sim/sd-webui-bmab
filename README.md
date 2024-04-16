@@ -1,14 +1,10 @@
 
 # BMAB - SDNEXT
 
-trying to add extra-noise and A1111's RNG module to SDNEXT through BMAP extention
+SDNEXT Version: app=sd.next updated=2024-04-09 hash=7ecc1d7d branch=master
+BMAB Version: 24.04.16
 
-WIP
-- Add A1111 RNG module
-- Add noisy latent to ExtraNoiseParams for callback
-- Add extra noise callback
-- Add extra noise param for img2img operations
-- 
+[ LOOKING FOR EXPERIENCED MAINTAINER !!! ]
 
 BMAB는 Stable Diffusion WebUI의 확장 기능으로, 생성된 이미지를 설정에 따라 후처리하는 기능을 가지고 있습니다.   
 필요에 따라 인물, 얼굴, 손을 찾아 다시 그리거나, Resize, Resample, 노이즈 추가 등의 기능을 수행할 수 있으며,   
