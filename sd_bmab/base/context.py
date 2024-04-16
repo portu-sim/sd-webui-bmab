@@ -22,6 +22,8 @@ class Context(object):
 		self.refiner = None
 		self.base_sd_model = None
 		self.base_vae = None
+		self.sd_model_name = None
+		self.sd_vae_name = None
 
 	@staticmethod
 	def newContext(s, p, a, idx, **kwargs):
@@ -117,3 +119,13 @@ class Context(object):
 			self.change_checkpoint(self.base_sd_model, self.base_vae)
 			self.base_sd_model = None
 			self.base_vae = None
+
+	def apply_checkpoint(self, options):
+		if self.sd_model_name is not None and self.sd_model_name != constants.checkpoint_default:
+			override_settings = options.get('override_settings', {})
+			override_settings['sd_model_checkpoint'] = self.sd_model_name
+			options['override_settings'] = override_settings
+		if self.sd_vae_name is not None and self.sd_vae_name != constants.vae_default:
+			override_settings = options.get('override_settings', {})
+			override_settings['sd_vae'] = self.sd_vae_name
+			options['override_settings'] = override_settings
