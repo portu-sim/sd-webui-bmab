@@ -131,7 +131,7 @@ class PretrainingDetailer(ProcessorBase):
 			seed, subseed = context.get_seeds()
 			options = dict(mask=detected_mask, seed=seed, subseed=subseed, **pretraining_config)
 			with VAEMethodOverride():
-				img2img_imgage = process_img2img(context.sdprocessing, image, options=options)
+				img2img_imgage = process_img2img(context, image, options=options)
 
 			x1, y1, x2, y2 = util.fix_box_size(box)
 			x1 -= int(detected_mask.width / 2)

@@ -303,7 +303,7 @@ class HandDetailer(ProcessorBase):
 			options.update(self.hand_detailing)
 			context.add_job()
 			with VAEMethodOverride():
-				image = process_img2img(context.sdprocessing, image, options=options)
+				image = process_img2img(context, image, options=options)
 		elif self.detailing_method == 'each hand' or self.detailing_method == 'inpaint each hand':
 			if shared.opts.bmab_use_dino_predict:
 				dino = exmodels.get_external_model('grdino')
@@ -349,7 +349,7 @@ class HandDetailer(ProcessorBase):
 				debug_print(f'scale {scale} width {w} height {h}')
 				shared.state.job_count += 1
 				with VAEMethodOverride(hiresfix=self.best_quality):
-					img2img_result = process_img2img(context.sdprocessing, cropped_hand, options=options)
+					img2img_result = process_img2img(context, cropped_hand, options=options)
 				img2img_result = img2img_result.resize(cropped_hand.size, resample=util.LANCZOS)
 
 				debug_print('resize to', img2img_result.size, cropped_hand_mask.size)
@@ -417,7 +417,7 @@ class HandDetailer(ProcessorBase):
 						return image
 			shared.state.job_count += 1
 			with VAEMethodOverride():
-				img2img_result = process_img2img(context.sdprocessing, cropped, options=options)
+				img2img_result = process_img2img(context, cropped, options=options)
 			img2img_result = img2img_result.resize((cropped.width, cropped.height), resample=util.LANCZOS)
 			blur = ImageFilter.GaussianBlur(3)
 			cropped_mask = cropped_mask.filter(blur)

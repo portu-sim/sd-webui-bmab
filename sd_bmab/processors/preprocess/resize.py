@@ -153,7 +153,7 @@ class ResizeIntermidiate(ProcessorBase):
 				do_not_save_grid=True,
 			)
 			context.add_job()
-			image = process_img2img(context.sdprocessing, stretching_image, options=options)
+			image = process_img2img(context, stretching_image, options=options)
 			return image
 		elif self.method == 'inpaint+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
@@ -181,7 +181,7 @@ class ResizeIntermidiate(ProcessorBase):
 				do_not_save_grid=True,
 			)
 			context.add_job()
-			image = process_img2img(context.sdprocessing, stretching_image, options=options)
+			image = process_img2img(context, stretching_image, options=options)
 			return image
 		elif self.method == 'inpaint_only+lama':
 			mask = util.get_mask_with_alignment(image, self.alignment, int(image.width * image_ratio), int(image.height * image_ratio))
