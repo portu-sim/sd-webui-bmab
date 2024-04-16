@@ -18,10 +18,8 @@ def install_ultralytics():
     launch.run_pip('install ultralytics')
 
 
-try:
-    from basicsr.utils.download_util import load_file_from_url
-except:
-    launch.run_pip('install basicsr==1.4.2')
+def install_basicsr():
+    launch.run_pip('install basicsr')
 
 
 required = {
