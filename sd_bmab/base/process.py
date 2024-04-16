@@ -42,7 +42,7 @@ def apply_extensions(p, cn_enabled=False):
 	return script_runner, script_args
 
 
-def build_img2img(context, img, options):
+def build_img2img(context: Context, img, options):
 	p = context.sdprocessing
 	img = img.convert('RGB')
 
