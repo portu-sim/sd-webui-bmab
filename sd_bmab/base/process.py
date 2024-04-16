@@ -96,7 +96,8 @@ def build_img2img(context, img, options):
 	if hasattr(p, 'scheduler'):
 		i2i_param['scheduler'] = p.scheduler,
 	else:
-		del options['scheduler']
+		if 'scheduler' in options:
+			del options['scheduler']
 
 	context.apply_checkpoint(i2i_param)
 	if options is not None:
@@ -185,7 +186,8 @@ def process_txt2img(context, options=None, controlnet=None):
 	if hasattr(p, 'scheduler'):
 		t2i_param['scheduler'] = p.scheduler,
 	else:
-		del options['scheduler']
+		if 'scheduler' in options:
+			del options['scheduler']
 
 	context.apply_checkpoint(t2i_param)
 	if options is not None:
