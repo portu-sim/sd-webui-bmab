@@ -129,9 +129,9 @@ class RefinerPreprocessor(ProcessorBase):
 				controlnet = ln.get_controlnet_args(context)
 				image = process_img2img_with_controlnet(context, image, options, controlnet)
 			else:
-				image = process_img2img(context.sdprocessing, image, options=options)
+				image = process_img2img(context, image, options=options)
 		else:
-			image = process_img2img(context.sdprocessing, image, options=options)
+			image = process_img2img(context, image, options=options)
 
 		if not self.keep_checkpoint:
 			debug_print('Rollback model')
