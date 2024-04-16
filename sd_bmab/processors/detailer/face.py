@@ -71,6 +71,7 @@ class FaceDetailer(ProcessorBase):
 			'denoising_strength': self.parameters['denoising_strength'],
 			'inpaint_full_res': self.parameters['inpaint_full_res'],
 			'inpaint_full_res_padding': self.parameters['inpaint_full_res_padding'],
+			'mask_blur': self.parameters['mask_blur'],
 			'cfg_scale': context.sdprocessing.cfg_scale,
 			'steps': context.sdprocessing.steps,
 		}

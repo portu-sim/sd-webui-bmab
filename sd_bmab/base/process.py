@@ -63,7 +63,6 @@ def build_img2img(context: Context, img, options):
 		inpaint_full_res_padding=32,
 		inpainting_mask_invert=0,
 		initial_noise_multiplier=1.0,
-		sd_model=p.sd_model,
 		outpath_samples=p.outpath_samples,
 		outpath_grids=p.outpath_grids,
 		prompt=p.prompt,
@@ -92,7 +91,7 @@ def build_img2img(context: Context, img, options):
 	)
 
 	if hasattr(p, 'scheduler'):
-		i2i_param['scheduler'] = p.scheduler,
+		i2i_param['scheduler'] = p.scheduler
 	else:
 		if 'scheduler' in options:
 			del options['scheduler']
@@ -179,7 +178,7 @@ def process_txt2img(context, options=None, controlnet=None):
 	)
 
 	if hasattr(p, 'scheduler'):
-		t2i_param['scheduler'] = p.scheduler,
+		t2i_param['scheduler'] = p.scheduler
 	else:
 		if 'scheduler' in options:
 			del options['scheduler']
