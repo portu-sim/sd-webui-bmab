@@ -123,14 +123,14 @@ class ResamplePreprocessor(ProcessorBase):
 			cfg_scale=self.cfg_scale,
 		)
 
-		if self.checkpoint != constants.checkpoint_default:
-			override_settings = options.get('override_settings', {})
-			override_settings['sd_model_checkpoint'] = self.checkpoint
-			options['override_settings'] = override_settings
-		if self.vae != constants.vae_default:
-			override_settings = options.get('override_settings', {})
-			override_settings['sd_vae'] = self.vae
-			options['override_settings'] = override_settings
+		#if self.checkpoint != constants.checkpoint_default:
+			#override_settings = options.get('override_settings', {})
+			#override_settings['sd_model_checkpoint'] = self.checkpoint
+			#options['override_settings'] = override_settings
+		#if self.vae != constants.vae_default:
+			#override_settings = options.get('override_settings', {})
+			#override_settings['sd_vae'] = self.vae
+			#options['override_settings'] = override_settings
 		
 		filter.preprocess_filter(bmab_filter, context, image, options)
 
