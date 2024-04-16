@@ -11,7 +11,6 @@ from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
 from sd_bmab.processors.preprocess import ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor
 from sd_bmab.processors.preprocess import PretrainingDetailer
-from sd_bmab.processors.utils import CheckPointChanger, CheckPointRestore
 
 
 def is_controlnet_required(context):
@@ -27,12 +26,10 @@ def is_controlnet_required(context):
 
 def process_intermediate_step1(context, image):
 	pipeline_step1 = [
-		CheckPointChanger(),
 		ResamplePreprocessor(step=1),
 		PretrainingDetailer(step=1),
 		FaceDetailer(step=1),
 		ResizeIntermidiate(step=1),
-		CheckPointRestore(),
 	]
 	
 	processed = image.copy()
