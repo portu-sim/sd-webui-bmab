@@ -35,12 +35,197 @@ def create_ui(bscript, is_img2img):
 			return self
 
 	elem = ListOv()
-	with gr.Group():
+	with gr.Accordion(f'BMAB', open=False):
 		with gr.Row():
 			with gr.Column():
 				elem += gr.Checkbox(label=f'Enable BMAB', value=False)
 			with gr.Column():
 				btn_stop = ui_components.ToolButton('⏹️', visible=True, interactive=True, tooltip='stop generation', elem_id='bmab_stop_generation')
+		with gr.Row():
+			with gr.Tabs(elem_id='bmab_tabs'):
+				with gr.Tab('Basic', elem_id='bmab_basic_tabs'):
+					with gr.Row():
+						with gr.Column():
+							elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
+							elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
+							elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
+							elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, label='Color')
+						with gr.Column():
+							elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
+							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
+							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
+				with gr.Tab('Imaging', elem_id='bmab_imaging_tabs'):
+					with gr.Row():
+						elem += gr.Image(source='upload', type='pil')
+					with gr.Row():
+						elem += gr.Checkbox(label='Blend enabled', value=False)
+					with gr.Row():
+						with gr.Column():
+							elem += gr.Slider(minimum=0, maximum=1, value=1, step=0.05, label='Blend alpha')
+						with gr.Column():
+							gr.Markdown('')
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable detect', value=False)
+					with gr.Row():
+						elem += gr.Textbox(placeholder='1girl', visible=True, value='', label='Prompt')
+				with gr.Tab('Person', elem_id='bmab_person_tabs'):
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
+						elem += gr.Checkbox(label='Force upscale ratio 1:1 without area limit', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Block over-scaled image', value=True)
+						elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
+					with gr.Row():
+						with gr.Column(min_width=100):
+							elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
+							elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
+							elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
+							elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
+							elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.data.get('bmab_test_function', False), label='Background color (HIDDEN)')
+							elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.data.get('bmab_test_function', False), label='Background blur (HIDDEN)')
+						with gr.Column(min_width=100):
+							elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
+							elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+							gr.Markdown('')
+				with gr.Tab('Face', elem_id='bmab_face_tabs'):
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable face detailing', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable face detailing before upscale', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Disable extra networks in prompt (LORA, Hypernetwork, ...)', value=False)
+					with gr.Row():
+						with gr.Column(min_width=100):
+							elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right', 'Center'], type='value', value='Score')
+						with gr.Column(min_width=100):
+							elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
+					with gr.Tab('Face1', elem_id='bmab_face1_tabs'):
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Tab('Face2', elem_id='bmab_face2_tabs'):
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Tab('Face3', elem_id='bmab_face3_tabs'):
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Tab('Face4', elem_id='bmab_face4_tabs'):
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Tab('Face5', elem_id='bmab_face5_tabs'):
+						with gr.Row():
+							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+						with gr.Row():
+							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Row():
+						with gr.Tab('Parameters', elem_id='bmab_parameter_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Overide Parameters', value=False)
+							with gr.Row():
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
+									elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
+								with gr.Column(min_width=100):
+									elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+									elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
+									elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
+					with gr.Row():
+						with gr.Column(min_width=100):
+							with gr.Row():
+								checkpoints = [constants.checkpoint_default]
+								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+								face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
+								elem += face_models
+								refresh_face_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+							with gr.Row():
+								with gr.Column(min_width=50):
+									asamplers = [constants.sampler_default]
+									asamplers.extend([x.name for x in shared.list_samplers()])
+									elem += gr.Dropdown(label='Sampler', elem_id="face_sampler", visible=True, value=asamplers[0], choices=asamplers)
+								with gr.Column(min_width=50):
+									ascheduler = util.get_scueduler_list()
+									elem += gr.Dropdown(label='Scheduler', elem_id="face_scheduler", choices=ascheduler, value=ascheduler[0])
+							with gr.Row():
+								inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
+								elem += inpaint_area
+							with gr.Row():
+								elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+							with gr.Row():
+								choices = detectors.list_face_detectors()
+								elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
+						with gr.Column():
+							elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Face Denoising Strength', elem_id='bmab_face_denoising_strength')
+							elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Face Dilation', elem_id='bmab_face_dilation')
+							elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Face Box threshold')
+							elem += gr.Checkbox(label='Skip face detailing by area', value=False)
+							elem += gr.Slider(minimum=0.0, maximum=3.0, value=0.26, step=0.01, label='Face area (MegaPixel)')
+				with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
+						elem += gr.Checkbox(label='Block over-scaled image', value=True)
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
+					with gr.Row():
+						elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once', 'depth hand refiner'])
+					with gr.Row():
+						elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
+					with gr.Row():
+						elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
+					with gr.Row():
+						with gr.Column():
+							elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
+							elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+							elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
+						with gr.Column():
+							elem += gr.Slider(minimum=1, maximum=4, value=2, step=0.01, label='Upscale Ratio')
+							elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
+							elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
+					with gr.Row():
+						inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Whole picture')
+						elem += inpaint_area
+					with gr.Row():
+						with gr.Column():
+							elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
+						with gr.Column():
+							gr.Markdown('')
+					with gr.Row():
+						elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
+				with gr.Tab('ControlNet', elem_id='bmab_controlnet_tabs'):
+					with gr.Row():
+						elem += gr.Checkbox(label='Enable ControlNet access', value=False)
+					with gr.Row():
+						elem += gr.Checkbox(label='Process with BMAB refiner', value=False)
+					with gr.Row():
+						with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable noise', value=False)
+							with gr.Row():
+								with gr.Column():
+									elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
+									elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
+									elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
+									elem += gr.Radio(label='Hire-fix option for noise', choices=['Both', 'Low res only', 'High res only'], type='value', value='Both')
+								with gr.Column():
+									gr.Markdown('')
+						with gr.Tab('Pose', elem_id='bmab_cn_pose_tabs'):
+							with gr.Row():
+								elem += gr.Checkbox(label='Enable pose', value=False)
+							with gr.Row():
+								with gr.Column():
+									elem += gr.Slider(minimum=0.0, maximum=2, value=0.3, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
+									elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_pose_begin', label='Pose begin')
+									elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
+								with gr.Column():
+									gr.Markdown('')
 		with gr.Accordion(f'BMAB Preprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Context', id='bmab_context', elem_id='bmab_context_tabs'):
@@ -269,192 +454,6 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Slider(minimum=0, maximum=4, value=1, step=0.1, label='Refiner Scale', elem_id='bmab_refiner_scale')
 							elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Width', elem_id='bmab_refiner_width')
 							elem += gr.Slider(minimum=0, maximum=2048, value=0, step=1, label='Refiner Height', elem_id='bmab_refiner_height')
-		with gr.Accordion(f'BMAB', open=False):
-			with gr.Row():
-				with gr.Tabs(elem_id='bmab_tabs'):
-					with gr.Tab('Basic', elem_id='bmab_basic_tabs'):
-						with gr.Row():
-							with gr.Column():
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Contrast')
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.05, label='Brightness')
-								elem += gr.Slider(minimum=-5, maximum=5, value=1, step=0.1, label='Sharpeness')
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, label='Color')
-							with gr.Column():
-								elem += gr.Slider(minimum=-2000, maximum=+2000, value=0, step=1, label='Color temperature')
-								elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha')
-								elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.05, label='Noise alpha at final stage')
-					with gr.Tab('Imaging', elem_id='bmab_imaging_tabs'):
-						with gr.Row():
-							elem += gr.Image(source='upload', type='pil')
-						with gr.Row():
-							elem += gr.Checkbox(label='Blend enabled', value=False)
-						with gr.Row():
-							with gr.Column():
-								elem += gr.Slider(minimum=0, maximum=1, value=1, step=0.05, label='Blend alpha')
-							with gr.Column():
-								gr.Markdown('')
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable detect', value=False)
-						with gr.Row():
-							elem += gr.Textbox(placeholder='1girl', visible=True, value='', label='Prompt')
-					with gr.Tab('Person', elem_id='bmab_person_tabs'):
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
-							elem += gr.Checkbox(label='Force upscale ratio 1:1 without area limit', value=False)
-						with gr.Row():
-							elem += gr.Checkbox(label='Block over-scaled image', value=True)
-							elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
-						with gr.Row():
-							with gr.Column(min_width=100):
-								elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
-								elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
-								elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
-								elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
-								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.data.get('bmab_test_function', False), label='Background color (HIDDEN)')
-								elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.data.get('bmab_test_function', False), label='Background blur (HIDDEN)')
-							with gr.Column(min_width=100):
-								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
-								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-								gr.Markdown('')
-					with gr.Tab('Face', elem_id='bmab_face_tabs'):
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable face detailing', value=False)
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable face detailing before upscale', value=False)
-						with gr.Row():
-							elem += gr.Checkbox(label='Disable extra networks in prompt (LORA, Hypernetwork, ...)', value=False)
-						with gr.Row():
-							with gr.Column(min_width=100):
-								elem += gr.Dropdown(label='Face detailing sort by', choices=['Score', 'Size', 'Left', 'Right', 'Center'], type='value', value='Score')
-							with gr.Column(min_width=100):
-								elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
-						with gr.Tab('Face1', elem_id='bmab_face1_tabs'):
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Tab('Face2', elem_id='bmab_face2_tabs'):
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Tab('Face3', elem_id='bmab_face3_tabs'):
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Tab('Face4', elem_id='bmab_face4_tabs'):
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Tab('Face5', elem_id='bmab_face5_tabs'):
-							with gr.Row():
-								elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-							with gr.Row():
-								elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Row():
-							with gr.Tab('Parameters', elem_id='bmab_parameter_tabs'):
-								with gr.Row():
-									elem += gr.Checkbox(label='Overide Parameters', value=False)
-								with gr.Row():
-									with gr.Column(min_width=100):
-										elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Width')
-										elem += gr.Slider(minimum=64, maximum=2048, value=512, step=8, label='Height')
-									with gr.Column(min_width=100):
-										elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-										elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
-										elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Mask Blur')
-						with gr.Row():
-							with gr.Column(min_width=100):
-								with gr.Row():
-									checkpoints = [constants.checkpoint_default]
-									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-									face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
-									elem += face_models
-									refresh_face_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
-								with gr.Row():
-									with gr.Column(min_width=50):
-										asamplers = [constants.sampler_default]
-										asamplers.extend([x.name for x in shared.list_samplers()])
-										elem += gr.Dropdown(label='Sampler', elem_id="face_sampler", visible=True, value=asamplers[0], choices=asamplers)
-									with gr.Column(min_width=50):
-										ascheduler = util.get_scueduler_list()
-										elem += gr.Dropdown(label='Scheduler', elem_id="face_scheduler", choices=ascheduler, value=ascheduler[0])
-								with gr.Row():
-									inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Only masked')
-									elem += inpaint_area
-								with gr.Row():
-									elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
-								with gr.Row():
-									choices = detectors.list_face_detectors()
-									elem += gr.Dropdown(label='Detection Model', choices=choices, type='value', value=choices[0])
-							with gr.Column():
-								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Face Denoising Strength', elem_id='bmab_face_denoising_strength')
-								elem += gr.Slider(minimum=0, maximum=64, value=4, step=1, label='Face Dilation', elem_id='bmab_face_dilation')
-								elem += gr.Slider(minimum=0.1, maximum=1, value=0.35, step=0.01, label='Face Box threshold')
-								elem += gr.Checkbox(label='Skip face detailing by area', value=False)
-								elem += gr.Slider(minimum=0.0, maximum=3.0, value=0.26, step=0.01, label='Face area (MegaPixel)')
-					with gr.Tab('Hand', elem_id='bmab_hand_tabs'):
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable hand detailing (EXPERIMENTAL)', value=False)
-							elem += gr.Checkbox(label='Block over-scaled image', value=True)
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
-						with gr.Row():
-							elem += gr.Dropdown(label='Method', visible=True, interactive=True, value='subframe', choices=['subframe', 'each hand', 'inpaint each hand', 'at once', 'depth hand refiner'])
-						with gr.Row():
-							elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Prompt')
-						with gr.Row():
-							elem += gr.Textbox(placeholder='negative prompt. if empty, use main negative prompt', lines=3, visible=True, value='', label='Negative Prompt')
-						with gr.Row():
-							with gr.Column():
-								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
-								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-								elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
-							with gr.Column():
-								elem += gr.Slider(minimum=1, maximum=4, value=2, step=0.01, label='Upscale Ratio')
-								elem += gr.Slider(minimum=0, maximum=1, value=0.3, step=0.01, label='Box Threshold')
-								elem += gr.Slider(minimum=0, maximum=0.3, value=0.1, step=0.01, label='Box Dilation')
-						with gr.Row():
-							inpaint_area = gr.Radio(label='Inpaint area', choices=['Whole picture', 'Only masked'], type='value', value='Whole picture')
-							elem += inpaint_area
-						with gr.Row():
-							with gr.Column():
-								elem += gr.Slider(label='Only masked padding, pixels', minimum=0, maximum=256, step=4, value=32)
-							with gr.Column():
-								gr.Markdown('')
-						with gr.Row():
-							elem += gr.Textbox(placeholder='Additional parameter for advanced user', visible=True, value='', label='Additional Parameter')
-					with gr.Tab('ControlNet', elem_id='bmab_controlnet_tabs'):
-						with gr.Row():
-							elem += gr.Checkbox(label='Enable ControlNet access', value=False)
-						with gr.Row():
-							elem += gr.Checkbox(label='Process with BMAB refiner', value=False)
-						with gr.Row():
-							with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
-								with gr.Row():
-									elem += gr.Checkbox(label='Enable noise', value=False)
-								with gr.Row():
-									with gr.Column():
-										elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
-										elem += gr.Radio(label='Hire-fix option for noise', choices=['Both', 'Low res only', 'High res only'], type='value', value='Both')
-									with gr.Column():
-										gr.Markdown('')
-							with gr.Tab('Pose', elem_id='bmab_cn_pose_tabs'):
-								with gr.Row():
-									elem += gr.Checkbox(label='Enable pose', value=False)
-								with gr.Row():
-									with gr.Column():
-										elem += gr.Slider(minimum=0.0, maximum=2, value=0.3, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_pose_begin', label='Pose begin')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
-									with gr.Column():
-										gr.Markdown('')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
