@@ -1,5 +1,7 @@
 import os
 import glob
+import random
+
 from PIL import Image
 
 from modules import shared, sd_models
@@ -86,7 +88,6 @@ class Openpose(ProcessorBase):
 
 	@staticmethod
 	def load_random_image(context):
-		seed, subseed = context.get_seeds()
 		path = os.path.dirname(sd_bmab.__file__)
 		path = os.path.normpath(os.path.join(path, '../pose'))
 		if os.path.exists(path) and os.path.isdir(path):
@@ -95,7 +96,7 @@ class Openpose(ProcessorBase):
 			if not files:
 				debug_print(f'Not found pose files in {path}')
 				return None
-			file = files[seed % len(files)]
+			file = random.choice(files)
 			debug_print(f'Random pose {file}')
 			return Image.open(file)
 		debug_print(f'Not found directory {path}')
