@@ -20,6 +20,7 @@ class LineartNoise(ProcessorBase):
 		self.noise_strength = 0.4
 		self.noise_begin = 0.1
 		self.noise_end = 0.9
+		self.noise_hiresfix = 'Both'
 
 	@staticmethod
 	def with_refiner(context: Context):
@@ -37,6 +38,7 @@ class LineartNoise(ProcessorBase):
 		self.noise_strength = self.controlnet_opt.get('noise_strength', 0.4)
 		self.noise_begin = self.controlnet_opt.get('noise_begin', 0.1)
 		self.noise_end = self.controlnet_opt.get('noise_end', 0.9)
+		self.noise_hiresfix = self.controlnet_opt.get('noise_hiresfix', self.noise_hiresfix)
 
 		debug_print('Noise', context.is_refiner_context(), context.with_refiner(), self.with_refiner)
 		if context.is_refiner_context():
@@ -46,7 +48,7 @@ class LineartNoise(ProcessorBase):
 		return self.enabled
 
 	@staticmethod
-	def get_noise_args(image, weight, begin, end):
+	def get_noise_args(image, weight, begin, end, hr_option):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
 			'model': shared.opts.bmab_cn_lineart,
@@ -59,13 +61,14 @@ class LineartNoise(ProcessorBase):
 			'processor_res': 512,
 			'threshold_a': 64,
 			'threshold_b': 64,
+			'hr_option': hr_option
 		}
 		return cn_args
 
 	def get_controlnet_args(self, context):
 		img = util.generate_noise(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
 		noise = img.convert('L').convert('RGB')
-		return self.get_noise_args(noise, self.noise_strength, self.noise_begin, self.noise_end)
+		return self.get_noise_args(noise, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
 
 	def get_noise_from_cache(self, seed, width, height):
 		path = os.path.dirname(sd_bmab.__file__)
@@ -82,8 +85,6 @@ class LineartNoise(ProcessorBase):
 		return img
 
 	def process(self, context: Context, image: Image):
-		context.add_generation_param('BMAB_controlnet_option', util.dict_to_str(self.controlnet_opt))
-
 		debug_print('Seed', context.sdprocessing.seed)
 		debug_print('AllSeeds', context.sdprocessing.all_seeds)
 
@@ -105,7 +106,7 @@ class LineartNoise(ProcessorBase):
 		context.add_generation_param('BMAB noise end', self.noise_end)
 
 		img = self.get_noise_from_cache(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
-		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end)
+		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
 		idx = cn_args[0] + context.controlnet_count
 		context.controlnet_count += 1
 		sc_args = list(context.sdprocessing.script_args)

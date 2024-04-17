@@ -20,7 +20,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print
 
 
-bmab_version = 'v24.04.16.0'
+bmab_version = 'v24.04.17.0'
 
 final_images = []
 last_process = None
@@ -156,13 +156,17 @@ def create_ui(bscript, is_img2img):
 						elem += gr.Checkbox(label='Enable pretraining detailer', value=False)
 					with gr.Row():
 						elem += gr.Checkbox(label='Enable pretraining before hires.fix', value=False)
-					with gr.Column(min_width=100):
-						with gr.Row():
-							models = ['Select Model']
-							models.extend(util.list_pretraining_models())
-							pretraining_models = gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
-							elem += pretraining_models
-							refresh_pretraining_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+					with gr.Row():
+						with gr.Column(min_width=100):
+							with gr.Row():
+								models = ['Select Model']
+								models.extend(util.list_pretraining_models())
+								pretraining_models = gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
+								elem += pretraining_models
+								refresh_pretraining_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+						with gr.Column(min_width=100):
+							dd_pretraining_filter = gr.Dropdown(label='Pretraining filter', visible=True, value=filter.filters[0], choices=filter.filters)
+							elem += dd_pretraining_filter
 					with gr.Row():
 						elem += gr.Textbox(placeholder='prompt. if empty, use main prompt', lines=3, visible=True, value='', label='Pretraining prompt')
 					with gr.Row():
@@ -225,11 +229,16 @@ def create_ui(bscript, is_img2img):
 							with gr.Row():
 								checkpoints = [constants.checkpoint_default]
 								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-								refiner_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+								refiner_models = gr.Dropdown(label='CheckPoint for refiner', visible=True, value=checkpoints[0], choices=checkpoints)
 								elem += refiner_models
 								refresh_refiner_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Column():
-							gr.Markdown('')
+							with gr.Row():
+								vaes = [constants.vae_default]
+								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+								refiner_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+								elem += refiner_vaes
+								refresh_refiner_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 					with gr.Row():
 						elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
 					with gr.Row():
@@ -361,6 +370,12 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							with gr.Column(min_width=100):
 								with gr.Row():
+									checkpoints = [constants.checkpoint_default]
+									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+									face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
+									elem += face_models
+									refresh_face_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+								with gr.Row():
 									with gr.Column(min_width=50):
 										asamplers = [constants.sampler_default]
 										asamplers.extend([x.name for x in shared.list_samplers()])
@@ -427,6 +442,17 @@ def create_ui(bscript, is_img2img):
 										elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
 										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_noise_begin', label='Noise begin')
 										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.9, step=0.01, elem_id='bmab_cn_noise_end', label='Noise end')
+										elem += gr.Radio(label='Hire-fix option for noise', choices=['Both', 'Low res only', 'High res only'], type='value', value='Both')
+									with gr.Column():
+										gr.Markdown('')
+							with gr.Tab('Pose', elem_id='bmab_cn_pose_tabs'):
+								with gr.Row():
+									elem += gr.Checkbox(label='Enable pose', value=False)
+								with gr.Row():
+									with gr.Column():
+										elem += gr.Slider(minimum=0.0, maximum=2, value=0.3, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_pose_begin', label='Pose begin')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
 									with gr.Column():
 										gr.Markdown('')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
@@ -560,6 +586,19 @@ def create_ui(bscript, is_img2img):
 				}
 			}
 
+		def hit_face_model(value, *args):
+			checkpoints = [constants.checkpoint_default]
+			checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+			if value not in checkpoints:
+				value = checkpoints[0]
+			return {
+				face_models: {
+					'choices': checkpoints,
+					'value': value,
+					'__type__': 'update'
+				}
+			}
+
 		def hit_pretraining_model(value, *args):
 			models = ['Select Model']
 			models.extend(util.list_pretraining_models())
@@ -593,6 +632,19 @@ def create_ui(bscript, is_img2img):
 				value = vaes[0]
 			return {
 				resample_vaes: {
+					'choices': vaes,
+					'value': value,
+					'__type__': 'update'
+				}
+			}
+
+		def hit_refiner_vae(value, *args):
+			vaes = [constants.vae_default]
+			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+			if value not in vaes:
+				value = vaes[0]
+			return {
+				refiner_vaes: {
 					'choices': vaes,
 					'value': value,
 					'__type__': 'update'
@@ -685,7 +737,7 @@ def create_ui(bscript, is_img2img):
 				}
 			}
 
-		def reload_filter(f1, f2, f3, f4, f5, *args):
+		def reload_filter(f1, f2, f3, f4, f5, f6, *args):
 			filter.reload_filters()
 			return {
 				dd_hiresfix_filter1: {
@@ -712,7 +764,12 @@ def create_ui(bscript, is_img2img):
 					'choices': filter.filters,
 					'value': f5,
 					'__type__': 'update'
-				}
+				},
+				dd_pretraining_filter: {
+					'choices': filter.filters,
+					'value': f6,
+					'__type__': 'update'
+				},
 			}
 
 		def image_selected(data: gr.SelectData, *args):
@@ -743,6 +800,8 @@ def create_ui(bscript, is_img2img):
 		reset_btn.click(reset_config, outputs=elem)
 		refresh_btn.click(refresh_preset, outputs=elem)
 		refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
+		refresh_refiner_vaes.click(hit_refiner_vae, inputs=[refiner_vaes], outputs=[refiner_vaes])
+		refresh_face_models.click(hit_face_model, inputs=[face_models], outputs=[face_models])
 		refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
 		refresh_resample_models.click(hit_resample_model, inputs=[resample_models], outputs=[resample_models])
 		refresh_resample_vaes.click(hit_resample_vae, inputs=[resample_vaes], outputs=[resample_vaes])
@@ -750,7 +809,11 @@ def create_ui(bscript, is_img2img):
 		refresh_vae_models.click(hit_vae_models, inputs=[vaes_models], outputs=[vaes_models])
 		random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
 		btn_fetch_images.click(fetch_images, outputs=[gallery])
-		btn_reload_filter.click(reload_filter, inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter], outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter])
+		btn_reload_filter.click(
+			reload_filter,
+			inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter],
+			outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
+		)
 
 		btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
 		gallery.select(image_selected, inputs=[gallery])

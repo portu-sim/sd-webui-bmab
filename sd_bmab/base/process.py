@@ -63,6 +63,7 @@ def build_img2img(context: Context, img, options):
 		inpaint_full_res_padding=32,
 		inpainting_mask_invert=0,
 		initial_noise_multiplier=1.0,
+		sd_model=p.sd_model,
 		outpath_samples=p.outpath_samples,
 		outpath_grids=p.outpath_grids,
 		prompt=p.prompt,

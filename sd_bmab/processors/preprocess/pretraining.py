@@ -9,6 +9,7 @@ from PIL import ImageFilter
 from modules import devices
 
 from sd_bmab import constants, util
+from sd_bmab.base import filter
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 from sd_bmab.util import debug_print
 
@@ -19,6 +20,7 @@ class PretrainingDetailer(ProcessorBase):
 		self.pretraining_opt = {}
 
 		self.enabled = False
+		self.filter = 'None'
 		self.hiresfix_enabled = False
 		self.pretraining_model = None
 		self.prompt = ''
@@ -57,6 +59,7 @@ class PretrainingDetailer(ProcessorBase):
 		self.pretraining_opt = context.args.get('module_config', {}).get('pretraining_opt', {})
 		self.hiresfix_enabled = self.pretraining_opt.get('hiresfix_enabled', self.hiresfix_enabled)
 		self.pretraining_model = self.pretraining_opt.get('pretraining_model', self.pretraining_model)
+		self.filter = self.pretraining_opt.get('filter', self.filter)
 		self.prompt = self.pretraining_opt.get('prompt', self.prompt)
 		self.negative_prompt = self.pretraining_opt.get('negative_prompt', self.negative_prompt)
 		self.sampler = self.pretraining_opt.get('sampler', self.sampler)
@@ -74,6 +77,14 @@ class PretrainingDetailer(ProcessorBase):
 		return self.enabled
 
 	def process(self, context: Context, image: Image):
+		bmab_filter = filter.get_filter(self.filter)
+		filter.preprocess_filter(bmab_filter, context, image)
+		image = self.process_pretraining(context, image)
+		image = filter.process_filter(bmab_filter, context, image, image)
+		filter.postprocess_filter(bmab_filter, context)
+		return image
+
+	def process_pretraining(self, context: Context, image: Image):
 		boxes, logits = self.predict(context, image, self.pretraining_model, self.confidence)
 
 		org_size = image.size

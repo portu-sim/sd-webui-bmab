@@ -1,3 +1,18 @@
+### v24.04.17
+
+* New Features
+  * Pose
+    * sd-webui-bmab/pose 디렉토리에 있는 이미지를 이용하여 openpose를 동작한다.
+    * seed에 맞춰서 임의이 순서로 동작한다.
+  * Face
+    * CheckPoint를 선택할 수 있도록 추가
+  * Pretraining
+    * Filter를 선택할 수 있도록 추가
+  * Refiner
+    * VAE를 선택할 수 있도록 추가
+  * Noise
+    * Both, Low res fix, High res fix 추가.
+
 ### v24.04.16
 
 * Code Fix

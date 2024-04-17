@@ -29,6 +29,7 @@ class FaceDetailer(ProcessorBase):
 		self.box_threshold = 0.35
 		self.order = 'Score'
 		self.limit = 1
+		self.checkpoint = constants.checkpoint_default
 		self.sampler = constants.sampler_default
 		self.scheduler = constants.scheduler_default
 		self.disable_extra_networks = False
@@ -48,6 +49,7 @@ class FaceDetailer(ProcessorBase):
 		self.box_threshold = self.detailing_opt.get('box_threshold', self.box_threshold)
 		self.order = self.detailing_opt.get('sort_by', self.order)
 		self.limit = self.detailing_opt.get('limit', self.limit)
+		self.checkpoint = self.detailing_opt.get('checkpoint', self.checkpoint)
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
 		self.scheduler = self.detailing_opt.get('scheduler', self.scheduler)
 		self.disable_extra_networks = self.detailing_opt.get('disable_extra_networks', self.disable_extra_networks)
@@ -182,6 +184,12 @@ class FaceDetailer(ProcessorBase):
 
 			seed, subseed = context.get_seeds()
 			options = dict(mask=face_mask, seed=seed, subseed=subseed, **face_config)
+
+			if self.checkpoint is not None and self.checkpoint != constants.checkpoint_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_model_checkpoint'] = self.checkpoint
+				options['override_settings'] = override_settings
+
 			if self.disable_extra_networks:
 				prompt, extra_network_data = extra_networks.parse_prompts([options['prompt']])
 				options['prompt'] = prompt
