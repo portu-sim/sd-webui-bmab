@@ -16,7 +16,8 @@ class RefinerPreprocessor(ProcessorBase):
 
 		self.refiner_opt = {}
 		self.enabled = False
-		self.checkpoint = None
+		self.checkpoint = constants.checkpoint_default
+		self.vae = constants.vae_default
 		self.keep_checkpoint = True
 		self.prompt = None
 		self.negative_prompt = None
@@ -35,7 +36,8 @@ class RefinerPreprocessor(ProcessorBase):
 		self.enabled = context.args['refiner_enabled']
 		self.refiner_opt = context.args.get('module_config', {}).get('refiner_opt', {})
 
-		self.checkpoint = self.refiner_opt.get('checkpoint', None)
+		self.checkpoint = self.refiner_opt.get('checkpoint', self.checkpoint)
+		self.vae = self.refiner_opt.get('vae', self.vae)
 		self.keep_checkpoint = self.refiner_opt.get('keep_checkpoint', True)
 		self.prompt = self.refiner_opt.get('prompt', '')
 		self.negative_prompt = self.refiner_opt.get('negative_prompt', '')
@@ -55,11 +57,6 @@ class RefinerPreprocessor(ProcessorBase):
 		return self.enabled
 
 	def process(self, context: Context, image: Image):
-
-		if self.checkpoint != constants.checkpoint_default:
-			loaded_vae_file = context.args.get('loaded_vae_file')
-			context.save_and_apply_checkpoint(self.checkpoint, None, self.loaded_vae_file)
-
 		output_width = image.width
 		output_height = image.height
 
@@ -87,8 +84,6 @@ class RefinerPreprocessor(ProcessorBase):
 			debug_print('Prompt', self.prompt)
 		if self.negative_prompt == '':
 			self.negative_prompt = context.sdprocessing.negative_prompt
-		if self.checkpoint == constants.checkpoint_default:
-			self.checkpoint = context.sdprocessing.sd_model
 		if self.sampler == constants.sampler_default:
 			self.sampler = context.sdprocessing.sampler_name
 		if self.scheduler == constants.scheduler_default:
@@ -106,7 +101,6 @@ class RefinerPreprocessor(ProcessorBase):
 			inpaint_full_res_padding=32,
 			inpainting_mask_invert=0,
 			initial_noise_multiplier=1.0,
-			sd_model=self.checkpoint,
 			prompt=self.prompt,
 			negative_prompt=self.negative_prompt,
 			sampler_name=self.sampler,
@@ -123,6 +117,15 @@ class RefinerPreprocessor(ProcessorBase):
 		)
 		context.add_job()
 
+		if self.checkpoint is not None and self.checkpoint != constants.checkpoint_default:
+			override_settings = options.get('override_settings', {})
+			override_settings['sd_model_checkpoint'] = self.checkpoint
+			options['override_settings'] = override_settings
+		if self.vae is not None and self.vae != constants.vae_default:
+			override_settings = options.get('override_settings', {})
+			override_settings['sd_vae'] = self.vae
+			options['override_settings'] = override_settings
+		
 		if LineartNoise.with_refiner(context):
 			ln = LineartNoise()
 			if ln.preprocess(context, None):
