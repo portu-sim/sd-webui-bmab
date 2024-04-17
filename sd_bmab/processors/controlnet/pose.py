@@ -31,7 +31,7 @@ class Openpose(ProcessorBase):
 		self.pose_strength = self.controlnet_opt.get('pose_strength', self.pose_strength)
 		self.pose_begin = self.controlnet_opt.get('pose_begin', self.pose_begin)
 		self.pose_end = self.controlnet_opt.get('pose_end', self.pose_end)
-		return self.enabled
+		return self.pose_enabled
 
 	@staticmethod
 	def get_openpose_args(image):
