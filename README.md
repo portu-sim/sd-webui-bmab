@@ -8,9 +8,8 @@ BMAB Version: 24.04.17
 
 <td colspan="2"><img src="https://github.com/RGX650/SDNEXT-T2I/blob/main/01293-reliberate_v20-photo%20of%20a%20female%20fashion%20model%20hyperdetailed%20photography.png">
 Face Detailing, ControlNet (1, 4), noise enabled. 0.25, No Lora, No embedding, No negative prompt
-<tr>
-<tr>
-
+<br>
+<br>
 BMAB는 Stable Diffusion WebUI의 확장 기능으로, 생성된 이미지를 설정에 따라 후처리하는 기능을 가지고 있습니다.   
 필요에 따라 인물, 얼굴, 손을 찾아 다시 그리거나, Resize, Resample, 노이즈 추가 등의 기능을 수행할 수 있으며,   
 두 장의 이미지를 합성하거나, Upscale의 기능을 수행 할 수 있습니다.
