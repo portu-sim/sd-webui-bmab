@@ -17,6 +17,12 @@ You can composite two images or perform the Upscale function.
 <a href="./docs/kr/manual.md">Manual (KR)</a>
 
 
+<td colspan="2"><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg](https://github.com/RGX650/SDNEXT-T2I/blob/main/01293-reliberate_v20-photo%20of%20a%20female%20fashion%20model%20hyperdetailed%20photography.png">
+Face Detailing, ControlNet (1, 4), noise enabled. 0.25
+</td>
+</tr>
+<tr>
+
 ## Example
 
 <table>
