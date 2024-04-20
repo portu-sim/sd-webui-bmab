@@ -30,6 +30,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = 'Score'
 		self.limit = 1
 		self.checkpoint = constants.checkpoint_default
+		self.vae = constants.vae_default
 		self.sampler = constants.sampler_default
 		self.scheduler = constants.scheduler_default
 		self.disable_extra_networks = False
@@ -50,6 +51,7 @@ class FaceDetailer(ProcessorBase):
 		self.order = self.detailing_opt.get('sort_by', self.order)
 		self.limit = self.detailing_opt.get('limit', self.limit)
 		self.checkpoint = self.detailing_opt.get('checkpoint', self.checkpoint)
+		self.vae = self.detailing_opt.get('vae', self.vae)
 		self.sampler = self.detailing_opt.get('sampler', self.sampler)
 		self.scheduler = self.detailing_opt.get('scheduler', self.scheduler)
 		self.disable_extra_networks = self.detailing_opt.get('disable_extra_networks', self.disable_extra_networks)
@@ -188,6 +190,10 @@ class FaceDetailer(ProcessorBase):
 			if self.checkpoint is not None and self.checkpoint != constants.checkpoint_default:
 				override_settings = options.get('override_settings', {})
 				override_settings['sd_model_checkpoint'] = self.checkpoint
+				options['override_settings'] = override_settings
+			if self.vae != constants.vae_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_vae'] = self.vae
 				options['override_settings'] = override_settings
 
 			if self.disable_extra_networks:
