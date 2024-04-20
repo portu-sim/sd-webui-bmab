@@ -21,7 +21,7 @@ from sd_bmab.util import debug_print
 from sd_bmab.processors.controlnet import Openpose
 
 
-bmab_version = 'v24.04.17.0'
+bmab_version = 'v24.04.20.0'
 
 final_images = []
 last_process = None
