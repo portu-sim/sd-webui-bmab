@@ -19,6 +19,7 @@ from sd_bmab import pipeline
 from sd_bmab import masking
 from sd_bmab.util import debug_print
 from sd_bmab.processors.controlnet import Openpose
+from sd_bmab.processors.postprocess import Watermark
 
 
 bmab_version = 'v24.04.20.0'
@@ -377,6 +378,12 @@ def create_ui(bscript, is_img2img):
 									elem += face_models
 									refresh_face_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 								with gr.Row():
+									vaes = [constants.vae_default]
+									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+									face_vaes = gr.Dropdown(label='SD VAE for face', visible=True, value=vaes[0], choices=vaes)
+									elem += face_vaes
+									refresh_face_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+								with gr.Row():
 									with gr.Column(min_width=50):
 										asamplers = [constants.sampler_default]
 										asamplers.extend([x.name for x in shared.list_samplers()])
@@ -494,6 +501,25 @@ def create_ui(bscript, is_img2img):
 					with gr.Row():
 						dd_final_filter = gr.Dropdown(label='Final filter', visible=True, value=filter.filters[0], choices=filter.filters)
 						elem += dd_final_filter
+				with gr.Tab('Watermark', id='bmab_watermark', elem_id='bmab_watermark'):
+					elem += gr.Checkbox(label='Watermark enabled', value=False)
+					with gr.Row():
+						with gr.Column(min_width=100):
+							fonts = Watermark.list_fonts()
+							elem += gr.Dropdown(label='Watermark Font', visible=True, value=fonts[0], choices=fonts)
+							align = [x for x in Watermark.alignment.keys()]
+							elem += gr.Dropdown(label='Watermark Alignment', visible=True, value=align[5], choices=align)
+							elem += gr.Dropdown(label='Watermark Text Alignment', visible=True, value='left', choices=['left', 'right', 'center'])
+							elem += gr.Dropdown(label='Watermark Text Rotate', visible=True, value='0', choices=['0', '90', '180', '270'])
+							elem += gr.Textbox(label='Watermark Text Color', visible=True, value='#000000')
+							elem += gr.Textbox(label='Watermark Background Color', visible=True, value='#000000')
+						with gr.Column(min_width=100):
+							elem += gr.Slider(minimum=4, maximum=128, value=12, step=1, label='Font Size')
+							elem += gr.Slider(minimum=0, maximum=100, value=100, step=1, label='Transparency')
+							elem += gr.Slider(minimum=0, maximum=100, value=0, step=1, label='Background Transparency')
+							elem += gr.Slider(minimum=0, maximum=100, value=5, step=1, label='Margin')
+					with gr.Row():
+						elem += gr.Textbox(placeholder='watermark text here', lines=1, max_lines=10, visible=True, value='', label='Watermark')
 		with gr.Accordion(f'BMAB Config, Preset, Installer', open=False):
 			with gr.Row():
 				configs = parameters.Parameters().list_config()
@@ -600,6 +626,19 @@ def create_ui(bscript, is_img2img):
 			return {
 				face_models: {
 					'choices': checkpoints,
+					'value': value,
+					'__type__': 'update'
+				}
+			}
+
+		def hit_face_vae(value, *args):
+			vaes = [constants.vae_default]
+			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+			if value not in vaes:
+				value = vaes[0]
+			return {
+				face_vaes: {
+					'choices': vaes,
 					'value': value,
 					'__type__': 'update'
 				}
@@ -812,6 +851,7 @@ def create_ui(bscript, is_img2img):
 		refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
 		refresh_refiner_vaes.click(hit_refiner_vae, inputs=[refiner_vaes], outputs=[refiner_vaes])
 		refresh_face_models.click(hit_face_model, inputs=[face_models], outputs=[face_models])
+		refresh_face_vaes.click(hit_face_vae, inputs=[face_vaes], outputs=[face_vaes])
 		refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
 		refresh_resample_models.click(hit_resample_model, inputs=[resample_models], outputs=[resample_models])
 		refresh_resample_vaes.click(hit_resample_vae, inputs=[resample_vaes], outputs=[resample_vaes])

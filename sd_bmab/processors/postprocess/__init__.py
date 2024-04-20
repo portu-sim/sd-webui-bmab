@@ -3,3 +3,4 @@ from sd_bmab.processors.postprocess.upscalebeforeprocess import BeforeProcessUps
 from sd_bmab.processors.postprocess.inpaint import InpaintResize
 from sd_bmab.processors.postprocess.inpaintlama import InpaintLamaResize
 from sd_bmab.processors.postprocess.finalfilter import FinalFilter
+from sd_bmab.processors.postprocess.watermark import Watermark

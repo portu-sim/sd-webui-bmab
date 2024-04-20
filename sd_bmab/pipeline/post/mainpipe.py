@@ -11,6 +11,7 @@ from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, Noise
 from sd_bmab.processors.controlnet import LineartNoise, Openpose
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor, PreprocessFilter
+from sd_bmab.processors.postprocess import Watermark
 from sd_bmab.pipeline.internal import Preprocess
 from sd_bmab.util import debug_print
 
@@ -48,6 +49,7 @@ def process(context, image):
 		AfterProcessUpscaler(),
 		FinalProcessorBasic(),
 		FinalFilter(),
+		Watermark(),
 		AfterProcessFileSaver()
 	]
 	
