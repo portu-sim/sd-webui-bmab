@@ -22,6 +22,8 @@ class Openpose(ProcessorBase):
 		self.pose_strength = 0.3
 		self.pose_begin = 0.0
 		self.pose_end = 1.0
+		self.pose_face_only = False
+		self.pose_selected = 'Random'
 
 	def preprocess(self, context: Context, image: Image):
 		self.controlnet_opt = context.args.get('module_config', {}).get('controlnet', {})
@@ -30,13 +32,14 @@ class Openpose(ProcessorBase):
 		self.pose_strength = self.controlnet_opt.get('pose_strength', self.pose_strength)
 		self.pose_begin = self.controlnet_opt.get('pose_begin', self.pose_begin)
 		self.pose_end = self.controlnet_opt.get('pose_end', self.pose_end)
-		return self.pose_enabled
+		self.pose_face_only = self.controlnet_opt.get('pose_face_only', self.pose_face_only)
+		self.pose_selected = self.controlnet_opt.get('pose_selected', self.pose_selected)
+		return self.enabled and self.pose_enabled
 
-	@staticmethod
-	def get_openpose_args(image):
+	def get_openpose_args(self, image):
 		cn_args = {
 			'input_image': util.b64_encoding(image),
-			'module': 'openpose',
+			'module': 'openpose_faceonly' if self.pose_face_only else 'openpose',
 			'model': shared.opts.bmab_cn_openpose,
 			'weight': 1,
 			"guidance_start": 0,
@@ -47,6 +50,7 @@ class Openpose(ProcessorBase):
 			'processor_res': 512,
 			'threshold_a': 64,
 			'threshold_b': 64,
+			'hr_option': 'Low res only'
 		}
 		return cn_args
 
@@ -85,8 +89,7 @@ class Openpose(ProcessorBase):
 	def postprocess(self, context: Context, image: Image):
 		pass
 
-	@staticmethod
-	def load_random_image(context):
+	def load_random_image(self, context):
 		path = os.path.dirname(sd_bmab.__file__)
 		path = os.path.normpath(os.path.join(path, '../pose'))
 		if os.path.exists(path) and os.path.isdir(path):
@@ -95,8 +98,46 @@ class Openpose(ProcessorBase):
 			if not files:
 				debug_print(f'Not found pose files in {path}')
 				return None
-			file = random.choice(files)
-			debug_print(f'Random pose {file}')
-			return Image.open(file)
+			if self.pose_selected == 'Random':
+				file = random.choice(files)
+				debug_print(f'Random pose {file}')
+				return self.get_cache(context, file)
+			else:
+				img_name = f'{path}/{self.pose_selected}'
+				return self.get_cache(context, img_name)
 		debug_print(f'Not found directory {path}')
 		return None
+
+	def get_cache(self, context, file):
+		if self.pose_face_only:
+			path = os.path.dirname(sd_bmab.__file__)
+			path = os.path.normpath(os.path.join(path, '../cache'))
+			if os.path.exists(path) and os.path.isdir(path):
+				b = os.path.basename(file)
+				file_mask = f'{path}/pose_face_{b}'
+				if os.path.exists(file_mask):
+					return Image.open(file_mask)
+		return Image.open(file)
+
+
+	@staticmethod
+	def list_pose():
+		path = os.path.dirname(sd_bmab.__file__)
+		path = os.path.normpath(os.path.join(path, '../pose'))
+		if os.path.exists(path) and os.path.isdir(path):
+			file_mask = f'{path}/*.*'
+			files = glob.glob(file_mask)
+			return [os.path.basename(f) for f in files]
+		debug_print(f'Not found directory {path}')
+		return []
+
+	@staticmethod
+	def get_pose(f):
+		if f == 'Random':
+			return Image.new('RGB', (512, 512), 0)
+		path = os.path.dirname(sd_bmab.__file__)
+		path = os.path.normpath(os.path.join(path, '../pose'))
+		if os.path.exists(path) and os.path.isdir(path):
+			img_name = f'{path}/{f}'
+			return Image.open(img_name)
+		return Image.new('RGB', (512, 512), 0)

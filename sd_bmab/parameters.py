@@ -173,6 +173,8 @@ class Parameters(object):
 			('module_config.controlnet.pose_strength', 0.3),
 			('module_config.controlnet.pose_begin', 0.0),
 			('module_config.controlnet.pose_end', 1.0),
+			('module_config.controlnet.pose_face_only', False),
+			('module_config.controlnet.pose_selected', 'Random'),
 			('resize_by_person_enabled', False),
 			('module_config.resize_by_person_opt.mode', constants.resize_mode_default),
 			('module_config.resize_by_person_opt.scale', 0.85),

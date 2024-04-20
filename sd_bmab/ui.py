@@ -18,6 +18,7 @@ from sd_bmab.base import installer
 from sd_bmab import pipeline
 from sd_bmab import masking
 from sd_bmab.util import debug_print
+from sd_bmab.processors.controlnet import Openpose
 
 
 bmab_version = 'v24.04.17.0'
@@ -452,9 +453,14 @@ def create_ui(bscript, is_img2img):
 									with gr.Column():
 										elem += gr.Slider(minimum=0.0, maximum=2, value=0.3, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
 										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_pose_begin', label='Pose begin')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=1.0, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
+										elem += gr.Checkbox(label='Face only', value=False)
+										poses = ['Random']
+										poses.extend(Openpose.list_pose())
+										dd_pose = gr.Dropdown(label='Pose Selection', interactive=True, visible=True, value=poses[0], choices=poses)
+										elem += dd_pose
 									with gr.Column():
-										gr.Markdown('')
+										pose_image = gr.Image(elem_id='bmab_pose_image')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
@@ -795,6 +801,10 @@ def create_ui(bscript, is_img2img):
 			bscript.stop_generation = True
 			gr.Info('Waiting for processing done.')
 
+		def pose_selected(*args):
+			print(args)
+			return Openpose.get_pose(args[0])
+
 		load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
@@ -820,6 +830,7 @@ def create_ui(bscript, is_img2img):
 
 		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[markdown_install])
 		btn_stop.click(stop_process)
+		dd_pose.select(pose_selected, inputs=[dd_pose], outputs=[pose_image])
 
 	return elem
 

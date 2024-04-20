@@ -1,3 +1,10 @@
+### v24.04.20
+
+* New Features
+  * Pose
+    * Face only 옵션 추가
+    * Pose를 선택할 수 있도록 추가
+
 ### v24.04.17
 
 * New Features

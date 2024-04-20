@@ -42,10 +42,10 @@ class LineartNoise(ProcessorBase):
 
 		debug_print('Noise', context.is_refiner_context(), context.with_refiner(), self.with_refiner)
 		if context.is_refiner_context():
-			return self.enabled and self.with_refiner
+			return self.enabled and self.noise_enabled and self.with_refiner
 		elif context.with_refiner() and self.with_refiner:
 			return False
-		return self.enabled
+		return self.enabled and self.noise_enabled
 
 	@staticmethod
 	def get_noise_args(image, weight, begin, end, hr_option):
