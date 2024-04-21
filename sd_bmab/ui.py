@@ -22,7 +22,7 @@ from sd_bmab.processors.controlnet import Openpose
 from sd_bmab.processors.postprocess import Watermark
 
 
-bmab_version = 'v24.04.21.0'
+bmab_version = 'v24.04.21.1'
 
 final_images = []
 last_process = None
@@ -519,7 +519,7 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Slider(minimum=0, maximum=100, value=0, step=1, label='Background Transparency')
 							elem += gr.Slider(minimum=0, maximum=100, value=5, step=1, label='Margin')
 					with gr.Row():
-						elem += gr.Textbox(placeholder='watermark text here', lines=1, max_lines=10, visible=True, value='', label='Watermark')
+						elem += gr.Textbox(placeholder='watermark text here', lines=1, max_lines=10, visible=True, value='', label='Watermark or Image path')
 		with gr.Accordion(f'BMAB Config, Preset, Installer', open=False):
 			with gr.Row():
 				configs = parameters.Parameters().list_config()

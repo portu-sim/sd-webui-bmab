@@ -6,7 +6,6 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 from sd_bmab.base import Context, ProcessorBase
-from sd_bmab import util
 
 
 class Watermark(ProcessorBase):
@@ -57,16 +56,21 @@ class Watermark(ProcessorBase):
 
 	def process(self, context: Context, image: Image):
 
-		font = self.get_font(self.font, self.font_size)
-		color = self.color_hex_to_rgb(self.color, int(255 * (self.transparency / 100)))
 		background_color = self.color_hex_to_rgb(self.background_color, int(255 * (self.background_transparency / 100)))
 
-		# 1st
-		base = Image.new('RGBA', image.size, background_color)
-		draw = ImageDraw.Draw(base)
-		bbox = draw.textbbox((0, 0), self.text, font=font)
-		draw.text((0, 0), self.text, font=font, fill=color, align=self.text_alignment)
-		cropped = base.crop(bbox)
+		if os.path.isfile(self.text):
+			cropped = Image.open(self.text)
+			cropped.putalpha(int(255 * (self.transparency / 100)))
+		else:
+			font = self.get_font(self.font, self.font_size)
+			color = self.color_hex_to_rgb(self.color, int(255 * (self.transparency / 100)))
+
+			# 1st
+			base = Image.new('RGBA', image.size, background_color)
+			draw = ImageDraw.Draw(base)
+			bbox = draw.textbbox((0, 0), self.text, font=font)
+			draw.text((0, 0), self.text, font=font, fill=color, align=self.text_alignment)
+			cropped = base.crop(bbox)
 
 		# 2st margin
 		base = Image.new('RGBA', (cropped.width + self.margin * 2, cropped.height + self.margin * 2), background_color)
