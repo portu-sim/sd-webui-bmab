@@ -54,14 +54,12 @@ def create_ui(bscript, is_img2img):
 									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
 									checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
 									elem += checkpoint_models
-									refresh_checkpoint_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 							with gr.Column():
 								with gr.Row():
 									vaes = [constants.vae_default]
 									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
 									vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
 									elem += vaes_models
-									refresh_vae_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Row():
 							gr.Markdown(constants.checkpoint_description)
 						with gr.Row():
@@ -112,14 +110,12 @@ def create_ui(bscript, is_img2img):
 								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
 								resample_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
 								elem += resample_models
-								refresh_resample_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Column():
 							with gr.Row():
 								vaes = [constants.vae_default]
 								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
 								resample_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
 								elem += resample_vaes
-								refresh_resample_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 					with gr.Row():
 						with gr.Column(min_width=100):
 							methods = ['txt2img-1pass', 'txt2img-2pass', 'img2img-1pass']
@@ -165,7 +161,6 @@ def create_ui(bscript, is_img2img):
 								models.extend(util.list_pretraining_models())
 								pretraining_models = gr.Dropdown(label='Pretraining Model', visible=True, value=models[0], choices=models, elem_id='bmab_pretraining_models')
 								elem += pretraining_models
-								refresh_pretraining_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Column(min_width=100):
 							dd_pretraining_filter = gr.Dropdown(label='Pretraining filter', visible=True, value=filter.filters[0], choices=filter.filters)
 							elem += dd_pretraining_filter
@@ -233,14 +228,12 @@ def create_ui(bscript, is_img2img):
 								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
 								refiner_models = gr.Dropdown(label='CheckPoint for refiner', visible=True, value=checkpoints[0], choices=checkpoints)
 								elem += refiner_models
-								refresh_refiner_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 						with gr.Column():
 							with gr.Row():
 								vaes = [constants.vae_default]
 								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
 								refiner_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
 								elem += refiner_vaes
-								refresh_refiner_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
 					with gr.Row():
 						elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
 					with gr.Row():
@@ -372,17 +365,16 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							with gr.Column(min_width=100):
 								with gr.Row():
-									checkpoints = [constants.checkpoint_default]
-									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-									face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
-									elem += face_models
-									refresh_face_models = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
-								with gr.Row():
-									vaes = [constants.vae_default]
-									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-									face_vaes = gr.Dropdown(label='SD VAE for face', visible=True, value=vaes[0], choices=vaes)
-									elem += face_vaes
-									refresh_face_vaes = ui_components.ToolButton(value='🔄', visible=True, interactive=True)
+									with gr.Column(min_width=50):
+										checkpoints = [constants.checkpoint_default]
+										checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+										face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
+										elem += face_models
+									with gr.Column(min_width=50):
+										vaes = [constants.vae_default]
+										vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+										face_vaes = gr.Dropdown(label='SD VAE for face', visible=True, value=vaes[0], choices=vaes)
+										elem += face_vaes
 								with gr.Row():
 									with gr.Column(min_width=50):
 										asamplers = [constants.sampler_default]
@@ -520,7 +512,7 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Slider(minimum=0, maximum=100, value=5, step=1, label='Margin')
 					with gr.Row():
 						elem += gr.Textbox(placeholder='watermark text here', lines=1, max_lines=10, visible=True, value='', label='Watermark or Image path')
-		with gr.Accordion(f'BMAB Config, Preset, Installer', open=False):
+		with gr.Accordion(f'BMAB Refresh, Config, Preset, Installer', open=False):
 			with gr.Row():
 				configs = parameters.Parameters().list_config()
 				config = '' if not configs else configs[0]
@@ -537,7 +529,7 @@ def create_ui(bscript, is_img2img):
 							gr.Markdown('')
 					with gr.Row():
 						with gr.Column(scale=1):
-							btn_reload_filter = gr.Button('reload filter', visible=True, interactive=True, elem_id='bmab_reload_filter')
+							btn_refresh_all = gr.Button('Refresh ALL', visible=True, interactive=True, elem_id='bmab_refresh_all')
 						with gr.Column(scale=1):
 							gr.Markdown('')
 						with gr.Column(scale=1):
@@ -605,123 +597,6 @@ def create_ui(bscript, is_img2img):
 				}
 			}
 
-		def hit_refiner_model(value, *args):
-			checkpoints = [constants.checkpoint_default]
-			checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-			if value not in checkpoints:
-				value = checkpoints[0]
-			return {
-				refiner_models: {
-					'choices': checkpoints,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_face_model(value, *args):
-			checkpoints = [constants.checkpoint_default]
-			checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-			if value not in checkpoints:
-				value = checkpoints[0]
-			return {
-				face_models: {
-					'choices': checkpoints,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_face_vae(value, *args):
-			vaes = [constants.vae_default]
-			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-			if value not in vaes:
-				value = vaes[0]
-			return {
-				face_vaes: {
-					'choices': vaes,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_pretraining_model(value, *args):
-			models = ['Select Model']
-			models.extend(util.list_pretraining_models())
-			if value not in models:
-				value = models[0]
-			return {
-				pretraining_models: {
-					'choices': models,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_resample_model(value, *args):
-			checkpoints = [constants.checkpoint_default]
-			checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-			if value not in checkpoints:
-				value = checkpoints[0]
-			return {
-				resample_models: {
-					'choices': checkpoints,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_resample_vae(value, *args):
-			vaes = [constants.vae_default]
-			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-			if value not in vaes:
-				value = vaes[0]
-			return {
-				resample_vaes: {
-					'choices': vaes,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_refiner_vae(value, *args):
-			vaes = [constants.vae_default]
-			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-			if value not in vaes:
-				value = vaes[0]
-			return {
-				refiner_vaes: {
-					'choices': vaes,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_checkpoint_model(value, *args):
-			checkpoints = [constants.checkpoint_default]
-			checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-			if value not in checkpoints:
-				value = checkpoints[0]
-			return {
-				checkpoint_models: {
-					'choices': checkpoints,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
-		def hit_vae_models(value, *args):
-			vaes = [constants.vae_default]
-			vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-			if value not in vaes:
-				value = vaes[0]
-			return {
-				vaes_models: {
-					'choices': vaes,
-					'value': value,
-					'__type__': 'update'
-				}
-			}
-
 		def merge_random_checkpoint(*args):
 			def find_random(k, f):
 				for v in k:
@@ -782,40 +657,42 @@ def create_ui(bscript, is_img2img):
 				}
 			}
 
-		def reload_filter(f1, f2, f3, f4, f5, f6, *args):
+		refresh_targets = [dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
+		refresh_targets.extend([checkpoint_models, vaes_models, refiner_models, refiner_vaes, face_models, face_vaes, resample_models, resample_vaes])
+		refresh_targets.extend([pretraining_models, dd_pose])
+
+		def reload_filter(*args):
 			filter.reload_filters()
-			return {
-				dd_hiresfix_filter1: {
-					'choices': filter.filters,
-					'value': f1,
+			inputs = list(args)
+
+			_checkpoints = [constants.checkpoint_default]
+			_checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+
+			_vaes = [constants.vae_default]
+			_vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+
+			_pretraining_models = ['Select Model']
+			_pretraining_models.extend(util.list_pretraining_models())
+
+			_poses = ['Random']
+			_poses.extend(Openpose.list_pose())
+
+			values = [
+				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
+				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
+				_pretraining_models, _poses
+			]
+
+			ret = {
+				t: {
+					'choices': v,
+					'value': v[0] if i not in v[0] else i,
 					'__type__': 'update'
-				},
-				dd_hiresfix_filter2: {
-					'choices': filter.filters,
-					'value': f2,
-					'__type__': 'update'
-				},
-				dd_resample_filter: {
-					'choices': filter.filters,
-					'value': f3,
-					'__type__': 'update'
-				},
-				dd_resize_filter: {
-					'choices': filter.filters,
-					'value': f4,
-					'__type__': 'update'
-				},
-				dd_final_filter: {
-					'choices': filter.filters,
-					'value': f5,
-					'__type__': 'update'
-				},
-				dd_pretraining_filter: {
-					'choices': filter.filters,
-					'value': f6,
-					'__type__': 'update'
-				},
+				}
+				for t, i, v in zip(refresh_targets, inputs, values)
 			}
+
+			return ret
 
 		def image_selected(data: gr.SelectData, *args):
 			debug_print(data.index)
@@ -848,21 +725,14 @@ def create_ui(bscript, is_img2img):
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
 		refresh_btn.click(refresh_preset, outputs=elem)
-		refresh_refiner_models.click(hit_refiner_model, inputs=[refiner_models], outputs=[refiner_models])
-		refresh_refiner_vaes.click(hit_refiner_vae, inputs=[refiner_vaes], outputs=[refiner_vaes])
-		refresh_face_models.click(hit_face_model, inputs=[face_models], outputs=[face_models])
-		refresh_face_vaes.click(hit_face_vae, inputs=[face_vaes], outputs=[face_vaes])
-		refresh_pretraining_models.click(hit_pretraining_model, inputs=[pretraining_models], outputs=[pretraining_models])
-		refresh_resample_models.click(hit_resample_model, inputs=[resample_models], outputs=[resample_models])
-		refresh_resample_vaes.click(hit_resample_vae, inputs=[resample_vaes], outputs=[resample_vaes])
-		refresh_checkpoint_models.click(hit_checkpoint_model, inputs=[checkpoint_models], outputs=[checkpoint_models])
-		refresh_vae_models.click(hit_vae_models, inputs=[vaes_models], outputs=[vaes_models])
+
 		random_checkpoint.click(merge_random_checkpoint, outputs=[merge_result])
 		btn_fetch_images.click(fetch_images, outputs=[gallery])
-		btn_reload_filter.click(
+
+		btn_refresh_all.click(
 			reload_filter,
-			inputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter],
-			outputs=[dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
+			inputs=refresh_targets,
+			outputs=refresh_targets,
 		)
 
 		btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
