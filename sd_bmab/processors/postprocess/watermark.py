@@ -60,7 +60,6 @@ class Watermark(ProcessorBase):
 
 		if os.path.isfile(self.text):
 			cropped = Image.open(self.text)
-			cropped.putalpha(int(255 * (self.transparency / 100)))
 		else:
 			font = self.get_font(self.font, self.font_size)
 			color = self.color_hex_to_rgb(self.color, int(255 * (self.transparency / 100)))
