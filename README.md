@@ -18,48 +18,95 @@ You can composite two images or perform the Upscale function.
 
 
 <table>
-<tr>
-<td>
-<img src="https://i.ibb.co/WvHHKc7/00111-2484939723.jpg">
-Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
-</td>
-<td>
-<img src="https://i.ibb.co/px4YXDM/00199-2019853980.jpg">
-Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
-</td>
-</tr>
-<tr>
-<td colspan="2"><img src="https://i.ibb.co/ns1Kn04/00460-759278328.jpg">
-Face Detailing, ControlNet Noise (0.4, 0, 0.4),
-</td>
-</tr>
-<tr>
-<td><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
-Resize intermediate (inpaint+lama, Bottom, 0.75, 0.6), Face Detailing, ControlNet Noise (0.7, 0, 0.6), Noise Alpha (0.1)
-</td>
-<td>
-<img src="https://i.ibb.co/D9tz1NY/00180-3383798469.png">
-Resize intermediate (Center, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0, 0.4)
-</td>
-</tr>
-<tr>
-<td colspan="2"><img src="https://i.ibb.co/P6477Vg/resize-00101-2353183853.png">
-</td>
-</tr>
-<tr><td colspan="2"><img src="https://i.ibb.co/3vsBTFZ/resize-00183-1413773744.png"></td></tr>
-<tr><td colspan="2"><img src="https://i.ibb.co/tcYzHP1/resize-00226-4176028607.png"></td></tr>
-<tr><td colspan="2"><img src="https://i.ibb.co/r6G1cwy/resize-00340-4033828371.png"></td></tr>
-<tr>
-<td><img src="https://i.ibb.co/PmPJtVb/resize-00718-3635306692.png"></td>
-<td><img src="https://i.ibb.co/Bq2PFxc/resize-00793-3980284595.png"></td>
-</tr>
-<tr>
-<td><img src="https://i.ibb.co/ZMNC1Cm/00518-1067577565.jpg"></td>
-<td><img src="https://i.ibb.co/JtjGrMX/00126-496754363.jpg"></td>
-</tr>
-<tr>
-<td colspan="2"><img src="https://i.ibb.co/Lnh4Kpm/resize-00824-738395988.png">
-Resize intermediate (Bottom, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0, 0.4)
-</td>
-</tr>
+    <tr>
+        <td>
+            <img src="https://i.ibb.co/WvHHKc7/00111-2484939723.jpg">
+            </td>
+        <td>
+            <img src="https://i.ibb.co/px4YXDM/00199-2019853980.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+            </td>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/ns1Kn04/00460-759278328.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            Face Detailing, ControlNet Noise (0.4, 0, 0.4),
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/D9tz1NY/00180-3383798469.png">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Resize intermediate (inpaint+lama, Bottom, 0.75, 0.6),<br>
+            Face Detailing, ControlNet Noise (0.7, 0, 0.6),<br>
+            Noise Alpha (0.1)
+        </td>
+        <td>
+            Resize intermediate (Center, 0.5, 0.6),<br>
+            Face Detailing, ControlNet Noise (0.4, 0, 0.4)<br>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/P6477Vg/resize-00101-2353183853.png">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/3vsBTFZ/resize-00183-1413773744.png">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/tcYzHP1/resize-00226-4176028607.png">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/r6G1cwy/resize-00340-4033828371.png">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="https://i.ibb.co/PmPJtVb/resize-00718-3635306692.png">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/Bq2PFxc/resize-00793-3980284595.png">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="https://i.ibb.co/ZMNC1Cm/00518-1067577565.jpg">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/JtjGrMX/00126-496754363.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/Lnh4Kpm/resize-00824-738395988.png">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            Resize intermediate (Bottom, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0, 0.4)
+        </td>
+    </tr>
 </table>
