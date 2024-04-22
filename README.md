@@ -14,19 +14,30 @@ You can composite two images or perform the Upscale function.
 
 ## Example
 
+
+
+
 <table>
+<tr>
+<td>
+<img src="https://i.ibb.co/WvHHKc7/00111-2484939723.jpg">
+Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+</td>
+<td>
+<img src="https://i.ibb.co/px4YXDM/00199-2019853980.jpg">
+Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+</td>
+</tr>
 <tr>
 <td colspan="2"><img src="https://i.ibb.co/ns1Kn04/00460-759278328.jpg">
 Face Detailing, ControlNet Noise (0.4, 0, 0.4),
 </td>
 </tr>
 <tr>
-<td colspan="2"><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
+<td><img src="https://i.ibb.co/zsDs4bq/00450-3195179381.jpg">
 Resize intermediate (inpaint+lama, Bottom, 0.75, 0.6), Face Detailing, ControlNet Noise (0.7, 0, 0.6), Noise Alpha (0.1)
 </td>
-</tr>
-<tr>
-<td colspan="2">
+<td>
 <img src="https://i.ibb.co/D9tz1NY/00180-3383798469.png">
 Resize intermediate (Center, 0.5, 0.6), Face Detailing, ControlNet Noise (0.4, 0, 0.4)
 </td>
