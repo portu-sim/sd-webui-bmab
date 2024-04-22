@@ -36,6 +36,11 @@ def create_ui(bscript, is_img2img):
 			self.append(x)
 			return self
 
+	ui_checkpoints = [constants.checkpoint_default]
+	ui_checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
+	ui_vaes = [constants.vae_default]
+	ui_vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
+
 	elem = ListOv()
 	with gr.Group():
 		with gr.Row():
@@ -50,15 +55,11 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							with gr.Column():
 								with gr.Row():
-									checkpoints = [constants.checkpoint_default]
-									checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-									checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+									checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
 									elem += checkpoint_models
 							with gr.Column():
 								with gr.Row():
-									vaes = [constants.vae_default]
-									vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-									vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+									vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
 									elem += vaes_models
 						with gr.Row():
 							gr.Markdown(constants.checkpoint_description)
@@ -106,15 +107,11 @@ def create_ui(bscript, is_img2img):
 					with gr.Row():
 						with gr.Column():
 							with gr.Row():
-								checkpoints = [constants.checkpoint_default]
-								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-								resample_models = gr.Dropdown(label='CheckPoint', visible=True, value=checkpoints[0], choices=checkpoints)
+								resample_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
 								elem += resample_models
 						with gr.Column():
 							with gr.Row():
-								vaes = [constants.vae_default]
-								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-								resample_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+								resample_vaes = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
 								elem += resample_vaes
 					with gr.Row():
 						with gr.Column(min_width=100):
@@ -154,6 +151,15 @@ def create_ui(bscript, is_img2img):
 						elem += gr.Checkbox(label='Enable pretraining detailer', value=False)
 					with gr.Row():
 						elem += gr.Checkbox(label='Enable pretraining before hires.fix', value=False)
+					with gr.Row():
+						with gr.Column():
+							with gr.Row():
+								pretraining_checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
+								elem += pretraining_checkpoint_models
+						with gr.Column():
+							with gr.Row():
+								pretraining_vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
+								elem += pretraining_vaes_models
 					with gr.Row():
 						with gr.Column(min_width=100):
 							with gr.Row():
@@ -224,15 +230,13 @@ def create_ui(bscript, is_img2img):
 					with gr.Row():
 						with gr.Column():
 							with gr.Row():
-								checkpoints = [constants.checkpoint_default]
-								checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-								refiner_models = gr.Dropdown(label='CheckPoint for refiner', visible=True, value=checkpoints[0], choices=checkpoints)
+								refiner_models = gr.Dropdown(label='CheckPoint for refiner', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
 								elem += refiner_models
 						with gr.Column():
 							with gr.Row():
 								vaes = [constants.vae_default]
 								vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-								refiner_vaes = gr.Dropdown(label='SD VAE', visible=True, value=vaes[0], choices=vaes)
+								refiner_vaes = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
 								elem += refiner_vaes
 					with gr.Row():
 						elem += gr.Checkbox(label='Use this checkpoint for detailing(Face, Person, Hand)', value=True)
@@ -366,14 +370,10 @@ def create_ui(bscript, is_img2img):
 							with gr.Column(min_width=100):
 								with gr.Row():
 									with gr.Column(min_width=50):
-										checkpoints = [constants.checkpoint_default]
-										checkpoints.extend([str(x) for x in sd_models.checkpoints_list.keys()])
-										face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=checkpoints[0], choices=checkpoints)
+										face_models = gr.Dropdown(label='CheckPoint for face', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
 										elem += face_models
 									with gr.Column(min_width=50):
-										vaes = [constants.vae_default]
-										vaes.extend([str(x) for x in sd_vae.vae_dict.keys()])
-										face_vaes = gr.Dropdown(label='SD VAE for face', visible=True, value=vaes[0], choices=vaes)
+										face_vaes = gr.Dropdown(label='SD VAE for face', visible=True, value=ui_vaes[0], choices=ui_vaes)
 										elem += face_vaes
 								with gr.Row():
 									with gr.Column(min_width=50):
@@ -659,7 +659,7 @@ def create_ui(bscript, is_img2img):
 
 		refresh_targets = [dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
 		refresh_targets.extend([checkpoint_models, vaes_models, refiner_models, refiner_vaes, face_models, face_vaes, resample_models, resample_vaes])
-		refresh_targets.extend([pretraining_models, dd_pose])
+		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, pretraining_models, dd_pose])
 
 		def reload_filter(*args):
 			filter.reload_filters()
@@ -679,14 +679,17 @@ def create_ui(bscript, is_img2img):
 
 			values = [
 				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
-				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
-				_pretraining_models, _poses
+				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
+				_checkpoints, _vaes, _pretraining_models, _poses
 			]
+
+			for i, v in zip(inputs, values):
+				print(f'{i} {v} {i not in v}')
 
 			ret = {
 				t: {
 					'choices': v,
-					'value': v[0] if i not in v[0] else i,
+					'value': v[0] if i not in v else i,
 					'__type__': 'update'
 				}
 				for t, i, v in zip(refresh_targets, inputs, values)

@@ -53,6 +53,8 @@ class Parameters(object):
 			('module_config.resample_opt.end', 1.0),
 			('pretraining_enabled', False),
 			('module_config.pretraining_opt.hiresfix_enabled', False),
+			('module_config.pretraining_opt.checkpoint', constants.checkpoint_default),
+			('module_config.pretraining_opt.vae', constants.vae_default),
 			('module_config.pretraining_opt.pretraining_model', None),
 			('module_config.pretraining_opt.filter', 'None'),
 			('module_config.pretraining_opt.prompt', ''),

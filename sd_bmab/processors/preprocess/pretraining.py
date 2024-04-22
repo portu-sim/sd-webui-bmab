@@ -20,9 +20,11 @@ class PretrainingDetailer(ProcessorBase):
 		self.pretraining_opt = {}
 
 		self.enabled = False
-		self.filter = 'None'
 		self.hiresfix_enabled = False
+		self.checkpoint = constants.checkpoint_default
+		self.vae = constants.vae_default
 		self.pretraining_model = None
+		self.filter = 'None'
 		self.prompt = ''
 		self.negative_prompt = ''
 		self.sampler = constants.sampler_default
@@ -58,6 +60,8 @@ class PretrainingDetailer(ProcessorBase):
 		self.enabled = context.args['pretraining_enabled']
 		self.pretraining_opt = context.args.get('module_config', {}).get('pretraining_opt', {})
 		self.hiresfix_enabled = self.pretraining_opt.get('hiresfix_enabled', self.hiresfix_enabled)
+		self.checkpoint = self.pretraining_opt.get('checkpoint', self.checkpoint)
+		self.vae = self.pretraining_opt.get('vae', self.vae)
 		self.pretraining_model = self.pretraining_opt.get('pretraining_model', self.pretraining_model)
 		self.filter = self.pretraining_opt.get('filter', self.filter)
 		self.prompt = self.pretraining_opt.get('prompt', self.prompt)
@@ -141,6 +145,16 @@ class PretrainingDetailer(ProcessorBase):
 
 			seed, subseed = context.get_seeds()
 			options = dict(mask=detected_mask, seed=seed, subseed=subseed, **pretraining_config)
+
+			if self.checkpoint != constants.checkpoint_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_model_checkpoint'] = self.checkpoint
+				options['override_settings'] = override_settings
+			if self.vae != constants.vae_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_vae'] = self.vae
+				options['override_settings'] = override_settings
+
 			with VAEMethodOverride():
 				img2img_imgage = process_img2img(context, image, options=options)
 

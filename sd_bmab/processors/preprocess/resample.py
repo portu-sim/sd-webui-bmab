@@ -20,8 +20,8 @@ class ResamplePreprocessor(ProcessorBase):
 		self.hiresfix_enabled = False
 		self.save_image = False
 		self.method = 'txt2img-1pass'
-		self.checkpoint = None
-		self.vae = None
+		self.checkpoint = constants.checkpoint_default
+		self.vae = constants.vae_default
 		self.filter = 'None'
 		self.prompt = None
 		self.negative_prompt = None
