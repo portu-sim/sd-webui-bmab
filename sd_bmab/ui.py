@@ -683,9 +683,6 @@ def create_ui(bscript, is_img2img):
 				_checkpoints, _vaes, _pretraining_models, _poses
 			]
 
-			for i, v in zip(inputs, values):
-				print(f'{i} {v} {i not in v}')
-
 			ret = {
 				t: {
 					'choices': v,
