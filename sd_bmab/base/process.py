@@ -125,7 +125,7 @@ def process_img2img(context: Context, img, options=None):
 
 
 def process_img2img_with_controlnet(context: Context, image, options, controlnet):
-	i2i_param = build_img2img(context.sdprocessing, image, options)
+	i2i_param = build_img2img(context, image, options)
 
 	img2img = StableDiffusionProcessingImg2ImgOv(**i2i_param)
 	img2img.cached_c = [None, None]
