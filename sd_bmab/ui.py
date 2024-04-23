@@ -679,7 +679,7 @@ def create_ui(bscript, is_img2img):
 
 			values = [
 				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
-				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
+				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
 				_checkpoints, _vaes, _pretraining_models, _poses
 			]
 
