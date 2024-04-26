@@ -1,3 +1,11 @@
+### v24.04.26
+
+* Code Fix
+  * Pretraining 에 checkpoint, vae 선택 추가
+  * checkpoint, vae, filter, pose 등에 대한 fresh 버튼을 삭제하고 하나로 통합
+  * vintage filter 추가
+
+
 ### v24.04.20
 
 * New Features
