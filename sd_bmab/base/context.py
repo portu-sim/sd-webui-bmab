@@ -38,6 +38,16 @@ class Context(object):
 			return self.sdprocessing.negative_prompt
 		return self.sdprocessing.all_negative_prompts[self.index]
 
+	def get_hires_prompt_by_index(self):
+		if self.sdprocessing.all_hr_prompts is None or len(self.sdprocessing.all_hr_prompts) <= self.index:
+			return self.sdprocessing.hr_prompt
+		return self.sdprocessing.all_hr_prompts[self.index]
+
+	def get_hires_negative_prompt_by_index(self):
+		if self.sdprocessing.all_hr_negative_prompts is None or len(self.sdprocessing.all_hr_negative_prompts) <= self.index:
+			return self.sdprocessing.hr_negative_prompt
+		return self.sdprocessing.all_hr_negative_prompts[self.index]
+
 	def get_seeds(self):
 		if self.sdprocessing.all_seeds is None or self.sdprocessing.all_subseeds is None:
 			return self.sdprocessing.seed, self.sdprocessing.subseed

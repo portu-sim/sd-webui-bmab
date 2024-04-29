@@ -136,7 +136,11 @@ class PersonDetailer(ProcessorBase):
 			options['width'] = w
 			options['height'] = h
 			options['inpaint_full_res'] = 1
-			options['inpaint_full_res'] = 32
+			options['inpaint_full_res_padding'] = 32
+
+			if context.is_hires_fix():
+				options['prompt'] = context.get_hires_prompt_by_index()
+				debug_print(options['prompt'])
 
 			with VAEMethodOverride(hiresfix=self.best_quality):
 				img2img_result = process_img2img(context, cropped, options=options)
