@@ -768,4 +768,5 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_cn_inpaint', shared.OptionInfo(default='control_v11p_sd15_inpaint_fp16 [be8bc0ed]', label='ControlNet inpaint model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_tile_resample', shared.OptionInfo(default='control_v11f1e_sd15_tile_fp16 [3b860298]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_inpaint_depth_hand', shared.OptionInfo(default='control_sd15_inpaint_depth_hand_fp16 [09456e54]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_additional_checkpoint_path', shared.OptionInfo(default='', label='Additional Checkpoint Path', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 

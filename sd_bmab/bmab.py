@@ -13,9 +13,11 @@ from sd_bmab import ui
 from sd_bmab import util
 from sd_bmab import controlnet
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
+from sd_bmab.sd_override import sd_models
 
 
 override_sd_webui()
+sd_models.override()
 filter.reload_filters()
 
 if not shared.opts.data.get('bmab_for_developer', False):
