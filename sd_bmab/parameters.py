@@ -109,6 +109,8 @@ class Parameters(object):
 			('module_config.person_detailing_opt.force_1:1', False),
 			('module_config.person_detailing_opt.block_overscaled_image', True),
 			('module_config.person_detailing_opt.auto_upscale', True),
+			('module_config.person_detailing_opt.checkpoint', constants.checkpoint_default),
+			('module_config.person_detailing_opt.vae', constants.vae_default),
 			('module_config.person_detailing_opt.scale', 4),
 			('module_config.person_detailing_opt.dilation', 2),
 			('module_config.person_detailing_opt.area_ratio', 0.1),

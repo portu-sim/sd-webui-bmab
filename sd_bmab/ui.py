@@ -307,16 +307,22 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
 						with gr.Row():
 							with gr.Column(min_width=100):
+								person_checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
+								elem += person_checkpoint_models
+							with gr.Column(min_width=100):
+								person_vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
+								elem += person_vaes_models
+						with gr.Row():
+							with gr.Column(min_width=100):
 								elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
 								elem += gr.Slider(minimum=0, maximum=20, value=3, step=1, label='Dilation mask')
 								elem += gr.Slider(minimum=0.01, maximum=1, value=0.1, step=0.01, label='Large person area limit')
 								elem += gr.Slider(minimum=0, maximum=20, value=1, step=1, label='Limit')
 								elem += gr.Slider(minimum=0, maximum=2, value=1, step=0.01, visible=shared.opts.data.get('bmab_test_function', False), label='Background color (HIDDEN)')
 								elem += gr.Slider(minimum=0, maximum=30, value=0, step=1, visible=shared.opts.data.get('bmab_test_function', False), label='Background blur (HIDDEN)')
-							with gr.Column(min_width=100):
+							with gr.Column():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
-								gr.Markdown('')
 					with gr.Tab('Face', elem_id='bmab_face_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable face detailing', value=False)
@@ -659,7 +665,7 @@ def create_ui(bscript, is_img2img):
 
 		refresh_targets = [dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
 		refresh_targets.extend([checkpoint_models, vaes_models, refiner_models, refiner_vaes, face_models, face_vaes, resample_models, resample_vaes])
-		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, pretraining_models, dd_pose])
+		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, person_checkpoint_models, person_vaes_models, pretraining_models, dd_pose])
 
 		def reload_filter(*args):
 			filter.reload_filters()
@@ -680,7 +686,7 @@ def create_ui(bscript, is_img2img):
 			values = [
 				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
 				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
-				_checkpoints, _vaes, _pretraining_models, _poses
+				_checkpoints, _vaes, _checkpoints, _vaes, _pretraining_models, _poses
 			]
 
 			ret = {

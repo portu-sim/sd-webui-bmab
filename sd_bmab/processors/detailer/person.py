@@ -12,6 +12,7 @@ from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverr
 
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
+from sd_bmab import constants
 
 
 class PersonDetailer(ProcessorBase):
@@ -29,6 +30,8 @@ class PersonDetailer(ProcessorBase):
 		self.best_quality = False
 		self.detection_model = 'Ultralytics(person_yolov8n-seg.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
+		self.checkpoint = constants.checkpoint_default
+		self.vae = constants.vae_default
 
 	def preprocess(self, context: Context, image: Image):
 		if context.args['person_detailing_enabled']:
@@ -42,6 +45,9 @@ class PersonDetailer(ProcessorBase):
 			self.background_blur = self.detailing_opt.get('background_blur', self.background_blur)
 			self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
 			self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
+			self.checkpoint = self.detailing_opt.get('checkpoint', self.checkpoint)
+			self.vae = self.detailing_opt.get('vae', self.vae)
+
 		return context.args['person_detailing_enabled']
 
 	def get_cropped_mask(self, image, boxes, box):
@@ -141,6 +147,15 @@ class PersonDetailer(ProcessorBase):
 			if context.is_hires_fix():
 				options['prompt'] = context.get_hires_prompt_by_index()
 				debug_print(options['prompt'])
+
+			if self.checkpoint is not None and self.checkpoint != constants.checkpoint_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_model_checkpoint'] = self.checkpoint
+				options['override_settings'] = override_settings
+			if self.vae != constants.vae_default:
+				override_settings = options.get('override_settings', {})
+				override_settings['sd_vae'] = self.vae
+				options['override_settings'] = override_settings
 
 			with VAEMethodOverride(hiresfix=self.best_quality):
 				img2img_result = process_img2img(context, cropped, options=options)
