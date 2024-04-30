@@ -17,11 +17,13 @@ from sd_bmab.sd_override import sd_models
 
 
 override_sd_webui()
-sd_models.override()
 filter.reload_filters()
 
 if not shared.opts.data.get('bmab_for_developer', False):
 	util.check_models()
+
+if shared.opts.data.get('bmab_additional_checkpoint_path', '') != '':
+	sd_models.override()
 
 
 class BmabExtScript(scripts.Script):
