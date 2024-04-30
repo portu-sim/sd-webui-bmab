@@ -491,7 +491,7 @@ def create_ui(bscript, is_img2img):
 										dd_ipadapter = gr.Dropdown(label='IpAdapter Selection', interactive=True, visible=True, value=ipadapters[0], choices=ipadapters)
 										elem += dd_ipadapter
 										weight_type = IpAdapter.get_weight_type_list()
-										elem += gr.Dropdown(label='IpAdapter Selection', interactive=True, visible=True, value=weight_type[0], choices=weight_type)
+										elem += gr.Dropdown(label='IpAdapter Weight Type', interactive=True, visible=True, value=weight_type[0], choices=weight_type)
 									with gr.Column():
 										ipadapter_image = gr.Image(elem_id='bmab_ipadapter_image')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
