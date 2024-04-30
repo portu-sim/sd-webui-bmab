@@ -1,3 +1,15 @@
+### v24.05.01
+
+* New Feature
+  * ControlNet IpAdapter 기능을 제공합니다.
+  * sd-webui-controlnet을 이용하여 제공하며, 랜덤하게 이미지를 적용할 수 있도록 개선했습니다.
+  * Setting > BMAB에 현재 ControlNet IpAdapter의 model을 적어주셔야 합니다.
+  * 기본적으로 모델은 default로 적용해두었습니다. 
+  
+* Code Fix
+  * Setting에 Additional Checkpoint Path이 sd-webui 1.8에서 동작하지 않아, 이런 경우 빈칸으로 두면 오류가 발생하지 않도록 수정했습니다.
+  * Person, Face 의 prompt가 hires.fix가 켜져있다면 hires.fix 것을 사용함.
+
 ### v24.04.30
 
 * New Feature

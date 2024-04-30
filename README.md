@@ -14,10 +14,23 @@ You can composite two images or perform the Upscale function.
 
 ## Example
 
-
-
-
 <table>
+    <tr>
+        <td>
+            <img src="https://i.ibb.co/hM8pvV2/00612-2685660966.jpg">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/H2CD8kX/00672-3470647356.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            </td>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+        </td>
+    </tr>
     <tr>
         <td>
             <img src="https://i.ibb.co/WvHHKc7/00111-2484939723.jpg">
