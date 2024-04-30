@@ -61,6 +61,7 @@ class Openpose(ProcessorBase):
 		cn_args = util.get_cn_args(context.sdprocessing)
 		debug_print('ControlNet', cn_args)
 		for num in range(*cn_args):
+			debug_print(f'Pose Check ControlNet {num}')
 			obj = context.sdprocessing.script_args[num]
 			if hasattr(obj, 'enabled') and obj.enabled:
 				context.controlnet_count += 1
@@ -81,7 +82,7 @@ class Openpose(ProcessorBase):
 
 		cn_op_arg = self.get_openpose_args(img)
 		idx = cn_args[0] + context.controlnet_count
-		context.controlnet_count += 1
+		debug_print(f'controlnet count {idx} {context.controlnet_count}')
 		sc_args = list(context.sdprocessing.script_args)
 		sc_args[idx] = cn_op_arg
 		context.sdprocessing.script_args = tuple(sc_args)
