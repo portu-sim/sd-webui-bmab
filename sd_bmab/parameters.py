@@ -171,8 +171,8 @@ class Parameters(object):
 			('module_config.hand_detailing.inpaint_full_res_padding', 32),
 			('module_config.hand_detailing_opt.additional_parameter', ''),
 			('module_config.controlnet.enabled', False),
-			('module_config.controlnet.with_refiner', False),
 			('module_config.controlnet.noise', False),
+			('module_config.controlnet.with_refiner', False),
 			('module_config.controlnet.noise_strength', 0.4),
 			('module_config.controlnet.noise_begin', 0.1),
 			('module_config.controlnet.noise_end', 0.9),
@@ -183,6 +183,12 @@ class Parameters(object):
 			('module_config.controlnet.pose_end', 1.0),
 			('module_config.controlnet.pose_face_only', False),
 			('module_config.controlnet.pose_selected', 'Random'),
+			('module_config.controlnet.ipadapter', False),
+			('module_config.controlnet.ipadapter_strength', 0.3),
+			('module_config.controlnet.ipadapter_begin', 0.0),
+			('module_config.controlnet.ipadapter_end', 1.0),
+			('module_config.controlnet.ipadapter_selected', 'Random'),
+			('module_config.controlnet.ipadapter_weight_type', 'normal'),
 			('resize_by_person_enabled', False),
 			('module_config.resize_by_person_opt.mode', constants.resize_mode_default),
 			('module_config.resize_by_person_opt.scale', 0.85),
@@ -302,7 +308,7 @@ class Parameters(object):
 		if name == 'None':
 			return {}
 
-		cfg_dir = os.path.join(os.path.dirname(__file__), "../preset")
+		cfg_dir = os.path.join(os.path.dirname(__file__), "../resources/preset")
 		json_file = os.path.join(cfg_dir, f'{name}.json')
 		if not os.path.isfile(json_file):
 			debug_print(f'Not found configuration file {name}.json')
@@ -322,7 +328,7 @@ class Parameters(object):
 		return name
 
 	def load_config(self, name):
-		save_dir = os.path.join(os.path.dirname(__file__), "../saved")
+		save_dir = os.path.join(os.path.dirname(__file__), "../resources/saved")
 		with open(os.path.join(save_dir, f'{name}.json'), 'r') as f:
 			loaded_dict = json.load(f)
 
@@ -344,14 +350,14 @@ class Parameters(object):
 			if key == 'config_file':
 				name = a
 
-		save_dir = os.path.join(os.path.dirname(__file__), "../saved")
+		save_dir = os.path.join(os.path.dirname(__file__), "../resources/saved")
 		args_list = [(self.params[idx][0], v) for idx, v in enumerate(args)]
 		conf = Parameters.get_dict_from_args(args_list, None)
 		with open(os.path.join(save_dir, f'{name}.json'), 'w') as f:
 			json.dump(conf, f, indent=2)
 
 	def list_config(self):
-		save_dir = os.path.join(os.path.dirname(__file__), "../saved")
+		save_dir = os.path.join(os.path.dirname(__file__), "../resources/saved")
 		if not os.path.isdir(save_dir):
 			os.mkdir(save_dir)
 
@@ -361,7 +367,7 @@ class Parameters(object):
 
 	def list_preset(self):
 		presets = ['None']
-		preset_dir = os.path.join(os.path.dirname(__file__), "../preset")
+		preset_dir = os.path.join(os.path.dirname(__file__), "../resources/preset")
 		configs = [x for x in os.listdir(preset_dir) if x.endswith('.json')]
 		presets.extend([x[:-5] for x in configs])
 		return presets

@@ -49,7 +49,7 @@ class Filter(filter.BaseFilter):
 	@staticmethod
 	def get_noise_from_cache(seed, width, height):
 		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../cache'))
+		path = os.path.normpath(os.path.join(path, '../resources/cache'))
 		cache_file = f'{path}/noise_{width}_{height}.png'
 		if os.path.isfile(cache_file):
 			return Image.open(cache_file)

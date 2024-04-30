@@ -14,8 +14,10 @@ from sd_bmab import util
 from sd_bmab import controlnet
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 from sd_bmab.sd_override import sd_models
+from sd_bmab.compat import check_directory
 
 
+check_directory()
 override_sd_webui()
 filter.reload_filters()
 

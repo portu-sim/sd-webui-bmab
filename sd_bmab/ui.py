@@ -18,7 +18,7 @@ from sd_bmab.base import installer
 from sd_bmab import pipeline
 from sd_bmab import masking
 from sd_bmab.util import debug_print
-from sd_bmab.processors.controlnet import Openpose
+from sd_bmab.processors.controlnet import Openpose, IpAdapter
 from sd_bmab.processors.postprocess import Watermark
 
 
@@ -450,11 +450,11 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable ControlNet access', value=False)
 						with gr.Row():
-							elem += gr.Checkbox(label='Process with BMAB refiner', value=False)
-						with gr.Row():
 							with gr.Tab('Noise', elem_id='bmab_cn_noise_tabs'):
 								with gr.Row():
 									elem += gr.Checkbox(label='Enable noise', value=False)
+								with gr.Row():
+									elem += gr.Checkbox(label='Process with BMAB refiner', value=False)
 								with gr.Row():
 									with gr.Column():
 										elem += gr.Slider(minimum=0.0, maximum=2, value=0.4, step=0.05, elem_id='bmab_cn_noise', label='Noise strength')
@@ -478,6 +478,22 @@ def create_ui(bscript, is_img2img):
 										elem += dd_pose
 									with gr.Column():
 										pose_image = gr.Image(elem_id='bmab_pose_image')
+							with gr.Tab('IpAdapter', elem_id='bmab_cn_ipadapter_tabs'):
+								with gr.Row():
+									elem += gr.Checkbox(label='Enable ipadapter', value=False)
+								with gr.Row():
+									with gr.Column():
+										elem += gr.Slider(minimum=0.0, maximum=2, value=0.6, step=0.05, elem_id='bmab_cn_ipadapter', label='IpAdapter strength')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_ipadapter_begin', label='IpAdapter begin')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.3, step=0.01, elem_id='bmab_cn_ipadapter_end', label='IpAdapter end')
+										ipadapters = ['Random']
+										ipadapters.extend(IpAdapter.list_images())
+										dd_ipadapter = gr.Dropdown(label='IpAdapter Selection', interactive=True, visible=True, value=ipadapters[0], choices=ipadapters)
+										elem += dd_ipadapter
+										weight_type = IpAdapter.get_weight_type_list()
+										elem += gr.Dropdown(label='IpAdapter Selection', interactive=True, visible=True, value=weight_type[0], choices=weight_type)
+									with gr.Column():
+										ipadapter_image = gr.Image(elem_id='bmab_ipadapter_image')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
@@ -677,7 +693,8 @@ def create_ui(bscript, is_img2img):
 
 		refresh_targets = [dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
 		refresh_targets.extend([checkpoint_models, vaes_models, refiner_models, refiner_vaes, face_models, face_vaes, resample_models, resample_vaes])
-		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, person_checkpoint_models, person_vaes_models, pretraining_models, dd_pose])
+		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, person_checkpoint_models, person_vaes_models])
+		refresh_targets.extend([pretraining_models, dd_pose, dd_ipadapter])
 
 		def reload_filter(*args):
 			filter.reload_filters()
@@ -694,11 +711,13 @@ def create_ui(bscript, is_img2img):
 
 			_poses = ['Random']
 			_poses.extend(Openpose.list_pose())
+			_ipadapter = ['Random']
+			_ipadapter.extend(IpAdapter.list_images())
 
 			values = [
 				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
 				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
-				_checkpoints, _vaes, _checkpoints, _vaes, _pretraining_models, _poses
+				_checkpoints, _vaes, _checkpoints, _vaes, _pretraining_models, _poses, _ipadapter
 			]
 
 			ret = {
@@ -739,6 +758,10 @@ def create_ui(bscript, is_img2img):
 			print(args)
 			return Openpose.get_pose(args[0])
 
+		def ipadapter_selected(*args):
+			print(args)
+			return IpAdapter.get_image(args[0])
+
 		load_btn.click(load_config, inputs=[config_dd], outputs=elem)
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
@@ -759,7 +782,7 @@ def create_ui(bscript, is_img2img):
 		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[markdown_install])
 		btn_stop.click(stop_process)
 		dd_pose.select(pose_selected, inputs=[dd_pose], outputs=[pose_image])
-
+		dd_ipadapter.select(ipadapter_selected, inputs=[dd_ipadapter], outputs=[ipadapter_image])
 	return elem
 
 
@@ -786,5 +809,6 @@ def on_ui_settings():
 	shared.opts.add_option('bmab_cn_inpaint', shared.OptionInfo(default='control_v11p_sd15_inpaint_fp16 [be8bc0ed]', label='ControlNet inpaint model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_tile_resample', shared.OptionInfo(default='control_v11f1e_sd15_tile_fp16 [3b860298]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_cn_inpaint_depth_hand', shared.OptionInfo(default='control_sd15_inpaint_depth_hand_fp16 [09456e54]', label='ControlNet tile model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
+	shared.opts.add_option('bmab_cn_ipadapter', shared.OptionInfo(default='ip-adapter-plus_sd15 [836b5c2e]', label='ControlNet ip adapter model', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 	shared.opts.add_option('bmab_additional_checkpoint_path', shared.OptionInfo(default='', label='Additional Checkpoint Path', component=gr.Textbox, component_args='', section=('bmab', 'BMAB')))
 

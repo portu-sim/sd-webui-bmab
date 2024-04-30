@@ -50,6 +50,7 @@ class LineartNoise(ProcessorBase):
 	@staticmethod
 	def get_noise_args(image, weight, begin, end, hr_option):
 		cn_args = {
+			'enabled': True,
 			'input_image': util.b64_encoding(image),
 			'model': shared.opts.bmab_cn_lineart,
 			'weight': weight,
@@ -72,7 +73,7 @@ class LineartNoise(ProcessorBase):
 
 	def get_noise_from_cache(self, seed, width, height):
 		path = os.path.dirname(sd_bmab.__file__)
-		cache_dir = os.path.normpath(os.path.join(path, '..', 'cache'))
+		cache_dir = os.path.normpath(os.path.join(path, '..', 'resources/cache'))
 		if not os.path.isdir(cache_dir):
 			os.mkdir(cache_dir)
 		cache_file = os.path.join(cache_dir, f'noise_{width}_{height}.png')

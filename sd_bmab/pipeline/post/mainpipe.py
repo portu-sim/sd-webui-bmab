@@ -8,7 +8,7 @@ from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetail
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
 from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChanger, CheckPointRestore
 from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha
-from sd_bmab.processors.controlnet import LineartNoise, Openpose
+from sd_bmab.processors.controlnet import LineartNoise, Openpose, IpAdapter
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
 from sd_bmab.processors.preprocess import ResamplePreprocessor, PreprocessFilter
 from sd_bmab.processors.postprocess import Watermark
@@ -109,7 +109,8 @@ def process_intermediate(context, image):
 def process_controlnet(context):
 	all_processors = [
 		LineartNoise(),
-		Openpose()
+		Openpose(),
+		IpAdapter()
 	]
 
 	for proc in all_processors:

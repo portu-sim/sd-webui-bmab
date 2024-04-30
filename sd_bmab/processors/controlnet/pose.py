@@ -38,6 +38,7 @@ class Openpose(ProcessorBase):
 
 	def get_openpose_args(self, image):
 		cn_args = {
+			'enabled': True,
 			'input_image': util.b64_encoding(image),
 			'module': 'openpose_faceonly' if self.pose_face_only else 'openpose',
 			'model': shared.opts.bmab_cn_openpose,
@@ -92,7 +93,7 @@ class Openpose(ProcessorBase):
 
 	def load_random_image(self, context):
 		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../pose'))
+		path = os.path.normpath(os.path.join(path, '../resources/pose'))
 		if os.path.exists(path) and os.path.isdir(path):
 			file_mask = f'{path}/*.*'
 			files = glob.glob(file_mask)
@@ -112,7 +113,7 @@ class Openpose(ProcessorBase):
 	def get_cache(self, context, file):
 		if self.pose_face_only:
 			path = os.path.dirname(sd_bmab.__file__)
-			path = os.path.normpath(os.path.join(path, '../cache'))
+			path = os.path.normpath(os.path.join(path, '../resources/cache'))
 			if os.path.exists(path) and os.path.isdir(path):
 				b = os.path.basename(file)
 				file_mask = f'{path}/pose_face_{b}'
@@ -124,7 +125,7 @@ class Openpose(ProcessorBase):
 	@staticmethod
 	def list_pose():
 		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../pose'))
+		path = os.path.normpath(os.path.join(path, '../resources/pose'))
 		if os.path.exists(path) and os.path.isdir(path):
 			file_mask = f'{path}/*.*'
 			files = glob.glob(file_mask)
@@ -137,7 +138,7 @@ class Openpose(ProcessorBase):
 		if f == 'Random':
 			return Image.new('RGB', (512, 512), 0)
 		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../pose'))
+		path = os.path.normpath(os.path.join(path, '../resources/pose'))
 		if os.path.exists(path) and os.path.isdir(path):
 			img_name = f'{path}/{f}'
 			return Image.open(img_name)
