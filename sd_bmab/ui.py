@@ -22,7 +22,7 @@ from sd_bmab.processors.controlnet import Openpose
 from sd_bmab.processors.postprocess import Watermark
 
 
-bmab_version = 'v24.04.26.0'
+bmab_version = 'v24.04.30.0'
 
 final_images = []
 last_process = None

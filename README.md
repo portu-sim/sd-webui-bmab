@@ -20,7 +20,7 @@ You can composite two images or perform the Upscale function.
 <table>
     <tr>
         <td>
-            <img src="https://i.ibb.co/WvHHKc7/00111-2484939723-1.jpg">
+            <img src="https://i.ibb.co/WvHHKc7/00111-2484939723.jpg">
             </td>
         <td>
             <img src="https://i.ibb.co/px4YXDM/00199-2019853980.jpg">

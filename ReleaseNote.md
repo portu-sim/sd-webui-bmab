@@ -1,3 +1,12 @@
+### v24.04.30
+
+* New Feature
+  * Person Detailer에 checkpoint, vae, sampler, scheduler 및 steps 추가
+  * Setting에 Additional Checkpoint Path 디렉토리를 입력하면 두 디렉토리 내용을 병합하여 전체적 적용됨.
+
+* Code Fix
+  * Person, Face 의 prompt가 hires.fix가 켜져있다면 hires.fix 것을 사용함.
+
 ### v24.04.26
 
 * Code Fix
