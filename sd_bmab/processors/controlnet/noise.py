@@ -91,17 +91,16 @@ class LineartNoise(ProcessorBase):
 
 		cn_args = util.get_cn_args(context.sdprocessing)
 		debug_print('ControlNet', cn_args)
+		controlnet_count = 0
 		for num in range(*cn_args):
-			debug_print(f'Noise Check ControlNet {num}')
 			obj = context.sdprocessing.script_args[num]
 			if hasattr(obj, 'enabled') and obj.enabled:
-				context.controlnet_count += 1
-			elif isinstance(obj, dict) and 'module' in obj and obj.get('enabled', False):
-				context.controlnet_count += 1
+				controlnet_count += 1
+			elif isinstance(obj, dict) and obj.get('enabled', False):
+				controlnet_count += 1
 			else:
 				break
 
-		debug_print('noise enabled.', self.noise_strength)
 		context.add_generation_param('BMAB controlnet mode', 'lineart')
 		context.add_generation_param('BMAB noise strength', self.noise_strength)
 		context.add_generation_param('BMAB noise begin', self.noise_begin)
@@ -109,8 +108,8 @@ class LineartNoise(ProcessorBase):
 
 		img = self.get_noise_from_cache(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
 		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
-		idx = cn_args[0] + context.controlnet_count
-		debug_print(f'controlnet count {idx} {context.controlnet_count}')
+		idx = cn_args[0] + controlnet_count
+		debug_print(f'Noise Enabled {idx}')
 		sc_args = list(context.sdprocessing.script_args)
 		sc_args[idx] = cn_op_arg
 		context.sdprocessing.script_args = tuple(sc_args)

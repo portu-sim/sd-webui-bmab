@@ -79,17 +79,16 @@ class IpAdapter(ProcessorBase):
 
 		cn_args = util.get_cn_args(context.sdprocessing)
 		debug_print('ControlNet', cn_args)
+		controlnet_count = 0
 		for num in range(*cn_args):
-			debug_print(f'Pose Check ControlNet {num}')
 			obj = context.sdprocessing.script_args[num]
 			if hasattr(obj, 'enabled') and obj.enabled:
-				context.controlnet_count += 1
-			elif isinstance(obj, dict) and 'module' in obj and obj.get('enabled', False):
-				context.controlnet_count += 1
+				controlnet_count += 1
+			elif isinstance(obj, dict) and obj.get('enabled', False):
+				controlnet_count += 1
 			else:
 				break
 				
-		debug_print('ipadapter enabled.', self.ipadapter_strength)
 		context.add_generation_param('BMAB controlnet ipadapter mode', 'ip-adapter-auto')
 		context.add_generation_param('BMAB ipadapter strength', self.ipadapter_strength)
 		context.add_generation_param('BMAB ipadapter begin', self.ipadapter_begin)
@@ -102,8 +101,8 @@ class IpAdapter(ProcessorBase):
 			return
 
 		cn_op_arg = self.get_openipadapter_args(img)
-		idx = cn_args[0] + context.controlnet_count
-		debug_print(f'controlnet count {idx} {context.controlnet_count}')
+		idx = cn_args[0] + controlnet_count
+		debug_print(f'IpAdapter Enabled {idx}')
 		sc_args = list(context.sdprocessing.script_args)
 		sc_args[idx] = cn_op_arg
 		context.sdprocessing.script_args = tuple(sc_args)

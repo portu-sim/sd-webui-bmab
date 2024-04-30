@@ -16,7 +16,6 @@ class Context(object):
 		self.sdprocessing = p
 		self.args = a
 		self.index = idx
-		self.controlnet_count = 0
 		self.refiner = None
 		self.sd_model_name = None
 		self.sd_vae_name = None
