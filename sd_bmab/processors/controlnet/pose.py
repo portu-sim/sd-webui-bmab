@@ -64,7 +64,7 @@ class Openpose(ProcessorBase):
 			obj = context.sdprocessing.script_args[num]
 			if hasattr(obj, 'enabled') and obj.enabled:
 				context.controlnet_count += 1
-			elif isinstance(obj, dict) and 'module' in obj and obj['enabled']:
+			elif isinstance(obj, dict) and 'module' in obj and obj.get('enabled', False):
 				context.controlnet_count += 1
 			else:
 				break

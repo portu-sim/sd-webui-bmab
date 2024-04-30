@@ -32,6 +32,8 @@ class PersonDetailer(ProcessorBase):
 		self.max_element = shared.opts.bmab_max_detailing_element
 		self.checkpoint = constants.checkpoint_default
 		self.vae = constants.vae_default
+		self.sampler = constants.sampler_default
+		self.scheduler = constants.scheduler_default
 
 	def preprocess(self, context: Context, image: Image):
 		if context.args['person_detailing_enabled']:
@@ -47,6 +49,8 @@ class PersonDetailer(ProcessorBase):
 			self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 			self.checkpoint = self.detailing_opt.get('checkpoint', self.checkpoint)
 			self.vae = self.detailing_opt.get('vae', self.vae)
+			self.sampler = self.detailing_opt.get('sampler', self.sampler)
+			self.scheduler = self.detailing_opt.get('scheduler', self.scheduler)
 
 		return context.args['person_detailing_enabled']
 
@@ -71,6 +75,11 @@ class PersonDetailer(ProcessorBase):
 		debug_print(f'Max element {self.max_element}')
 
 		context.add_job(min(self.limit, len(boxes)))
+
+		if self.sampler != constants.sampler_default:
+			i2i_config['sampler_name'] = self.sampler
+		if self.scheduler != constants.scheduler_default:
+			i2i_config['scheduler'] = self.scheduler
 
 		processed = []
 		for idx, (box, logit) in enumerate(zip(boxes, logits)):

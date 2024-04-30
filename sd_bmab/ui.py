@@ -307,11 +307,22 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Checkbox(label='Auto Upscale if Block over-scaled image enabled', value=True)
 						with gr.Row():
 							with gr.Column(min_width=100):
-								person_checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
-								elem += person_checkpoint_models
+								with gr.Row():
+									with gr.Column(min_width=50):
+										person_checkpoint_models = gr.Dropdown(label='CheckPoint', visible=True, value=ui_checkpoints[0], choices=ui_checkpoints)
+										elem += person_checkpoint_models
+									with gr.Column(min_width=50):
+										person_vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
+										elem += person_vaes_models
 							with gr.Column(min_width=100):
-								person_vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
-								elem += person_vaes_models
+								with gr.Row():
+									with gr.Column(min_width=50):
+										asamplers = [constants.sampler_default]
+										asamplers.extend([x.name for x in shared.list_samplers()])
+										elem += gr.Dropdown(label='Sampler', elem_id="bmb_person_sampler", visible=True, value=asamplers[0], choices=asamplers)
+									with gr.Column(min_width=50):
+										ascheduler = util.get_scueduler_list()
+										elem += gr.Dropdown(label='Scheduler', elem_id="bmb_person_scheduler", choices=ascheduler, value=ascheduler[0])
 						with gr.Row():
 							with gr.Column(min_width=100):
 								elem += gr.Slider(minimum=1, maximum=8, value=4, step=0.01, label='Upscale Ratio')
@@ -323,6 +334,7 @@ def create_ui(bscript, is_img2img):
 							with gr.Column():
 								elem += gr.Slider(minimum=0, maximum=1, value=0.4, step=0.01, label='Denoising Strength')
 								elem += gr.Slider(minimum=1, maximum=30, value=7, step=0.5, label='CFG Scale')
+								elem += gr.Slider(minimum=1, maximum=150, value=20, step=1, label='Steps')
 					with gr.Tab('Face', elem_id='bmab_face_tabs'):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable face detailing', value=False)
