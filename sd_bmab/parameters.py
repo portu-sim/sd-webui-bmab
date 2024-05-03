@@ -371,3 +371,10 @@ class Parameters(object):
 		configs = [x for x in os.listdir(preset_dir) if x.endswith('.json')]
 		presets.extend([x[:-5] for x in configs])
 		return presets
+
+	def get_config_value_by_key(self, key, configs):
+		for x, y in zip(self.params, configs):
+			if x[0] == key:
+				return y
+		return None
+

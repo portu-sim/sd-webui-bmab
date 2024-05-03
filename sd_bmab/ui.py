@@ -22,7 +22,7 @@ from sd_bmab.processors.controlnet import Openpose, IpAdapter
 from sd_bmab.processors.postprocess import Watermark
 
 
-bmab_version = 'v24.05.01.0'
+bmab_version = 'v24.05.03.0'
 
 final_images = []
 last_process = None
@@ -606,6 +606,10 @@ def create_ui(bscript, is_img2img):
 		def load_config(*args):
 			name = args[0]
 			ret = parameters.Parameters().load_config(name)
+			pose_img_name = parameters.Parameters().get_config_value_by_key('module_config.controlnet.pose_selected', ret)
+			ret.append(Openpose.get_pose(pose_img_name))
+			ipadapter_img_name = parameters.Parameters().get_config_value_by_key('module_config.controlnet.ipadapter_selected', ret)
+			ret.append(IpAdapter.get_image(ipadapter_img_name, displayed=True))
 			return ret
 
 		def save_config(*args):
@@ -755,14 +759,14 @@ def create_ui(bscript, is_img2img):
 			gr.Info('Waiting for processing done.')
 
 		def pose_selected(*args):
-			print(args)
 			return Openpose.get_pose(args[0])
 
 		def ipadapter_selected(*args):
-			print(args)
-			return IpAdapter.get_image(args[0])
+			return IpAdapter.get_image(args[0], displayed=True)
 
-		load_btn.click(load_config, inputs=[config_dd], outputs=elem)
+		load_update_elem = elem[:]
+		load_update_elem.extend([pose_image, ipadapter_image])
+		load_btn.click(load_config, inputs=[config_dd], outputs=load_update_elem)
 		save_btn.click(save_config, inputs=elem, outputs=[config_dd])
 		reset_btn.click(reset_config, outputs=elem)
 		refresh_btn.click(refresh_preset, outputs=elem)

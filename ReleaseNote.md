@@ -1,6 +1,13 @@
 ### v24.05.01
 
 * New Feature
+  * ControlNet IpAdapter에서 하위 디렉토리를 만들면 하위 디렉토리 안에서 이미지를 적용할 수 있도록 개선했습니다.
+  * Random으로 지정하면 전체 이미지에서 선택합니다.
+  * 저장된 정보를 불러왔을때 Pose, IpAdapter 이미지가 표시됩니다.
+  
+* ### v24.05.01
+
+* New Feature
   * ControlNet IpAdapter 기능을 제공합니다.
   * sd-webui-controlnet을 이용하여 제공하며, 랜덤하게 이미지를 적용할 수 있도록 개선했습니다.
   * Setting > BMAB에 현재 ControlNet IpAdapter의 model을 적어주셔야 합니다.

@@ -88,7 +88,7 @@ class IpAdapter(ProcessorBase):
 				controlnet_count += 1
 			else:
 				break
-				
+
 		context.add_generation_param('BMAB controlnet ipadapter mode', 'ip-adapter-auto')
 		context.add_generation_param('BMAB ipadapter strength', self.ipadapter_strength)
 		context.add_generation_param('BMAB ipadapter begin', self.ipadapter_begin)
@@ -96,7 +96,7 @@ class IpAdapter(ProcessorBase):
 		context.add_generation_param('BMAB ipadapter image', self.ipadapter_selected)
 		context.add_generation_param('BMAB ipadapter weight type', self.ipadapter_weight_type)
 
-		img = self.load_random_image(context)
+		img = self.load_image(context)
 		if img is None:
 			return
 
@@ -110,45 +110,61 @@ class IpAdapter(ProcessorBase):
 	def postprocess(self, context: Context, image: Image):
 		pass
 
-	def load_random_image(self, context):
-		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../resources/ipadapter'))
-		if os.path.exists(path) and os.path.isdir(path):
-			file_mask = f'{path}/*.*'
-			files = [os.path.basename(f) for f in glob.glob(file_mask) if not f.endswith('.txt')]
-			if not files:
-				debug_print(f'Not found ipadapter files in {path}')
-				return None
-			if self.ipadapter_selected == 'Random':
-				file = random.choice(files)
-				debug_print(f'Random ipadapter {file}')
-				return self.get_image(file)
-			else:
-				return self.get_image(self.ipadapter_selected)
-		debug_print(f'Not found directory {path}')
-		return None
+	def load_image(self, context):
+		if self.ipadapter_selected == 'Random':
+			images = IpAdapter.list_images()
+			img = random.choice(images)
+			return self.get_image(img)
+		else:
+			return self.get_image(self.ipadapter_selected)
 
 	@staticmethod
 	def list_images():
-		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../resources/ipadapter'))
-		if os.path.exists(path) and os.path.isdir(path):
-			file_mask = f'{path}/*.*'
-			files = glob.glob(file_mask)
-			return [os.path.basename(f) for f in files if not f.endswith('.txt')]
-		debug_print(f'Not found directory {path}')
-		return []
+		root_path = os.path.dirname(sd_bmab.__file__)
+		root_path = os.path.normpath(os.path.join(root_path, '../resources/ipadapter'))
+		if not os.path.exists(root_path) or not os.path.isdir(root_path):
+			return []
+		return [os.path.relpath(f, root_path) for f in IpAdapter.list_images_in_dir(root_path)]
 
 	@staticmethod
-	def get_image(f):
-		if f == 'Random':
-			return Image.new('RGB', (512, 512), 0)
-		path = os.path.dirname(sd_bmab.__file__)
-		path = os.path.normpath(os.path.join(path, '../resources/ipadapter'))
-		if os.path.exists(path) and os.path.isdir(path):
-			img_name = f'{path}/{f}'
-			return Image.open(img_name)
-		return Image.new('RGB', (512, 512), 0)
+	def list_images_in_dir(path):
+		files = []
+		dirs = []
+		for file in glob.glob(f'{path}/*'):
+			if os.path.isdir(file):
+				dirs.append(file)
+				continue
+			if not file.endswith('.txt'):
+				files.append(file)
+
+		files = sorted(files)
+		for dir in dirs:
+			files.append(dir)
+			files.extend(IpAdapter.list_images_in_dir(dir))
+
+		return files
+
+	@staticmethod
+	def get_image(f, displayed=False):
+		if displayed and (f is None or f == 'Random'):
+			return Image.new('RGB', (512, 512))
+		root_path = os.path.dirname(sd_bmab.__file__)
+		root_path = os.path.normpath(os.path.join(root_path, '../resources/ipadapter'))
+		image_path = os.path.join(root_path, f)
+		if os.path.isdir(image_path):
+			if displayed:
+				return Image.new('RGB', (512, 512))
+			files = [os.path.relpath(f, root_path) for f in IpAdapter.list_images_in_dir(image_path) if not f.endswith('.txt')]
+			if not files:
+				debug_print(f'Not found ipadapter files in {image_path}')
+				return Image.new('RGB', (512, 512)) if displayed else None
+			file = random.choice(files)
+			return IpAdapter.get_image(file)
+		else:
+			if os.path.exists(image_path):
+				return Image.open(image_path)
+			else:
+				return Image.new('RGB', (512, 512)) if displayed else None
 
 	@staticmethod
 	def get_weight_type_list():
