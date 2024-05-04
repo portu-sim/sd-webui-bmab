@@ -37,7 +37,6 @@ def dino_predict(pilimg, prompt, box_threahold=0.35, text_threshold=0.25):
 
 	model = dino_init()
 	boxes, logits, phrases = predict(
-		device='cuda:0',
 		model=model,
 		image=image,
 		caption=prompt,

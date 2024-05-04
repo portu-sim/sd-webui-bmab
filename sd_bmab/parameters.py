@@ -105,7 +105,7 @@ class Parameters(object):
 			('detect_enabled', False),
 			('masking_prompt', ''),
 			('person_detailing_enabled', False),
-			('module_config.person_detailing_opt.best_quality', False),
+			('module_config.person_detailing_opt.use_groudingdino', False),
 			('module_config.person_detailing_opt.force_1:1', False),
 			('module_config.person_detailing_opt.block_overscaled_image', True),
 			('module_config.person_detailing_opt.auto_upscale', True),

@@ -86,11 +86,7 @@ class LineartNoise(ProcessorBase):
 		return img
 
 	def process(self, context: Context, image: Image):
-		debug_print('Seed', context.sdprocessing.seed)
-		debug_print('AllSeeds', context.sdprocessing.all_seeds)
-
 		cn_args = util.get_cn_args(context.sdprocessing)
-		debug_print('ControlNet', cn_args)
 		controlnet_count = 0
 		for num in range(*cn_args):
 			obj = context.sdprocessing.script_args[num]

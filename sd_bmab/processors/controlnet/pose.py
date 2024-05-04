@@ -56,11 +56,7 @@ class Openpose(ProcessorBase):
 		return cn_args
 
 	def process(self, context: Context, image: Image):
-		debug_print('Seed', context.sdprocessing.seed)
-		debug_print('AllSeeds', context.sdprocessing.all_seeds)
-
 		cn_args = util.get_cn_args(context.sdprocessing)
-		debug_print('ControlNet', cn_args)
 		controlnet_count = 0
 		for num in range(*cn_args):
 			obj = context.sdprocessing.script_args[num]
@@ -142,3 +138,7 @@ class Openpose(ProcessorBase):
 			img_name = f'{path}/{f}'
 			return Image.open(img_name)
 		return Image.new('RGB', (512, 512), 0)
+
+	@staticmethod
+	def pose_selected(*args):
+		return Openpose.get_pose(args[0])

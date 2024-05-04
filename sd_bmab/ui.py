@@ -14,10 +14,9 @@ from sd_bmab import detectors
 from sd_bmab import parameters
 from sd_bmab.base import context
 from sd_bmab.base import filter
-from sd_bmab.base import installer
 from sd_bmab import pipeline
 from sd_bmab import masking
-from sd_bmab.util import debug_print
+from sd_bmab.util import debug_print, installhelper
 from sd_bmab.processors.controlnet import Openpose, IpAdapter
 from sd_bmab.processors.postprocess import Watermark
 
@@ -300,7 +299,7 @@ def create_ui(bscript, is_img2img):
 						with gr.Row():
 							elem += gr.Checkbox(label='Enable person detailing for landscape', value=False)
 						with gr.Row():
-							elem += gr.Checkbox(label='Enable best quality (EXPERIMENTAL, Use more GPU)', value=False)
+							elem += gr.Checkbox(label='Use groudingdino for detection', value=False)
 							elem += gr.Checkbox(label='Force upscale ratio 1:1 without area limit', value=False)
 						with gr.Row():
 							elem += gr.Checkbox(label='Block over-scaled image', value=True)
@@ -588,9 +587,8 @@ def create_ui(bscript, is_img2img):
 						random_checkpoint = gr.Button('Merge Random Checkpoint', visible=True, interactive=True, elem_id='bmab_merge_random_checkpoint')
 				with gr.Tab('Installer', elem_id='bmab_install_tabs'):
 					with gr.Row():
-						pkgs = ['GroundingDINO']
-						dd_pkg = gr.Dropdown(label='Package', visible=True, value=pkgs[0], choices=pkgs)
-						btn_install = ui_components.ToolButton('🔄', visible=True, interactive=True, tooltip='Install package', elem_id='bmab_btn_install')
+						dd_pkg = gr.Dropdown(label='Package', visible=True, value=installhelper.available_packages[0], choices=installhelper.available_packages)
+						btn_install = ui_components.ToolButton('▶️', visible=True, interactive=True, tooltip='Install package', elem_id='bmab_btn_install')
 					with gr.Row():
 						markdown_install = gr.Markdown('')
 		with gr.Accordion(f'BMAB Testroom', open=False, visible=shared.opts.data.get('bmab_for_developer', False)):
@@ -741,28 +739,11 @@ def create_ui(bscript, is_img2img):
 			gallery_select_index = data.index
 
 		def hit_install(*args):
-			pkg_name = args[0]
-			if pkg_name == 'GroundingDINO':
-				installer.install_groudingdino()
-				msg = f'{pkg_name} installed'
-			else:
-				msg = 'Nothing installed.'
-			return {
-				markdown_install: {
-					'value': msg,
-					'__type__': 'update'
-				}
-			}
+			return installhelper.install(args[0], dd_pkg, markdown_install)
 
 		def stop_process(*args):
 			bscript.stop_generation = True
 			gr.Info('Waiting for processing done.')
-
-		def pose_selected(*args):
-			return Openpose.get_pose(args[0])
-
-		def ipadapter_selected(*args):
-			return IpAdapter.get_image(args[0], displayed=True)
 
 		load_update_elem = elem[:]
 		load_update_elem.extend([pose_image, ipadapter_image])
@@ -783,10 +764,10 @@ def create_ui(bscript, is_img2img):
 		btn_process_pipeline.click(process_pipeline, inputs=elem, outputs=[result_image])
 		gallery.select(image_selected, inputs=[gallery])
 
-		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[markdown_install])
+		btn_install.click(hit_install, inputs=[dd_pkg], outputs=[dd_pkg, markdown_install])
 		btn_stop.click(stop_process)
-		dd_pose.select(pose_selected, inputs=[dd_pose], outputs=[pose_image])
-		dd_ipadapter.select(ipadapter_selected, inputs=[dd_ipadapter], outputs=[ipadapter_image])
+		dd_pose.select(Openpose.pose_selected, inputs=[dd_pose], outputs=[pose_image])
+		dd_ipadapter.select(IpAdapter.ipadapter_selected, inputs=[dd_ipadapter], outputs=[ipadapter_image])
 	return elem
 
 

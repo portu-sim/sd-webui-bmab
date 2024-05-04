@@ -74,11 +74,7 @@ class IpAdapter(ProcessorBase):
 		return cn_args
 
 	def process(self, context: Context, image: Image):
-		debug_print('Seed', context.sdprocessing.seed)
-		debug_print('AllSeeds', context.sdprocessing.all_seeds)
-
 		cn_args = util.get_cn_args(context.sdprocessing)
-		debug_print('ControlNet', cn_args)
 		controlnet_count = 0
 		for num in range(*cn_args):
 			obj = context.sdprocessing.script_args[num]
@@ -176,3 +172,8 @@ class IpAdapter(ProcessorBase):
 			if wt[0] == weight_type_name:
 				return [x * weight for x in wt[1]]
 		return [x * weight for x in weight_type[0][1]]
+
+	@staticmethod
+	def ipadapter_selected(*args):
+		return IpAdapter.get_image(args[0], displayed=True)
+

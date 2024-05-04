@@ -10,6 +10,7 @@ from modules import devices
 from sd_bmab import util, masking
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 
+from sd_bmab.base import exmodels
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
 from sd_bmab import constants
@@ -27,7 +28,7 @@ class PersonDetailer(ProcessorBase):
 		self.force_one_on_one = False
 		self.background_color = 1
 		self.background_blur = 0
-		self.best_quality = False
+		self.use_groudingdino = False
 		self.detection_model = 'Ultralytics(person_yolov8n-seg.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
 		self.checkpoint = constants.checkpoint_default
@@ -45,7 +46,7 @@ class PersonDetailer(ProcessorBase):
 			self.force_one_on_one = self.detailing_opt.get('force_1:1', self.force_one_on_one)
 			self.background_color = self.detailing_opt.get('background_color', self.background_color)
 			self.background_blur = self.detailing_opt.get('background_blur', self.background_blur)
-			self.best_quality = self.detailing_opt.get('best_quality', self.best_quality)
+			self.use_groudingdino = self.detailing_opt.get('use_groudingdino', self.use_groudingdino)
 			self.detection_model = self.detailing_opt.get('detection_model', self.detection_model)
 			self.checkpoint = self.detailing_opt.get('checkpoint', self.checkpoint)
 			self.vae = self.detailing_opt.get('vae', self.vae)
@@ -62,11 +63,18 @@ class PersonDetailer(ProcessorBase):
 		return cropped_mask
 
 	def process(self, context: Context, image: Image):
-
 		context.add_generation_param('BMAB_person_option', util.dict_to_str(self.detailing_opt))
-		debug_print('prepare detector')
-		detector = UltralyticsPersonDetector8n()
-		boxes, logits = detector.predict(context, image)
+		if self.use_groudingdino:
+			text_prompt = "person . head . face . hand ."
+			debug_print('prepare detector groundingdino')
+			dino = exmodels.get_external_model('grdino')
+			boxes, logits, phrases = dino.dino_predict(image, text_prompt, 0.30, 0.20)
+			dino.release()
+		else:
+			debug_print('prepare detector Ultralytics')
+			detector = UltralyticsPersonDetector8n()
+			boxes, logits = detector.predict(context, image)
+			phrases = ['person'] * len(boxes)
 
 		org_size = image.size
 		debug_print('size', org_size)
@@ -82,7 +90,10 @@ class PersonDetailer(ProcessorBase):
 			i2i_config['scheduler'] = self.scheduler
 
 		processed = []
-		for idx, (box, logit) in enumerate(zip(boxes, logits)):
+		for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
+			if phrase != 'person':
+				continue
+
 			if self.limit != 0 and idx >= self.limit:
 				debug_print(f'Over limit {self.limit}')
 				break
@@ -166,7 +177,7 @@ class PersonDetailer(ProcessorBase):
 				override_settings['sd_vae'] = self.vae
 				options['override_settings'] = override_settings
 
-			with VAEMethodOverride(hiresfix=self.best_quality):
+			with VAEMethodOverride():
 				img2img_result = process_img2img(context, cropped, options=options)
 			img2img_result = img2img_result.resize(cropped.size, resample=util.LANCZOS)
 			blur = ImageFilter.GaussianBlur(3)
