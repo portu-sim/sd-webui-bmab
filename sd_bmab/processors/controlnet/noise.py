@@ -4,7 +4,7 @@ from PIL import Image
 from modules import shared
 
 import sd_bmab
-from sd_bmab import util
+from sd_bmab import util, controlnet
 from sd_bmab.util import debug_print
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
@@ -86,28 +86,17 @@ class LineartNoise(ProcessorBase):
 		return img
 
 	def process(self, context: Context, image: Image):
-		cn_args = util.get_cn_args(context.sdprocessing)
-		controlnet_count = 0
-		for num in range(*cn_args):
-			obj = context.sdprocessing.script_args[num]
-			if hasattr(obj, 'enabled') and obj.enabled:
-				controlnet_count += 1
-			elif isinstance(obj, dict) and obj.get('enabled', False):
-				controlnet_count += 1
-			else:
-				break
-
 		context.add_generation_param('BMAB controlnet mode', 'lineart')
 		context.add_generation_param('BMAB noise strength', self.noise_strength)
 		context.add_generation_param('BMAB noise begin', self.noise_begin)
 		context.add_generation_param('BMAB noise end', self.noise_end)
 
+		index = controlnet.get_controlnet_index(context.sdprocessing)
 		img = self.get_noise_from_cache(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
 		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
-		idx = cn_args[0] + controlnet_count
-		debug_print(f'Noise Enabled {idx}')
+		debug_print(f'Noise Enabled {index}')
 		sc_args = list(context.sdprocessing.script_args)
-		sc_args[idx] = cn_op_arg
+		sc_args[index] = cn_op_arg
 		context.sdprocessing.script_args = tuple(sc_args)
 
 	def postprocess(self, context: Context, image: Image):

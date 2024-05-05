@@ -7,7 +7,7 @@ from PIL import Image
 from modules import shared
 
 import sd_bmab
-from sd_bmab import util
+from sd_bmab import util, controlnet
 from sd_bmab.util import debug_print
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
@@ -74,17 +74,6 @@ class IpAdapter(ProcessorBase):
 		return cn_args
 
 	def process(self, context: Context, image: Image):
-		cn_args = util.get_cn_args(context.sdprocessing)
-		controlnet_count = 0
-		for num in range(*cn_args):
-			obj = context.sdprocessing.script_args[num]
-			if hasattr(obj, 'enabled') and obj.enabled:
-				controlnet_count += 1
-			elif isinstance(obj, dict) and obj.get('enabled', False):
-				controlnet_count += 1
-			else:
-				break
-
 		context.add_generation_param('BMAB controlnet ipadapter mode', 'ip-adapter-auto')
 		context.add_generation_param('BMAB ipadapter strength', self.ipadapter_strength)
 		context.add_generation_param('BMAB ipadapter begin', self.ipadapter_begin)
@@ -96,11 +85,11 @@ class IpAdapter(ProcessorBase):
 		if img is None:
 			return
 
+		index = controlnet.get_controlnet_index(context.sdprocessing)
 		cn_op_arg = self.get_openipadapter_args(img)
-		idx = cn_args[0] + controlnet_count
-		debug_print(f'IpAdapter Enabled {idx}')
+		debug_print(f'IpAdapter Enabled {index}')
 		sc_args = list(context.sdprocessing.script_args)
-		sc_args[idx] = cn_op_arg
+		sc_args[index] = cn_op_arg
 		context.sdprocessing.script_args = tuple(sc_args)
 
 	def postprocess(self, context: Context, image: Image):

@@ -5,7 +5,7 @@ from modules import processing
 from modules import img2img
 from modules.processing import Processed
 
-from sd_bmab.util import debug_print
+from sd_bmab.util import debug_print, get_cn_args
 
 
 controlnet_args = (0, 0)
@@ -26,6 +26,12 @@ class FakeControlNet:
 			self.all_prompts = copy(self.process.all_prompts)
 			self.all_negative_prompts = copy(self.process.all_negative_prompts)
 			self.process.scripts.postprocess(copy(self.process), dummy)
+			for idx, obj in enumerate(self.process.script_args):
+				if 'controlnet' in obj.__class__.__name__.lower():
+					if hasattr(obj, 'enabled') and obj.enabled:
+						debug_print('Use controlnet True')
+				elif isinstance(obj, dict) and 'model' in obj and obj['enabled']:
+					obj['enabled'] = False
 
 	def __exit__(self, *args, **kwargs):
 		if self.enabled:
@@ -112,3 +118,16 @@ def update_controlnet_args(p):
 	global controlnet_args
 	controlnet_args = (cn_arg_index[0], cn_arg_index[-1])
 
+
+def get_controlnet_index(p):
+	cn_args = get_cn_args(p)
+	controlnet_count = 0
+	for num in range(*cn_args):
+		obj = p.script_args[num]
+		if hasattr(obj, 'enabled') and obj.enabled:
+			controlnet_count += 1
+		elif isinstance(obj, dict) and 'model' in obj and obj['enabled']:
+			controlnet_count += 1
+		else:
+			break
+	return cn_args[0] + controlnet_count
