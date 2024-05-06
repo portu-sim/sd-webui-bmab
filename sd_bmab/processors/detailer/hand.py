@@ -285,7 +285,7 @@ class HandDetailer(ProcessorBase):
 			context.add_job()
 			with VAEMethodOverride():
 				controlnet = self.get_depth_hand_refiner(image, 1, 0, 1)
-				image = process_img2img_with_controlnet(context, image, options, controlnet)
+				image = process_img2img_with_controlnet(context, image, options, controlnet=[controlnet])
 		elif self.detailing_method == 'at once':
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')

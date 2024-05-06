@@ -129,7 +129,7 @@ class RefinerPreprocessor(ProcessorBase):
 			ln = LineartNoise()
 			if ln.preprocess(context, None):
 				controlnet = ln.get_controlnet_args(context)
-				image = process_img2img_with_controlnet(context, image, options, controlnet)
+				image = process_img2img_with_controlnet(context, image, options, controlnet=[controlnet])
 			else:
 				image = process_img2img(context, image, options=options)
 		else:

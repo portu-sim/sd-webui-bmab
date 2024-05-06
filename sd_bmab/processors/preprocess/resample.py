@@ -144,12 +144,12 @@ class ResamplePreprocessor(ProcessorBase):
 			if self.method == 'txt2img-1pass' or self.method == 'txt2img-2pass':
 				options['width'] = context.sdprocessing.width
 				options['height'] = context.sdprocessing.height
-				processed = process_txt2img(context, options=options, controlnet=cn_op_arg)
+				processed = process_txt2img(context, options=options, controlnet=[cn_op_arg])
 			elif self.method == 'img2img-1pass':
 				del cn_op_arg['input_image']
 				options['width'] = context.sdprocessing.width
 				options['height'] = context.sdprocessing.height
-				processed = process_img2img_with_controlnet(context, image, options=options, controlnet=cn_op_arg)
+				processed = process_img2img_with_controlnet(context, image, options=options, controlnet=[cn_op_arg])
 		else:
 			if self.method == 'txt2img-1pass':
 				if context.is_hires_fix():
@@ -159,7 +159,7 @@ class ResamplePreprocessor(ProcessorBase):
 					else:
 						options['width'] = int(context.sdprocessing.width * context.sdprocessing.hr_scale)
 						options['height'] = int(context.sdprocessing.height * context.sdprocessing.hr_scale)
-				processed = process_txt2img(context, options=options, controlnet=cn_op_arg)
+				processed = process_txt2img(context, options=options, controlnet=[cn_op_arg])
 			elif self.method == 'txt2img-2pass':
 				if context.is_txtimg() and context.is_hires_fix():
 					options.update(dict(
@@ -168,10 +168,10 @@ class ResamplePreprocessor(ProcessorBase):
 						hr_resize_x=context.sdprocessing.hr_resize_x,
 						hr_resize_y=context.sdprocessing.hr_resize_y,
 					))
-				processed = process_txt2img(context, options=options, controlnet=cn_op_arg)
+				processed = process_txt2img(context, options=options, controlnet=[cn_op_arg])
 			elif self.method == 'img2img-1pass':
 				del cn_op_arg['input_image']
-				processed = process_img2img_with_controlnet(context, image, options=options, controlnet=cn_op_arg)
+				processed = process_img2img_with_controlnet(context, image, options=options, controlnet=[cn_op_arg])
 
 		image = filter.process_filter(bmab_filter, context, image, processed)
 		filter.postprocess_filter(bmab_filter, context)

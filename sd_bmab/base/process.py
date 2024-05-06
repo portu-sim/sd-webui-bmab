@@ -133,9 +133,10 @@ def process_img2img_with_controlnet(context: Context, image, options, controlnet
 	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing, cn_enabled=True)
 
 	cn_args = util.get_cn_args(img2img)
-	idx = cn_args[0]
 	sc_args = list(img2img.script_args)
-	sc_args[idx] = controlnet
+	for ix in range(0, len(controlnet), 1):
+		idx = cn_args[ix]
+		sc_args[idx] = controlnet[ix]
 	img2img.script_args = sc_args
 
 	processed = process_images(img2img)
@@ -196,9 +197,10 @@ def process_txt2img(context, options=None, controlnet=None):
 	else:
 		txt2img.scripts, txt2img.script_args = apply_extensions(p, True)
 		cn_args = util.get_cn_args(txt2img)
-		idx = cn_args[0]
 		sc_args = list(txt2img.script_args)
-		sc_args[idx] = controlnet
+		for ix in range(0, len(controlnet), 1):
+			idx = cn_args[ix]
+			sc_args[idx] = controlnet[ix]
 		txt2img.script_args = sc_args
 
 	with StopGeneration():
