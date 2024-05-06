@@ -17,6 +17,22 @@ You can composite two images or perform the Upscale function.
 <table>
     <tr>
         <td>
+            <img src="https://i.ibb.co/xD1fxg1/00755-233390832.jpg">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/TTm7CdN/00774-2729955256.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            </td>
+        <td>
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+        </td>
+    </tr>
+    <tr>
+        <td>
             <img src="https://i.ibb.co/yBT2YX5/00548-4054764802.jpg">
         </td>
         <td>
