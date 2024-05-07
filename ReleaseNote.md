@@ -1,3 +1,11 @@
+### v24.05.07
+
+* New Feature
+  * Installer : groudingdino for CUDA support.
+  * Resample : fix FakeControlNet
+  * Refactoring : multiple controlnet support
+
+  
 ### v24.05.01
 
 * New Feature
