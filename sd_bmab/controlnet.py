@@ -12,12 +12,15 @@ controlnet_args = (0, 0)
 
 
 class FakeControlNet:
-	def __init__(self, p, cn_enabled=False) -> None:
+	def __init__(self, ctx, cn_enabled=False) -> None:
 		super().__init__()
-		self.process = p
+		self.context = ctx
+		self.process = ctx.sdprocessing
 		self.all_prompts = None
 		self.all_negative_prompts = None
+		self.extra_image = None
 		self.enabled = self.is_controlnet_enabled() if cn_enabled else False
+		self.control_index = []
 		debug_print('FakeControlNet', self.enabled, cn_enabled)
 
 	def __enter__(self):
@@ -25,22 +28,33 @@ class FakeControlNet:
 			dummy = Processed(self.process, [], self.process.seed, "")
 			self.all_prompts = copy(self.process.all_prompts)
 			self.all_negative_prompts = copy(self.process.all_negative_prompts)
+			self.extra_image = copy(self.context.script.extra_image)
 			self.process.scripts.postprocess(copy(self.process), dummy)
 			for idx, obj in enumerate(self.process.script_args):
 				if 'controlnet' in obj.__class__.__name__.lower():
 					if hasattr(obj, 'enabled') and obj.enabled:
-						debug_print('Use controlnet True')
+						obj.enabled = False
+						self.control_index.append(idx)
 				elif isinstance(obj, dict) and 'model' in obj and obj['enabled']:
 					obj['enabled'] = False
+					self.control_index.append(idx)
 
 	def __exit__(self, *args, **kwargs):
 		if self.enabled:
 			copy_p = copy(self.process)
 			self.process.all_prompts = self.all_prompts
 			self.process.all_negative_prompts = self.all_negative_prompts
-			if hasattr(self.process.scripts, "before_process"):
-				self.process.scripts.before_process(copy_p)
+			self.extra_image.extend(self.context.script.extra_image)
+			for idx in self.control_index:
+				obj = self.process.script_args[idx]
+				if 'controlnet' in obj.__class__.__name__.lower():
+					if hasattr(obj, 'enabled'):
+						obj.enabled = True
+				elif isinstance(obj, dict) and 'model' in obj:
+					obj['enabled'] = True
+			self.process.scripts.before_process(copy_p)
 			self.process.scripts.process(copy_p)
+			self.context.script.extra_image.extend(self.extra_image)
 
 	def is_controlnet_enabled(self):
 		global controlnet_args
@@ -58,14 +72,14 @@ class PreventControlNet(FakeControlNet):
 	process_images_inner = processing.process_images_inner
 	process_batch = img2img.process_batch
 
-	def __init__(self, p, cn_enabled=False) -> None:
-		super().__init__(p, cn_enabled)
+	def __init__(self, ctx, cn_enabled=False) -> None:
+		super().__init__(ctx, cn_enabled)
 		self._process_images_inner = processing.process_images_inner
 		self._process_batch = img2img.process_batch
 		self.allow_script_control = None
-		self.p = p
-		self.all_prompts = copy(p.all_prompts)
-		self.all_negative_prompts = copy(p.all_negative_prompts)
+		self.p = ctx.sdprocessing
+		self.all_prompts = copy(ctx.sdprocessing.all_prompts)
+		self.all_negative_prompts = copy(ctx.sdprocessing.all_negative_prompts)
 
 	def is_controlnet_used(self):
 		if not self.p.script_args:

@@ -1,4 +1,7 @@
+import shutil
+
 import launch
+from modules import launch_utils
 import torch
 import platform
 
@@ -22,6 +25,9 @@ available_packages = ['GroundingDINO']
 
 
 def install_groudingdino(url):
+	launch_utils.run(f'{launch_utils.python} -m pip uninstall --yes groundingdino', live=True)
+	launch_utils.run(f'{launch_utils.python} -m pip uninstall --yes pycocotools', live=True)
+
 	print('Install pycocotools')
 	launch.run_pip('install pycocotools', 'sd-webui-bmab requirement: pycocotools')
 
@@ -38,6 +44,12 @@ def get_condition():
 	return f'{torch_version}:{pv[0]}.{pv[1]}:{system}:{machine}'
 
 
+def get_temporary():
+	if platform.system() == 'Windows':
+		return 'c:\\temp'
+	return '/temp'
+
+
 def install(pkg_name, dd_pkg, markdown_install):
 	groundingdino_cuda_name = 'GroundingDINO for CUDA'
 	groundingdino_selected = pkg_name
@@ -47,22 +59,44 @@ def install(pkg_name, dd_pkg, markdown_install):
 		newname = f'{groundingdino_cuda_name}-{cond}'
 		if newname not in available_packages:
 			available_packages.append(newname)
-			print(available_packages)
 		return msg, newname
+
+	def install_normal_groundingdino(c):
+		url = 'https://github.com/IDEA-Research/GroundingDINO'
+		launch_utils.run(f'{launch_utils.python} -m pip uninstall --yes groundingdino', live=True)
+		launch_utils.run(f'{launch_utils.python} -m pip uninstall --yes pycocotools', live=True)
+		launch_utils.run(f'{launch_utils.python} -m pip install pycocotools', live=True)
+		if platform.system() == 'Windows':
+			launch_utils.run(f'{launch_utils.git} clone {url} c:\\Temp\\groundingdino', live=True)
+			launch_utils.run(f'cd c:\\Temp\\groundingdino && {launch_utils.python} -m pip install -e .', live=True)
+			shutil.rmtree('c:\\Temp\\groundingdino', ignore_errors=True)
+		else:
+			launch_utils.run(f'{launch_utils.git} clone {url} /temp/groundingdino', live=True)
+			launch_utils.run(f'cd /temp/groundingdino && {launch_utils.python} -m pip install -e .', live=True)
+			shutil.rmtree('rm -rf /temp/groundingdino', ignore_errors=True)
+
+		return f'Nothing found for this cuda system {c}. Software version of GroundingDINO installed (VERY SLOW!!!)'
+
+	def cuda_in_available_packages():
+		for x in available_packages:
+			if x.startswith(groundingdino_cuda_name):
+				return True
+		return False
 
 	if pkg_name == 'GroundingDINO':
 		cond = get_condition()
-		replacement = groundingdino_install_replacement.get(cond)
-		if replacement is not None and groundingdino_cuda_name not in available_packages:
-			msg, groundingdino_selected = add_new_available(cond)
+		if cuda_in_available_packages():
+			msg = install_normal_groundingdino(cond)
 		else:
-			groudingdino_for_cuda = groundingdino_install_info.get(cond)
-			if groudingdino_for_cuda is None:
-				url = 'git+https://github.com/IDEA-Research/GroundingDINO'
-				install_groudingdino(url)
-				msg = f'Nothing found for this cuda system {cond}. Software version of GroundingDINO installed (VERY SLOW!!!)'
-			else:
+			replacement = groundingdino_install_replacement.get(cond)
+			if replacement is not None:
 				msg, groundingdino_selected = add_new_available(cond)
+			else:
+				groudingdino_for_cuda = groundingdino_install_info.get(cond)
+				if groudingdino_for_cuda is None:
+					msg = install_normal_groundingdino(cond)
+				else:
+					msg, groundingdino_selected = add_new_available(cond)
 	elif pkg_name.startswith(groundingdino_cuda_name):
 		groudingdino_for_cuda_cond = pkg_name[len(groundingdino_cuda_name)+1:]
 		groudingdino_for_cuda = groundingdino_install_info.get(groudingdino_for_cuda_cond)

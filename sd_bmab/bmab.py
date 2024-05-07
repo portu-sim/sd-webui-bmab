@@ -58,16 +58,16 @@ class BmabExtScript(scripts.Script):
 			return
 
 		controlnet.update_controlnet_args(p)
+		if not hasattr(p, 'context') or p.context is None:
+			ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
+			p.context = ctx
+			post.process_controlnet(p.context)
 
-		ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
 		if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
-			p.bscript = self
-			p.bscript_args = a
 			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
 			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
 		else:
-			internal.process_img2img(ctx)
-		post.process_controlnet(ctx)
+			internal.process_img2img(p.context)
 
 	def postprocess_image(self, p, pp, *args):
 		self.config, a = parameters.parse_args(args)
@@ -78,9 +78,9 @@ class BmabExtScript(scripts.Script):
 		if shared.state.interrupted or shared.state.skipped:
 			return
 
-		ctx = context.Context.newContext(self, p, a, self.index)
-		with controlnet.PreventControlNet(p, cn_enabled=post.is_controlnet_required(ctx)):
-			pp.image = post.process(ctx, pp.image)
+		p.context.index = self.index
+		with controlnet.PreventControlNet(p.context, cn_enabled=post.is_controlnet_required(p.context)):
+			pp.image = post.process(p.context, pp.image)
 			ui.final_images.append(pp.image)
 		self.index += 1
 		if self.stop_generation:
@@ -96,12 +96,10 @@ class BmabExtScript(scripts.Script):
 	def describe(self):
 		return 'This stuff is worth it, you can buy me a beer in return.'
 
-	def resize_image(self, p, a, resize_mode, idx, image, width, height, upscaler_name):
-		if not a['enabled']:
+	def resize_image(self, ctx: context.Context, resize_mode, idx, image, width, height, upscaler_name):
+		if not ctx.args['enabled']:
 			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
-		img_idx = p.iteration * p.batch_size + idx
-		ctx = context.Context.newContext(self, p, a, img_idx)
-		with controlnet.PreventControlNet(p, cn_enabled=internal.is_controlnet_required(ctx)):
+		with controlnet.PreventControlNet(ctx, cn_enabled=internal.is_controlnet_required(ctx)):
 			image = internal.process_intermediate_step1(ctx, image)
 			image = images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
 			image = internal.process_intermediate_step2(ctx, image)

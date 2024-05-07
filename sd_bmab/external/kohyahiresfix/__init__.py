@@ -129,13 +129,13 @@ class KohyaHiresFixPreprocessor(object):
 		self.kohyahiresfix = KohyaHiresFix()
 		self.args = []
 		self.sdprocess = p
-		self.preprocess(p.bscript_args)
+		self.preprocess(p.context)
 
-	def preprocess(self, args):
-		if args is None:
+	def preprocess(self, context):
+		if context is None:
 			return self.enabled
 
-		fix_opt = args.get('module_config', {}).get('kohyahiresfix', {})
+		fix_opt = context.args.get('module_config', {}).get('kohyahiresfix', {})
 		self.enabled = fix_opt.get('enabled', self.enabled)
 		self.s1 = fix_opt.get('stop1', self.s1)
 		self.d1 = fix_opt.get('depth1', self.d1)
