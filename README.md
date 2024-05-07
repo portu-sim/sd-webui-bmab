@@ -16,6 +16,16 @@ You can composite two images or perform the Upscale function.
 
 <table>
     <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/B2QJ0Tz/00126-1953699647.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            Face Detailing, Resample, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+        </td>
+    </tr>
+    <tr>
         <td>
             <img src="https://i.ibb.co/xD1fxg1/00755-233390832.jpg">
         </td>
