@@ -62,12 +62,11 @@ class BmabExtScript(scripts.Script):
 			ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
 			p.context = ctx
 			post.process_controlnet(p.context)
+			internal.process_img2img(p.context)
 
 		if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
 			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
 			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
-		else:
-			internal.process_img2img(p.context)
 
 	def postprocess_image(self, p, pp, *args):
 		self.config, a = parameters.parse_args(args)
@@ -100,9 +99,9 @@ class BmabExtScript(scripts.Script):
 		if not ctx.args['enabled']:
 			return images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
 		with controlnet.PreventControlNet(ctx, cn_enabled=internal.is_controlnet_required(ctx)):
-			image = internal.process_intermediate_step1(ctx, image)
+			image = internal.process_intermediate_before_upscale(ctx, image)
 			image = images.resize_image(resize_mode, image, width, height, upscaler_name=upscaler_name)
-			image = internal.process_intermediate_step2(ctx, image)
+			image = internal.process_intermediate_after_upscale(ctx, image)
 		return image
 
 

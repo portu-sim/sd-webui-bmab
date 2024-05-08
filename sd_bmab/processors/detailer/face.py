@@ -17,7 +17,7 @@ from sd_bmab.detectors.detector import get_detector
 
 
 class FaceDetailer(ProcessorBase):
-	def __init__(self, step=2) -> None:
+	def __init__(self) -> None:
 		super().__init__()
 
 		self.enabled = False
@@ -36,7 +36,6 @@ class FaceDetailer(ProcessorBase):
 		self.disable_extra_networks = False
 		self.detection_model = 'Ultralytics(face_yolov8n.pt)'
 		self.max_element = shared.opts.bmab_max_detailing_element
-		self.step = step
 		self.skip_large_face = False
 		self.large_face_pixels = 0.26
 
@@ -59,8 +58,6 @@ class FaceDetailer(ProcessorBase):
 		self.skip_large_face = self.detailing_opt.get('skip_large_face', self.skip_large_face)
 		self.large_face_pixels = self.detailing_opt.get('large_face_pixels', self.large_face_pixels)
 
-		if self.enabled and self.step == 1:
-			return context.is_hires_fix() and self.hiresfix_enabled
 		return self.enabled
 
 	def process(self, context: Context, image: Image):
@@ -217,10 +214,20 @@ class FaceDetailer(ProcessorBase):
 
 class PreprocessFaceDetailer(FaceDetailer):
 
-	def __init__(self, step=2) -> None:
-		super().__init__(step)
+	def __init__(self) -> None:
+		super().__init__()
 
 	def preprocess(self, context: Context, image: Image):
 		super().preprocess(context, image)
 		return not context.is_hires_fix() and self.hiresfix_enabled
+
+
+class FaceDetailerBeforeUpsacle(FaceDetailer):
+
+	def __init__(self) -> None:
+		super().__init__()
+
+	def preprocess(self, context: Context, image: Image):
+		super().preprocess(context, image)
+		return self.enabled and self.hiresfix_enabled and (context.is_hires_fix() or context.is_img2img())
 

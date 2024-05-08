@@ -102,7 +102,7 @@ def create_ui(bscript, is_img2img):
 						with gr.Column():
 							elem += gr.Checkbox(label='Save image before processing', value=False)
 					with gr.Row():
-						elem += gr.Checkbox(label='Enable resample before hires.fix', value=False)
+						elem += gr.Checkbox(label='Enable resample before upscale', value=False)
 					with gr.Row():
 						with gr.Column():
 							with gr.Row():
@@ -149,7 +149,7 @@ def create_ui(bscript, is_img2img):
 					with gr.Row():
 						elem += gr.Checkbox(label='Enable pretraining detailer', value=False)
 					with gr.Row():
-						elem += gr.Checkbox(label='Enable pretraining before hires.fix', value=False)
+						elem += gr.Checkbox(label='Enable pretraining before upscale', value=False)
 					with gr.Row():
 						with gr.Column():
 							with gr.Row():

@@ -12,7 +12,7 @@ from sd_bmab.base import process_txt2img, process_img2img_with_controlnet, Conte
 
 
 class ResamplePreprocessor(ProcessorBase):
-	def __init__(self, step=2) -> None:
+	def __init__(self) -> None:
 		super().__init__()
 
 		self.resample_opt = {}
@@ -36,7 +36,6 @@ class ResamplePreprocessor(ProcessorBase):
 		self.end = 1.0
 
 		self.base_sd_model = None
-		self.preprocess_step = step
 
 	def use_controlnet(self, context: Context):
 		return self.preprocess(context, None)
@@ -63,9 +62,7 @@ class ResamplePreprocessor(ProcessorBase):
 		self.begin = self.resample_opt.get('width', self.begin)
 		self.end = self.resample_opt.get('height', self.end)
 
-		if self.enabled and self.preprocess_step == 1:
-			return context.is_hires_fix() and self.hiresfix_enabled
-		if self.enabled and self.preprocess_step == 2 and self.hiresfix_enabled:
+		if self.enabled and self.hiresfix_enabled:
 			return False
 		return self.enabled
 
@@ -142,13 +139,13 @@ class ResamplePreprocessor(ProcessorBase):
 		processed = image.copy()
 		if self.hiresfix_enabled:
 			if self.method == 'txt2img-1pass' or self.method == 'txt2img-2pass':
-				options['width'] = context.sdprocessing.width
-				options['height'] = context.sdprocessing.height
+				options['width'] = processed.width
+				options['height'] = processed.height
 				processed = process_txt2img(context, options=options, controlnet=[cn_op_arg])
 			elif self.method == 'img2img-1pass':
 				del cn_op_arg['input_image']
-				options['width'] = context.sdprocessing.width
-				options['height'] = context.sdprocessing.height
+				options['width'] = processed.width
+				options['height'] = processed.height
 				processed = process_img2img_with_controlnet(context, image, options=options, controlnet=[cn_op_arg])
 		else:
 			if self.method == 'txt2img-1pass':
@@ -180,3 +177,11 @@ class ResamplePreprocessor(ProcessorBase):
 
 	def postprocess(self, context: Context, image: Image):
 		devices.torch_gc()
+
+
+class ResamplePreprocessorBeforeUpscale(ResamplePreprocessor):
+
+	def preprocess(self, context: Context, image: Image):
+		super().preprocess(context, image)
+		return self.enabled and self.hiresfix_enabled and (context.is_hires_fix() or context.is_img2img())
+

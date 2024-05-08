@@ -4,19 +4,20 @@ from modules import images
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 from modules import shared
 
+from sd_bmab.util import debug_print
 from sd_bmab.base import Context
-from sd_bmab.processors.detailer import FaceDetailer
+from sd_bmab.processors.detailer import FaceDetailer, FaceDetailerBeforeUpsacle
 
 from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
-from sd_bmab.processors.preprocess import ResizeIntermidiate
-from sd_bmab.processors.preprocess import ResamplePreprocessor
-from sd_bmab.processors.preprocess import PretrainingDetailer
+from sd_bmab.processors.preprocess import ResizeIntermidiateBeforeUpscale
+from sd_bmab.processors.preprocess import ResamplePreprocessorBeforeUpscale, ResizeIntermidiateAfterUpsacle
+from sd_bmab.processors.preprocess import PretrainingDetailerBeforeUpscale
 
 
 def is_controlnet_required(context):
 	pipeline_modules = [
-		ResamplePreprocessor(step=1),
-		ResizeIntermidiate(step=1)
+		ResamplePreprocessorBeforeUpscale(),
+		ResizeIntermidiateBeforeUpscale()
 	]
 	for mod in pipeline_modules:
 		if mod.use_controlnet(context):
@@ -24,16 +25,16 @@ def is_controlnet_required(context):
 	return False
 
 
-def process_intermediate_step1(context, image):
-	pipeline_step1 = [
-		ResamplePreprocessor(step=1),
-		PretrainingDetailer(step=1),
-		FaceDetailer(step=1),
-		ResizeIntermidiate(step=1),
+def process_intermediate_before_upscale(context, image):
+	pipeline_before_upscale = [
+		ResamplePreprocessorBeforeUpscale(),
+		PretrainingDetailerBeforeUpscale(),
+		FaceDetailerBeforeUpsacle(),
+		ResizeIntermidiateBeforeUpscale(),
 	]
 	
 	processed = image.copy()
-	for proc in pipeline_step1:
+	for proc in pipeline_before_upscale:
 		try:
 			result = proc.preprocess(context, processed)
 			if result is None or not result:
@@ -50,16 +51,16 @@ def process_intermediate_step1(context, image):
 	return processed
 
 
-def process_intermediate_step2(context, image):
-	pipeline_step2 = [
+def process_intermediate_after_upscale(context, image):
+	pipeline_before_upscale = [
 		EdgeEnhancement(),
-		ResizeIntermidiate(),
+		ResizeIntermidiateAfterUpsacle(),
 		Img2imgMasking(),
 		NoiseAlpha(),
 	]
 	
 	processed = image.copy()
-	for proc in pipeline_step2:
+	for proc in pipeline_before_upscale:
 		result = proc.preprocess(context, processed)
 		if result is None or not result:
 			continue
@@ -72,13 +73,18 @@ def process_intermediate_step2(context, image):
 
 
 def process_img2img(ctx):
-	if not isinstance(ctx.sdprocessing, StableDiffusionProcessingImg2Img):
+	if not ctx.is_img2img():
 		return
 
 	image = ctx.sdprocessing.init_images[0]
-	ctx.sdprocessing.init_images[0] = process_intermediate_step2(ctx, image)
+	debug_print('process img2img ', image.size)
+	image = process_intermediate_before_upscale(ctx, image)
+	image = process_intermediate_after_upscale(ctx, image)
+	debug_print('process img2img ', image.size)
+	ctx.sdprocessing.init_images[0] = image
 
 
+'''
 def process_hiresfix(ctx):
 	if not isinstance(ctx.sdprocessing, StableDiffusionProcessingTxt2Img):
 		return
@@ -89,8 +95,8 @@ def process_hiresfix(ctx):
 	all_processors = [
 		FaceDetailer(),
 		EdgeEnhancement(),
-		ResizeIntermidiate(step=1),
-		ResizeIntermidiate(),
+		ResizeIntermidiateBeforeUpscale(),
+		ResizeIntermidiateAfterUpsacle(),
 		NoiseAlpha()
 	]
 
@@ -122,3 +128,4 @@ def process_hiresfix(ctx):
 		return ret
 
 	ctx.sdprocessing.sample = partial(_sample, ctx)
+'''

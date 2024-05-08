@@ -7,9 +7,9 @@ from sd_bmab.processors.postprocess import InpaintResize, InpaintLamaResize, Fin
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer, PreprocessFaceDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
 from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChanger, CheckPointRestore
-from sd_bmab.processors.basic import FinalProcessorBasic, EdgeEnhancement, NoiseAlpha
+from sd_bmab.processors.basic import FinalProcessorBasic
 from sd_bmab.processors.controlnet import LineartNoise, Openpose, IpAdapter
-from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer, ResizeIntermidiate
+from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer
 from sd_bmab.processors.preprocess import ResamplePreprocessor, PreprocessFilter
 from sd_bmab.processors.postprocess import Watermark
 from sd_bmab.pipeline.internal import Preprocess
@@ -84,7 +84,7 @@ def process(context, image):
 				traceback.print_exc()
 	return processed
 
-
+'''
 def process_intermediate(context, image):
 	all_processors = [
 		FaceDetailer(),
@@ -104,7 +104,7 @@ def process_intermediate(context, image):
 		processed = ret
 
 	return processed
-
+'''
 
 def process_controlnet(context):
 	all_processors = [
