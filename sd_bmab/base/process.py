@@ -132,7 +132,8 @@ def process_img2img_with_controlnet(context: Context, image, options, controlnet
 	img2img.cached_uc = [None, None]
 	img2img.scripts, img2img.script_args = apply_extensions(context.sdprocessing, cn_enabled=True)
 
-	cn_args = util.get_cn_args(img2img)
+	cn_args_begin, cn_args_end = util.get_cn_args(img2img)
+	cn_args = range(cn_args_begin, cn_args_end)
 	sc_args = list(img2img.script_args)
 	for ix in range(0, len(controlnet), 1):
 		idx = cn_args[ix]
@@ -196,7 +197,8 @@ def process_txt2img(context, options=None, controlnet=None):
 		txt2img.scripts, txt2img.script_args = apply_extensions(p, False)
 	else:
 		txt2img.scripts, txt2img.script_args = apply_extensions(p, True)
-		cn_args = util.get_cn_args(txt2img)
+		cn_args_begin, cn_args_end = util.get_cn_args(txt2img)
+		cn_args = range(cn_args_begin, cn_args_end)
 		sc_args = list(txt2img.script_args)
 		for ix in range(0, len(controlnet), 1):
 			idx = cn_args[ix]

@@ -63,10 +63,9 @@ class BmabExtScript(scripts.Script):
 			p.context = ctx
 			post.process_controlnet(p.context)
 			internal.process_img2img(p.context)
-
-		if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
-			p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
-			p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
+			if isinstance(p, StableDiffusionProcessingTxt2ImgOv):
+				p.initial_noise_multiplier = a.get('txt2img_noise_multiplier', 1)
+				p.extra_noise = a.get('txt2img_extra_noise_multiplier', 0)
 
 	def postprocess_image(self, p, pp, *args):
 		self.config, a = parameters.parse_args(args)
