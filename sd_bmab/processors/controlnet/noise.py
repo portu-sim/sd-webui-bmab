@@ -51,7 +51,7 @@ class LineartNoise(ProcessorBase):
 	def get_noise_args(image, weight, begin, end, hr_option):
 		cn_args = {
 			'enabled': True,
-			'input_image': util.b64_encoding(image),
+			'image': image if isinstance(image, str) and os.path.exists(image) else util.b64_encoding(image.convert('RGB')),
 			'model': shared.opts.bmab_cn_lineart,
 			'weight': weight,
 			"guidance_start": begin,
@@ -60,8 +60,8 @@ class LineartNoise(ProcessorBase):
 			'pixel_perfect': False,
 			'control_mode': 'ControlNet is more important',
 			'processor_res': 512,
-			'threshold_a': 64,
-			'threshold_b': 64,
+			'threshold_a': 0.5,
+			'threshold_b': 0.5,
 			'hr_option': hr_option
 		}
 		return cn_args

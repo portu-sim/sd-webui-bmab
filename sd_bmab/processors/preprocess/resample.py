@@ -69,7 +69,8 @@ class ResamplePreprocessor(ProcessorBase):
 	@staticmethod
 	def get_resample_args(image, weight, begin, end):
 		cn_args = {
-			'input_image': util.b64_encoding(image),
+			'enabled': True,
+			'image': util.b64_encoding(image.convert('RGB')),
 			'module': 'tile_resample',
 			'model': shared.opts.bmab_cn_tile_resample,
 			'weight': weight,
@@ -78,7 +79,7 @@ class ResamplePreprocessor(ProcessorBase):
 			'resize_mode': 'Just Resize',
 			'pixel_perfect': False,
 			'control_mode': 'ControlNet is more important',
-			'processor_res': -1,
+			'processor_res': 512,
 			'threshold_a': 1,
 			'threshold_b': 1,
 		}

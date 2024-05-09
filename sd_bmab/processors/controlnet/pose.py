@@ -39,18 +39,18 @@ class Openpose(ProcessorBase):
 	def get_openpose_args(self, image):
 		cn_args = {
 			'enabled': True,
-			'input_image': util.b64_encoding(image),
+			'image': image if isinstance(image, str) and os.path.exists(image) else util.b64_encoding(image.convert('RGB')),
 			'module': 'openpose_faceonly' if self.pose_face_only else 'openpose',
 			'model': shared.opts.bmab_cn_openpose,
-			'weight': 1,
-			"guidance_start": 0,
-			"guidance_end": 1,
+			'weight': self.pose_strength,
+			"guidance_start": self.pose_begin,
+			"guidance_end": self.pose_end,
 			'resize_mode': 'Just Resize',
 			'pixel_perfect': False,
 			'control_mode': 'My prompt is more important',
 			'processor_res': 512,
-			'threshold_a': 64,
-			'threshold_b': 64,
+			'threshold_a': 0.5,
+			'threshold_b': 0.5,
 			'hr_option': 'Low res only'
 		}
 		return cn_args

@@ -56,7 +56,7 @@ class IpAdapter(ProcessorBase):
 	def get_openipadapter_args(self, image):
 		cn_args = {
 			'enabled': True,
-			'input_image': util.b64_encoding(image),
+			'image': image if isinstance(image, str) and os.path.exists(image) else util.b64_encoding(image.convert('RGB')),
 			'module': 'ip-adapter-auto',
 			'model': shared.opts.bmab_cn_ipadapter,
 			'weight': self.ipadapter_strength,
@@ -66,8 +66,8 @@ class IpAdapter(ProcessorBase):
 			'pixel_perfect': False,
 			'control_mode': 'My prompt is more important',
 			'processor_res': 1024,
-			'threshold_a': 64,
-			'threshold_b': 64,
+			'threshold_a': 0.5,
+			'threshold_b': 0.5,
 			'hr_option': 'Low res only',
 			'advanced_weighting': self.get_weight_type(self.ipadapter_weight_type, self.ipadapter_strength)
 		}
