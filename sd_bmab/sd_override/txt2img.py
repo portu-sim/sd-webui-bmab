@@ -103,7 +103,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
 
                 save_intermediate(image, i)
 
-                if self.context.args is not None:
+                if self.context is not None and self.context.args is not None:
                     filter_name = self.context.args['txt2img_filter_hresfix_before_upscale']
                     filter1 = filter.get_filter(filter_name)
 
@@ -123,7 +123,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
                     image = filter.process_filter(filter2, self.context, image, resized, sdprocess=self)
                     filter.postprocess_filter(filter2, self.context)
                 else:
-                    if hasattr(self.context.script, 'resize_image'):
+                    if (self.context is not None and self.context.script is not None) and hasattr(self.context.script, 'resize_image'):
                         image = self.context.script.resize_image(self.context, 0, i, image, target_width, target_height, self.hr_upscaler)
                     else:
                         image = images.resize_image(0, image, target_width, target_height, upscaler_name=self.hr_upscaler)
