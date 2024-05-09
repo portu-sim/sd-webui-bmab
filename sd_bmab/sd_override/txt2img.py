@@ -103,7 +103,7 @@ class StableDiffusionProcessingTxt2ImgOv(StableDiffusionProcessingTxt2Img):
 
                 save_intermediate(image, i)
 
-                if self.context.args is not None:
+                if self.context is not None and self.context.args is not None:
                     filter_name = self.context.args['txt2img_filter_hresfix_before_upscale']
                     filter1 = filter.get_filter(filter_name)
 
