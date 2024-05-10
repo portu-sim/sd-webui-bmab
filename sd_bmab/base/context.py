@@ -16,6 +16,7 @@ class Context(object):
 		self.refiner = None
 		self.sd_model_name = None
 		self.sd_vae_name = None
+		self.container = {}
 
 	@staticmethod
 	def newContext(s, p, a, idx, **kwargs):
@@ -105,3 +106,9 @@ class Context(object):
 			override_settings = options.get('override_settings', {})
 			override_settings['sd_vae'] = self.sd_vae_name
 			options['override_settings'] = override_settings
+
+	def save(self, key, value):
+		self.container[key] = value
+
+	def load(self, key):
+		return self.container.get(key)

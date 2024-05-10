@@ -15,6 +15,7 @@ from sd_bmab import controlnet
 from sd_bmab.sd_override import override_sd_webui, StableDiffusionProcessingTxt2ImgOv
 from sd_bmab.sd_override import sd_models
 from sd_bmab.compat import check_directory
+from sd_bmab.processors.basic import preprocessfilter
 
 
 check_directory()
@@ -61,6 +62,7 @@ class BmabExtScript(scripts.Script):
 		if not hasattr(p, 'context') or p.context is None:
 			ctx = context.Context.newContext(self, p, a, 0, hiresfix=True)
 			p.context = ctx
+			preprocessfilter.run_preprocess_filter(ctx)
 			post.process_controlnet(p.context)
 			internal.process_img2img(p.context)
 			if isinstance(p, StableDiffusionProcessingTxt2ImgOv):

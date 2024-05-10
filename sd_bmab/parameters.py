@@ -20,6 +20,7 @@ class Parameters(object):
 			('preprocess_vae', constants.vae_default),
 			('txt2img_noise_multiplier', 1),
 			('txt2img_extra_noise_multiplier', 0),
+			('module_config.preprocess_filter', 'None'),
 			('txt2img_filter_hresfix_before_upscale', 'None'),
 			('txt2img_filter_hresfix_after_upscale', 'None'),
 			('module_config.kohyahiresfix.enabled', False),

@@ -1,3 +1,5 @@
+import json
+
 import launch
 
 
@@ -28,4 +30,8 @@ for pack_name, func in required:
     if not launch.is_installed(pack_name):
         func()
 
-
+'''
+with open('ui-config.json', 'rt', encoding='UTF8') as f:
+    j = json.load(f)
+    print(json.dumps(j, indent=2))
+'''

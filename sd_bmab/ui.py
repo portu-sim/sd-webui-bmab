@@ -61,17 +61,20 @@ def create_ui(bscript, is_img2img):
 									vaes_models = gr.Dropdown(label='SD VAE', visible=True, value=ui_vaes[0], choices=ui_vaes)
 									elem += vaes_models
 						with gr.Row():
-							gr.Markdown(constants.checkpoint_description)
-						with gr.Row():
-							elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
-						with gr.Row():
-							elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
-						with gr.Row():
 							with gr.Column():
+								with gr.Row():
+									gr.Markdown(constants.checkpoint_description)
+								with gr.Row():
+									elem += gr.Slider(minimum=0, maximum=1.5, value=1, step=0.001, label='txt2img noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_noise_multiplier')
+								with gr.Row():
+									elem += gr.Slider(minimum=0, maximum=1, value=0, step=0.01, label='txt2img extra noise multiplier for hires.fix (EXPERIMENTAL)', elem_id='bmab_txt2img_extra_noise_multiplier')
+							with gr.Column():
+								with gr.Row():
+									dd_preprocess_filter = gr.Dropdown(label='Preprocess filter', visible=True, value=filter.filters[0], choices=filter.filters)
+									elem += dd_preprocess_filter
 								with gr.Row():
 									dd_hiresfix_filter1 = gr.Dropdown(label='Hires.fix filter before upscale', visible=True, value=filter.filters[0], choices=filter.filters)
 									elem += dd_hiresfix_filter1
-							with gr.Column():
 								with gr.Row():
 									dd_hiresfix_filter2 = gr.Dropdown(label='Hires.fix filter after upscale', visible=True, value=filter.filters[0], choices=filter.filters)
 									elem += dd_hiresfix_filter2
@@ -693,7 +696,7 @@ def create_ui(bscript, is_img2img):
 				}
 			}
 
-		refresh_targets = [dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
+		refresh_targets = [dd_preprocess_filter, dd_hiresfix_filter1, dd_hiresfix_filter2, dd_resample_filter, dd_resize_filter, dd_final_filter, dd_pretraining_filter]
 		refresh_targets.extend([checkpoint_models, vaes_models, refiner_models, refiner_vaes, face_models, face_vaes, resample_models, resample_vaes])
 		refresh_targets.extend([pretraining_checkpoint_models, pretraining_vaes_models, person_checkpoint_models, person_vaes_models])
 		refresh_targets.extend([pretraining_models, dd_pose, dd_ipadapter])
@@ -717,7 +720,7 @@ def create_ui(bscript, is_img2img):
 			_ipadapter.extend(IpAdapter.list_images())
 
 			values = [
-				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
+				filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters, filter.filters,
 				_checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes, _checkpoints, _vaes,
 				_checkpoints, _vaes, _checkpoints, _vaes, _pretraining_models, _poses, _ipadapter
 			]

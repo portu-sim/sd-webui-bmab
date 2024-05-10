@@ -84,6 +84,9 @@ class Openpose(ProcessorBase):
 			if not files:
 				debug_print(f'Not found pose files in {path}')
 				return None
+			img = context.load('preprocess_image')
+			if img is not None:
+				return img
 			if self.pose_selected == 'Random':
 				file = random.choice(files)
 				debug_print(f'Random pose {file}')
@@ -119,7 +122,7 @@ class Openpose(ProcessorBase):
 
 	@staticmethod
 	def get_pose(f):
-		if f == 'Random':
+		if f == 'Random' or f == 'Preprocess':
 			return Image.new('RGB', (512, 512), 0)
 		path = os.path.dirname(sd_bmab.__file__)
 		path = os.path.normpath(os.path.join(path, '../resources/pose'))
