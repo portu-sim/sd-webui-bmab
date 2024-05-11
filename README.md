@@ -16,6 +16,22 @@ You can composite two images or perform the Upscale function.
 
 <table>
     <tr>
+        <td>
+            <img src="https://i.ibb.co/jVPtgnM/00074-4133194501.jpg">
+        </td>
+        <td>
+            <img src="https://i.ibb.co/wL1Xm2P/00079-1737359342.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            IC-Light(Left), Face Detailing,
+            </td>
+        <td>
+            IC-Light(Left), Face Detailing,
+        </td>
+    </tr>
+    <tr>
         <td colspan="2">
             <img src="https://i.ibb.co/B2QJ0Tz/00126-1953699647.jpg">
         </td>
