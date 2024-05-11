@@ -1,3 +1,8 @@
+'''
+THIS CODE FROM https://github.com/lllyasviel/IC-Light
+License : Apache 2.0
+'''
+
 import gc
 import os
 import math

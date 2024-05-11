@@ -1,3 +1,15 @@
+### v24.05.12
+
+* New Feature
+  * ICLight : https://github.com/lllyasviel/IC-Light
+    * ICLight 기능을 제어할 수 있도록 통합했습니다.
+    * 메모리 사용량이 많습니다.
+    * Enable ICLight before upscale 끄면 1200*1800을 4090으로도 어렵습니다.
+  * Process 작업전 수행되는 preprocess filter가 추가되었습니다.
+* Code Fix
+  * Pose Default 값을 변경했습니다.
+  * cache를 통합 제어하도록 변경했습니다.
+
 ### v24.05.07
 
 * New Feature
