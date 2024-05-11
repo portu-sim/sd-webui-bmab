@@ -7,7 +7,7 @@ from sd_bmab.processors.postprocess import InpaintResize, InpaintLamaResize, Fin
 from sd_bmab.processors.detailer import FaceDetailer, PersonDetailer, HandDetailer, PreprocessFaceDetailer
 from sd_bmab.processors.utils import BeforeProcessFileSaver, AfterProcessFileSaver
 from sd_bmab.processors.utils import ApplyModel, RollbackModel, CheckPointChanger, CheckPointRestore
-from sd_bmab.processors.basic import FinalProcessorBasic
+from sd_bmab.processors.basic import FinalProcessorBasic, ICLightAfterUpsacle
 from sd_bmab.processors.controlnet import LineartNoise, Openpose, IpAdapter
 from sd_bmab.processors.preprocess import RefinerPreprocessor, PretrainingDetailer
 from sd_bmab.processors.preprocess import ResamplePreprocessor, PreprocessFilter
@@ -37,6 +37,7 @@ def process(context, image):
 		PretrainingDetailer(),
 		Preprocess(),
 		RefinerPreprocessor(),
+		ICLightAfterUpsacle(),
 		InpaintResize(),
 		InpaintLamaResize(),
 		BeforeProcessUpscaler(),

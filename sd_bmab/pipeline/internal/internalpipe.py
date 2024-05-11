@@ -8,7 +8,7 @@ from sd_bmab.util import debug_print
 from sd_bmab.base import Context
 from sd_bmab.processors.detailer import FaceDetailer, FaceDetailerBeforeUpsacle
 
-from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking
+from sd_bmab.processors.basic import EdgeEnhancement, NoiseAlpha, Img2imgMasking, ICLightBeforeUpsacle
 from sd_bmab.processors.preprocess import ResizeIntermidiateBeforeUpscale
 from sd_bmab.processors.preprocess import ResamplePreprocessorBeforeUpscale, ResizeIntermidiateAfterUpsacle
 from sd_bmab.processors.preprocess import PretrainingDetailerBeforeUpscale
@@ -30,6 +30,7 @@ def process_intermediate_before_upscale(context, image):
 		ResamplePreprocessorBeforeUpscale(),
 		PretrainingDetailerBeforeUpscale(),
 		FaceDetailerBeforeUpsacle(),
+		ICLightBeforeUpsacle(),
 		ResizeIntermidiateBeforeUpscale(),
 	]
 	

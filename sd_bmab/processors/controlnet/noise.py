@@ -8,6 +8,7 @@ from sd_bmab import util, controlnet
 from sd_bmab.util import debug_print
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
+from sd_bmab.base import cache
 
 
 class LineartNoise(ProcessorBase):
@@ -71,20 +72,6 @@ class LineartNoise(ProcessorBase):
 		noise = img.convert('L').convert('RGB')
 		return self.get_noise_args(noise, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
 
-	def get_noise_from_cache(self, seed, width, height):
-		path = os.path.dirname(sd_bmab.__file__)
-		cache_dir = os.path.normpath(os.path.join(path, '..', 'resources/cache'))
-		if not os.path.isdir(cache_dir):
-			os.mkdir(cache_dir)
-		cache_file = os.path.join(cache_dir, f'noise_{width}_{height}.png')
-		if os.path.isfile(cache_file):
-			img = Image.open(cache_file)
-			noise = img.convert('L').convert('RGB')
-			return noise
-		img = util.generate_noise(seed, width, height)
-		img.save(cache_file)
-		return img
-
 	def process(self, context: Context, image: Image):
 		context.add_generation_param('BMAB controlnet mode', 'lineart')
 		context.add_generation_param('BMAB noise strength', self.noise_strength)
@@ -92,7 +79,7 @@ class LineartNoise(ProcessorBase):
 		context.add_generation_param('BMAB noise end', self.noise_end)
 
 		index = controlnet.get_controlnet_index(context.sdprocessing)
-		img = self.get_noise_from_cache(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
+		img = cache.get_noise_from_cache(context.sdprocessing.seed, context.sdprocessing.width, context.sdprocessing.height)
 		cn_op_arg = self.get_noise_args(img, self.noise_strength, self.noise_begin, self.noise_end, self.noise_hiresfix)
 		debug_print(f'Noise Enabled {index}')
 		sc_args = list(context.sdprocessing.script_args)

@@ -19,6 +19,7 @@ from sd_bmab import masking
 from sd_bmab.util import debug_print, installhelper
 from sd_bmab.processors.controlnet import Openpose, IpAdapter
 from sd_bmab.processors.postprocess import Watermark
+from sd_bmab.processors.basic import ICLight
 
 
 bmab_version = 'v24.05.03.0'
@@ -470,9 +471,9 @@ def create_ui(bscript, is_img2img):
 									elem += gr.Checkbox(label='Enable pose', value=False)
 								with gr.Row():
 									with gr.Column():
-										elem += gr.Slider(minimum=0.0, maximum=2, value=0.3, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
+										elem += gr.Slider(minimum=0.0, maximum=2, value=1, step=0.05, elem_id='bmab_cn_pose', label='Pose strength')
 										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.0, step=0.01, elem_id='bmab_cn_pose_begin', label='Pose begin')
-										elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
+										elem += gr.Slider(minimum=0.0, maximum=1.0, value=1, step=0.01, elem_id='bmab_cn_pose_end', label='Pose end')
 										elem += gr.Checkbox(label='Face only', value=False)
 										poses = ['Random']
 										poses.extend(Openpose.list_pose())
@@ -496,6 +497,19 @@ def create_ui(bscript, is_img2img):
 										elem += gr.Dropdown(label='IpAdapter Weight Type', interactive=True, visible=True, value=weight_type[0], choices=weight_type)
 									with gr.Column():
 										ipadapter_image = gr.Image(elem_id='bmab_ipadapter_image')
+					with gr.Tab('ICLight', elem_id='bmab_ic_light'):
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable ICLight', value=False)
+						with gr.Row():
+							elem += gr.Checkbox(label='Enable ICLight before upscale', value=True)
+						with gr.Row():
+							with gr.Column():
+								elem += gr.Textbox(label='ICLight Prompt', placeholder='prompt', lines=1, visible=True, value='')
+								elem += gr.Radio(label='ICLight Preperence', choices=['None', 'Left', 'Right', 'Top', 'Bottom'], type='value', value='None')
+							with gr.Column():
+								elem += gr.Checkbox(label='Use background image', value=False)
+								iclight_image = gr.Image(elem_id='bmab_iclight_image', type='pil', value=ICLight.get_background_image(), interactive=True)
+								elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.5, step=0.01, elem_id='bmab_iclight_blending', label='Blending')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):
@@ -771,6 +785,7 @@ def create_ui(bscript, is_img2img):
 		btn_stop.click(stop_process)
 		dd_pose.select(Openpose.pose_selected, inputs=[dd_pose], outputs=[pose_image])
 		dd_ipadapter.select(IpAdapter.ipadapter_selected, inputs=[dd_ipadapter], outputs=[ipadapter_image])
+		iclight_image.upload(ICLight.put_backgound_image, inputs=[iclight_image])
 	return elem
 
 

@@ -148,7 +148,7 @@ def process_img2img_with_controlnet(context: Context, image, options, controlnet
 	return image
 
 
-def process_txt2img(context, options=None, controlnet=None):
+def process_txt2img(context, options=None, controlnet=None, processor=None):
 	p = context.sdprocessing
 	t2i_param = dict(
 		denoising_strength=0.4,
@@ -189,7 +189,11 @@ def process_txt2img(context, options=None, controlnet=None):
 	if options is not None:
 		t2i_param.update(options)
 
-	txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
+	if processor:
+		txt2img = processor(**t2i_param)
+	else:
+		txt2img = StableDiffusionProcessingTxt2ImgOv(**t2i_param)
+	txt2img.context = context
 	txt2img.cached_c = [None, None]
 	txt2img.cached_uc = [None, None]
 
