@@ -22,7 +22,7 @@ from sd_bmab.processors.postprocess import Watermark
 from sd_bmab.processors.basic import ICLight
 
 
-bmab_version = 'v24.05.03.0'
+bmab_version = 'v24.05.12.0'
 
 final_images = []
 last_process = None
