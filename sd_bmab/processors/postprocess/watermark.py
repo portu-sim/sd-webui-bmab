@@ -107,7 +107,12 @@ class Watermark(ProcessorBase):
 		if sys.platform == 'linux':
 			path = '/usr/share/fonts/*'
 			files = glob.glob(path)
-			return [os.path.basename(f) for f in files]
+			fonts = [os.path.basename(f) for f in files]
+			if 'SAGEMAKER_INTERNAL_IMAGE_URI' in os.environ:
+				path = '/opt/conda/envs/sagemaker-distribution/fonts/*'
+				files = glob.glob(path)
+				fonts.extend([os.path.basename(f) for f in files])
+			return fonts
 		return ['']
 
 	@staticmethod
@@ -119,6 +124,8 @@ class Watermark(ProcessorBase):
 			path = f'/System/Library/Fonts/{font}'
 			return ImageFont.truetype(path, size, encoding="unic")
 		if sys.platform == 'linux':
-			path = f'/usr/share/fonts/{font}'
+			if 'SAGEMAKER_INTERNAL_IMAGE_URI' in os.environ:
+				path = f'/opt/conda/envs/sagemaker-distribution/fonts/{font}'
+			else:
+				path = f'/usr/share/fonts/{font}'
 			return ImageFont.truetype(path, size, encoding="unic")
-
