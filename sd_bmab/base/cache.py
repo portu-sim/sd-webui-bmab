@@ -5,9 +5,15 @@ import sd_bmab
 from sd_bmab import util
 
 
+def check_cache_dir(path):
+	if not os.path.exists(path):
+		os.mkdir(path)
+
+
 def get_noise_from_cache(seed, width, height):
 	path = os.path.dirname(sd_bmab.__file__)
 	path = os.path.normpath(os.path.join(path, '../resources/cache'))
+	check_cache_dir(path)
 	cache_file = f'{path}/noise_{width}_{height}.png'
 	if os.path.isfile(cache_file):
 		return Image.open(cache_file)
@@ -19,6 +25,7 @@ def get_noise_from_cache(seed, width, height):
 def get_image_from_cache(filename):
 	path = os.path.dirname(sd_bmab.__file__)
 	path = os.path.normpath(os.path.join(path, '../resources/cache'))
+	check_cache_dir(path)
 	full_path = os.path.join(path, filename)
 	if os.path.exists(full_path):
 		return Image.open(full_path)
@@ -28,5 +35,6 @@ def get_image_from_cache(filename):
 def put_image_to_cache(filename, image):
 	path = os.path.dirname(sd_bmab.__file__)
 	path = os.path.normpath(os.path.join(path, '../resources/cache'))
+	check_cache_dir(path)
 	full_path = os.path.join(path, filename)
 	image.save(full_path)

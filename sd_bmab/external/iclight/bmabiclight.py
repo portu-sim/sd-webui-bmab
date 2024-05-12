@@ -26,7 +26,9 @@ def process_iclight(context, image, bg_image, prompt, blending, bg_source, arg1,
 			'best quality', 'lowres, bad anatomy, bad hands, cropped, worst quality',
 			arg1[0], arg1[1], arg1[2], arg1[3], bg_source)
 		mod.clean_up()
+		fg = Image.fromarray(input_fg.astype('uint8'), 'RGB')
 		context.add_extra_image(image)
+		context.add_extra_image(fg)
 		context.add_extra_image(result)
 	else:
 		mod = load_external_module('iclight', 'iclightbg')

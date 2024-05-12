@@ -97,8 +97,8 @@ class PretrainingDetailer(ProcessorBase):
 			'sampler_name': context.sdprocessing.sampler_name if self.sampler == constants.sampler_default else self.sampler,
 			'scheduler': util.get_scheduler(context.sdprocessing) if self.scheduler == constants.scheduler_default else self.scheduler,
 			'denoising_strength': self.denoising_strength,
-			'width': context.sdprocessing.width,
-			'height': context.sdprocessing.height,
+			'width': image.width,
+			'height': image.height,
 		}
 
 		candidate = []

@@ -18,6 +18,16 @@ You can see more image. https://www.facebook.com/profile.php?id=61553793992101
 <table>
     <tr>
         <td colspan="2">
+            <img src="https://i.ibb.co/LNfGT3X/00129-1720370296.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            IC-Light(Left), Face Detailing, Resample, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
             <img src="https://i.ibb.co/4jmHsYj/00111-1987036481.jpg">
         </td>
     </tr>

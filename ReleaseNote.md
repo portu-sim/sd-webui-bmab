@@ -1,6 +1,22 @@
 ### v24.05.12
 
 * New Feature
+  * ICLight
+    * Style 추가했습니다.
+      * intensive : IC-Light original process
+      * less intensive : 과도한 적용을 줄임
+      * normal : 배경을 최대한 살리면서 lighting 적용
+      * soft : 배경을 최대한 살림
+    * Face : 얼굴 부분을 강조하도록 검출해서 조명으로 강조
+    * Person : 사람을 찾아 조명으로 강조
+  * Cache
+    * 디렉토리가 존재하지 않으면 생성
+  * Pretraining
+    * 입력된 폭, 높이가 아니라 실제 이미지의 크기를 사용하도록 수정
+
+### v24.05.12
+
+* New Feature
   * ICLight : https://github.com/lllyasviel/IC-Light
     * ICLight 기능을 제어할 수 있도록 통합했습니다.
     * 메모리 사용량이 많습니다.
