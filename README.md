@@ -16,6 +16,16 @@ You can composite two images or perform the Upscale function.
 
 <table>
     <tr>
+        <td colspan="2">
+            <img src="https://i.ibb.co/4jmHsYj/00111-1987036481.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            IC-Light(Left), Face Detailing, Resample, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
+        </td>
+    </tr>
+    <tr>
         <td>
             <img src="https://i.ibb.co/jVPtgnM/00074-4133194501.jpg">
         </td>
@@ -38,7 +48,7 @@ You can composite two images or perform the Upscale function.
     </tr>
     <tr>
         <td colspan="2">
-            Face Detailing, Resample, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, Resample, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
         </td>
     </tr>
     <tr>
@@ -51,10 +61,10 @@ You can composite two images or perform the Upscale function.
     </tr>
     <tr>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
             </td>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
         </td>
     </tr>
     <tr>
@@ -67,10 +77,10 @@ You can composite two images or perform the Upscale function.
     </tr>
     <tr>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
             </td>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
         </td>
     </tr>
     <tr>
@@ -83,10 +93,10 @@ You can composite two images or perform the Upscale function.
     </tr>
     <tr>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
             </td>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1), cnIpAdapter(0.6, 0, 0.3)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3)
         </td>
     </tr>
     <tr>
@@ -99,10 +109,10 @@ You can composite two images or perform the Upscale function.
     </tr>
     <tr>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1)
             </td>
         <td>
-            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(0.3, 0, 0.1)
+            Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1)
         </td>
     </tr>
     <tr>
