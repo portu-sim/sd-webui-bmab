@@ -15,6 +15,10 @@ def install_ultralytics():
     launch.run_pip('install ultralytics')
 
 
+def install_diffusers():
+    launch.run_pip('install diffusers==0.27.2')
+
+
 try:
     from basicsr.utils.download_util import load_file_from_url
 except:
@@ -24,6 +28,7 @@ required = {
     ('segment_anything', install_segmentanything),
     ('segment_anything_hq', install_segmentanything_hq),
     ('ultralytics', install_ultralytics),
+    ('diffusers', install_diffusers)
 }
 
 for pack_name, func in required:

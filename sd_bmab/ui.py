@@ -504,12 +504,14 @@ def create_ui(bscript, is_img2img):
 							elem += gr.Checkbox(label='Enable ICLight before upscale', value=True)
 						with gr.Row():
 							with gr.Column():
+								styles = ICLight.get_styles()
+								elem += gr.Dropdown(label='Style Selection', visible=True, value=styles[2], choices=styles)
 								elem += gr.Textbox(label='ICLight Prompt', placeholder='prompt', lines=1, visible=True, value='')
-								elem += gr.Radio(label='ICLight Preperence', choices=['None', 'Left', 'Right', 'Top', 'Bottom'], type='value', value='None')
+								elem += gr.Radio(label='ICLight Preperence', choices=['None', 'Left', 'Right', 'Top', 'Bottom', 'Face', 'Person'], type='value', value='None')
+								elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.5, step=0.01, elem_id='bmab_iclight_blending', label='Blending')
 							with gr.Column():
 								elem += gr.Checkbox(label='Use background image', value=False)
 								iclight_image = gr.Image(elem_id='bmab_iclight_image', type='pil', value=ICLight.get_background_image(), interactive=True)
-								elem += gr.Slider(minimum=0.0, maximum=1.0, value=0.5, step=0.01, elem_id='bmab_iclight_blending', label='Blending')
 		with gr.Accordion(f'BMAB Postprocessor', open=False):
 			with gr.Row():
 				with gr.Tab('Resize by person', elem_id='bmab_postprocess_resize_tab'):

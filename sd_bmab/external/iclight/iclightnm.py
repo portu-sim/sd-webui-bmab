@@ -344,7 +344,6 @@ def process(input_fg, prompt, image_width, image_height, num_samples, seed, step
 def process_relight(input_fg, prompt, image_width, image_height, num_samples, seed, steps, a_prompt, n_prompt, cfg, highres_scale, highres_denoise, lowres_denoise, bg_source):
     input_fg, matting = run_rmbg(input_fg)
     pref = preference.get(bg_source, BGSource.NONE)
-    print('Preference', bg_source, pref)
     result = process(input_fg, prompt, image_width, image_height, num_samples, seed, steps, a_prompt, n_prompt, cfg, highres_scale, highres_denoise, lowres_denoise, pref)
     return result
 

@@ -246,6 +246,7 @@ class HandDetailer(ProcessorBase):
 	@staticmethod
 	def get_depth_hand_refiner(weight, begin, end):
 		cn_args = {
+			'enabled': True,
 			'module': 'depth_hand_refiner',
 			'model': shared.opts.bmab_cn_inpaint_depth_hand,
 			'weight': weight,
@@ -255,8 +256,8 @@ class HandDetailer(ProcessorBase):
 			'pixel_perfect': False,
 			'control_mode': 'ControlNet is more important',
 			'processor_res': 512,
-			'threshold_a': 64,
-			'threshold_b': 64,
+			'threshold_a': 0.5,
+			'threshold_b': 0.5,
 		}
 		return cn_args
 
@@ -284,7 +285,7 @@ class HandDetailer(ProcessorBase):
 			options.update(self.hand_detailing)
 			context.add_job()
 			with VAEMethodOverride():
-				controlnet = self.get_depth_hand_refiner(image, 1, 0, 1)
+				controlnet = self.get_depth_hand_refiner(1, 0, 1)
 				image = process_img2img_with_controlnet(context, image, options, controlnet=[controlnet])
 		elif self.detailing_method == 'at once':
 			mask = Image.new('L', image.size, 0)

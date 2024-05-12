@@ -11,6 +11,7 @@ You can composite two images or perform the Upscale function.
 
 <a href="./docs/kr/manual.md">Manual (KR)</a>
 
+You can see more image. https://www.facebook.com/profile.php?id=61553793992101
 
 ## Example
 

@@ -358,6 +358,16 @@ class BGSource(Enum):
     GREY = "Ambient"
 
 
+preference = {
+    'Use Background Image': BGSource.UPLOAD,
+    'None': BGSource.LEFT,
+    'Left': BGSource.LEFT,
+    'Right': BGSource.RIGHT,
+    'Top': BGSource.TOP,
+    'Bottom': BGSource.BOTTOM,
+}
+
+
 def clean_up():
     global vae, unet, rmbg, text_encoder, tokenizer
     global ddim_scheduler, euler_a_scheduler, dpmpp_2m_sde_karras_scheduler, t2i_pipe, i2i_pipe
