@@ -15,3 +15,16 @@ def load_module(file_name, module_name):
 	sys.modules[module_name] = module
 	spec.loader.exec_module(module)
 	return module
+
+
+class ModuleAutoLoader(object):
+
+	def __init__(self, module, name) -> None:
+		super().__init__()
+		self.mod = load_external_module(module, name)
+
+	def __enter__(self):
+		return self.mod
+
+	def __exit__(self, *args, **kwargs):
+		self.mod.release()

@@ -364,7 +364,7 @@ preference = {
     'Bottom': BGSource.BOTTOM,
 }
 
-def clean_up():
+def release():
     global vae, unet, rmbg, text_encoder, tokenizer
     global ddim_scheduler, euler_a_scheduler, dpmpp_2m_sde_karras_scheduler, t2i_pipe, i2i_pipe
     dev = torch.device('cpu')

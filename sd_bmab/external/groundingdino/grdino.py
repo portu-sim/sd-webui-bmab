@@ -17,6 +17,7 @@ dino_model = None
 def dino_init():
 	global dino_model
 	if not dino_model:
+		util.debug_print('initialize grounding dino.')
 		swint_ogc = util.lazy_loader('GroundingDINO_SwinT_OGC.py')
 		swint_ogc_pth = util.lazy_loader('groundingdino_swint_ogc.pth')
 		dino_model = load_model(swint_ogc, swint_ogc_pth)
@@ -53,5 +54,5 @@ def dino_predict(pilimg, prompt, box_threahold=0.35, text_threshold=0.25):
 
 def release():
 	global dino_model
-	dino_model = None
+	del dino_model
 	torch_gc()

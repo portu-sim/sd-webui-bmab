@@ -8,9 +8,9 @@ from modules import shared
 from modules import devices
 
 from sd_bmab import util, masking
+from sd_bmab import external
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride
 
-from sd_bmab.base import exmodels
 from sd_bmab.util import debug_print
 from sd_bmab.detectors import UltralyticsPersonDetector8n
 from sd_bmab import constants
@@ -67,9 +67,8 @@ class PersonDetailer(ProcessorBase):
 		if self.use_groudingdino:
 			text_prompt = "person . head . face . hand ."
 			debug_print('prepare detector groundingdino')
-			dino = exmodels.get_external_model('grdino')
-			boxes, logits, phrases = dino.dino_predict(image, text_prompt, 0.30, 0.20)
-			dino.release()
+			with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+				boxes, logits, phrases = dino.dino_predict(image, text_prompt, 0.30, 0.20)
 		else:
 			debug_print('prepare detector Ultralytics')
 			detector = UltralyticsPersonDetector8n()

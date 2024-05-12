@@ -25,7 +25,7 @@ def process_iclight(context, image, bg_image, prompt, blending, bg_source, arg1,
 		result = mod.process_relight(input_fg, prompt, image.width, image.height, 1, seed, 25,
 			'best quality', 'lowres, bad anatomy, bad hands, cropped, worst quality',
 			arg1[0], arg1[1], arg1[2], arg1[3], bg_source)
-		mod.clean_up()
+		mod.release()
 		fg = Image.fromarray(input_fg.astype('uint8'), 'RGB')
 		context.add_extra_image(image)
 		context.add_extra_image(fg)
@@ -37,7 +37,7 @@ def process_iclight(context, image, bg_image, prompt, blending, bg_source, arg1,
 		result = mod.process_relight(input_fg, None, prompt, image.width, image.height, 1, seed, 20,
 			'best quality', 'lowres, bad anatomy, bad hands, cropped, worst quality',
 			arg2[0], arg2[1], arg2[2], bg_source)
-		mod.clean_up()
+		mod.release()
 		context.add_extra_image(image)
 		context.add_extra_image(bg_image)
 		context.add_extra_image(result)
@@ -66,7 +66,7 @@ def process_bmab_relight(context, image, bg_image, prompt, blending, bg_source, 
 	result = mod.process_relight(input_fg, input_bg, prompt, image.width, image.height, 1, seed, 20,
 		'best quality', 'lowres, bad anatomy, bad hands, cropped, worst quality',
 		arg1[0], arg1[1], arg1[2], 'Use Background Image')
-	mod.clean_up()
+	mod.release()
 	return result
 
 
@@ -153,3 +153,5 @@ def bmab_relight(context, process_type, image, bg_image, prompt, blending, bg_so
 		return process_bmab_relight(context, image, bg_image, prompt, blending, bg_source, (7, 1.0, 0.4))
 
 
+def release():
+	pass

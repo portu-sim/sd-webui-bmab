@@ -7,12 +7,12 @@ from modules import shared
 from modules import devices
 
 from sd_bmab import detectors
+from sd_bmab import external
 from sd_bmab.base import process_img2img, Context, ProcessorBase, VAEMethodOverride, process_img2img_with_controlnet
 
 from sd_bmab.util import debug_print
 
 from sd_bmab import util
-from sd_bmab.base import exmodels
 
 
 class Obj(object):
@@ -157,9 +157,8 @@ def get_subframe(context, pilimg, dilation, box_threshold=0.30, text_threshold=0
 	debug_print('threshold', box_threshold)
 
 	if shared.opts.bmab_use_dino_predict:
-		dino = exmodels.get_external_model('grdino')
-		boxes, logits, phrases = dino.dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
-		dino.release()
+		with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+			boxes, logits, phrases = dino.dino_predict(pilimg, text_prompt, box_threshold, text_threshold)
 	else:
 		boxes, logits, phrases = ultralytics_predict(context, pilimg, box_threshold, text_threshold)
 
@@ -272,9 +271,8 @@ class HandDetailer(ProcessorBase):
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')
 			if shared.opts.bmab_use_dino_predict:
-				dino = exmodels.get_external_model('grdino')
-				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
-				dino.release()
+				with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+					boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
 			else:
 				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
 			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
@@ -291,9 +289,8 @@ class HandDetailer(ProcessorBase):
 			mask = Image.new('L', image.size, 0)
 			dr = ImageDraw.Draw(mask, 'L')
 			if shared.opts.bmab_use_dino_predict:
-				dino = exmodels.get_external_model('grdino')
-				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
-				dino.release()
+				with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+					boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
 			else:
 				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
 			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):
@@ -307,9 +304,8 @@ class HandDetailer(ProcessorBase):
 				image = process_img2img(context, image, options=options)
 		elif self.detailing_method == 'each hand' or self.detailing_method == 'inpaint each hand':
 			if shared.opts.bmab_use_dino_predict:
-				dino = exmodels.get_external_model('grdino')
-				boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
-				dino.release()
+				with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+					boxes, logits, phrases = dino.dino_predict(image, 'person . hand', self.box_threshold, 0.3)
 			else:
 				boxes, logits, phrases = ultralytics_predict(context, image, self.box_threshold, 0.3)
 			for idx, (box, logit, phrase) in enumerate(zip(boxes, logits, phrases)):

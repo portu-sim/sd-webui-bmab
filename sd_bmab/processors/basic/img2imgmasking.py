@@ -4,9 +4,9 @@ from modules import devices
 from modules.processing import StableDiffusionProcessingImg2Img
 
 from sd_bmab import masking
+from sd_bmab import external
 from sd_bmab.base.context import Context
 from sd_bmab.base.processorbase import ProcessorBase
-from sd_bmab.base import exmodels
 
 
 class Img2imgMasking(ProcessorBase):
@@ -23,8 +23,8 @@ class Img2imgMasking(ProcessorBase):
 		return not context.is_txtimg() and self.enabled
 
 	def sam(self, context, prompt, input_image):
-		dino = exmodels.get_external_model('grdino')
-		boxes, logits, phrases = dino.dino_predict(input_image, prompt, 0.35, 0.25)
+		with external.ModuleAutoLoader('groundingdino', 'grdino') as dino:
+			boxes, logits, phrases = dino.dino_predict(input_image, prompt, 0.35, 0.25)
 		sam = masking.get_mask_generator()
 		mask = sam.predict(input_image, boxes)
 		return mask
