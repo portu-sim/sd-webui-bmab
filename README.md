@@ -18,6 +18,16 @@ You can see more image. https://www.facebook.com/profile.php?id=61553793992101
 <table>
     <tr>
         <td colspan="2">
+            <img src="https://i.ibb.co/rH9Wxj3/00065-3744566961.jpg">
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            Person, Face Detailing, cnNoise(0.4, 0, 0.4), cnPose(1, 0, 1), cnIpAdapter(0.6, 0, 0.3), Custom Filter,
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
             <img src="https://i.ibb.co/LNfGT3X/00129-1720370296.jpg">
         </td>
     </tr>
