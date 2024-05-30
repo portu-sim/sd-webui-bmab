@@ -44,7 +44,8 @@ class ResizeIntermidiate(ProcessorBase):
 	@staticmethod
 	def get_inpaint_lama_args(image, mask, module):
 		cn_args = {
-			'input_image': util.b64_encoding(image),
+			'enabled': True,
+			'image': util.b64_encoding(image),
 			'mask': util.b64_encoding(mask),
 			'module': module,
 			'model': shared.opts.bmab_cn_inpaint,
