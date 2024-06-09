@@ -10,6 +10,7 @@ If necessary, you can find and redraw people, faces, and hands, or perform funct
 You can composite two images or perform the Upscale function.
 
 <a href="./docs/kr/manual.md">Manual (KR)</a>
+<a href="./docs/br/manual.md">Manual (pt-BR)</a>
 
 You can see more image. https://www.facebook.com/profile.php?id=61553793992101
 
