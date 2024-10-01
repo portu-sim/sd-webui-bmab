@@ -550,6 +550,8 @@ def create_ui(bscript, is_img2img):
 					with gr.Row():
 						with gr.Column(min_width=100):
 							fonts = Watermark.list_fonts()
+							if len(fonts) == 0:
+								fonts = ['']
 							elem += gr.Dropdown(label='Watermark Font', visible=True, value=fonts[0], choices=fonts)
 							align = [x for x in Watermark.alignment.keys()]
 							elem += gr.Dropdown(label='Watermark Alignment', visible=True, value=align[5], choices=align)
