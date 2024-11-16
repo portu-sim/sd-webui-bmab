@@ -78,10 +78,11 @@ class BmabExtScript(scripts.Script):
 		if shared.state.interrupted or shared.state.skipped:
 			return
 
-		p.context.index = self.index
-		with controlnet.PreventControlNet(p.context, cn_enabled=post.is_controlnet_required(p.context)):
-			pp.image = post.process(p.context, pp.image)
-			ui.final_images.append(pp.image)
+		if hasattr(p, 'context') and p.context is not None:
+			p.context.index = self.index
+			with controlnet.PreventControlNet(p.context, cn_enabled=post.is_controlnet_required(p.context)):
+				pp.image = post.process(p.context, pp.image)
+				ui.final_images.append(pp.image)
 		self.index += 1
 		if self.stop_generation:
 			shared.state.interrupted = True

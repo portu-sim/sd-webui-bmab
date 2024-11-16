@@ -334,9 +334,13 @@ def lazy_loader(filename):
 		'ControlNetLama.pth': 'https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetLama.pth',
 	}
 
-	if filename in targets and filename not in files:
+	file = os.path.join(bmab_model_path, filename)
+	if os.path.exists(file):
+		return file
+
+	if filename in targets:
 		load_file_from_url(targets[filename], bmab_model_path)
-	return os.path.join(bmab_model_path, filename)
+	return file
 
 
 def check_models():
