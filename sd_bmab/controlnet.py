@@ -129,8 +129,9 @@ def update_controlnet_args(p):
 	for idx, obj in enumerate(p.script_args):
 		if 'controlnet' in obj.__class__.__name__.lower():
 			cn_arg_index.append(idx)
-	global controlnet_args
-	controlnet_args = (cn_arg_index[0], cn_arg_index[-1])
+	if cn_arg_index:
+		global controlnet_args
+		controlnet_args = (cn_arg_index[0], cn_arg_index[-1])
 
 
 def get_controlnet_index(p):
